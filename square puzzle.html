@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symbol Sum Puzzle</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg1: #eef4ff;
+      --bg2: #f8fbff;
+      --card: rgba(255,255,255,0.82);
+      --line: #d7e1f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --dark: #0f172a;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --good: #15803d;
+      --bad: #dc2626;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, #dbeafe 0%, transparent 35%),
+        radial-gradient(circle at bottom right, #e9d5ff 0%, transparent 28%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      letter-spacing: -0.03em;
+    }
+
+    .tiny {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.76);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .range-box {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: end;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--line);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .field input {
+      width: 88px;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    button {
+      border: none;
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-size: 0.96rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: white;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+    }
+
+    .secondary {
+      background: white;
+      color: var(--dark);
+      border: 1px solid var(--line);
+    }
+
+    .grid-area {
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .puzzle-grid {
+      display: inline-grid;
+      grid-template-columns: repeat(4, 86px) 96px;
+      gap: 10px;
+      padding: 16px;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(255,255,255,0.7);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .cell, .sum, .corner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 86px;
+      border-radius: 22px;
+      font-weight: 800;
+    }
+
+    .cell {
+      background: linear-gradient(180deg, #ffffff, #f8fbff);
+      border: 1px solid #dbe4f2;
+      font-size: 2.5rem;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .sum {
+      background: linear-gradient(180deg, #0f172a, #1e293b);
+      color: white;
+      font-size: 1.35rem;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.22);
+    }
+
+    .col-sum {
+      background: linear-gradient(180deg, #e0efff, #dbeafe);
+      color: #0f172a;
+      box-shadow: none;
+    }
+
+    .corner {
+      background: rgba(255,255,255,0.7);
+      color: var(--muted);
+      border: 2px dashed #cbd5e1;
+      font-size: 0.92rem;
+    }
+
+    .panel h2 {
+      margin: 0 0 4px;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .panel .subtle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .answer-row {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.78);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .answer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .symbol-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+    }
+
+    .big-symbol {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .status {
+      font-size: 1.15rem;
+      font-weight: 800;
+      width: 24px;
+      text-align: center;
+    }
+
+    .ok { color: var(--good); }
+    .bad { color: var(--bad); }
+    .muted { color: #94a3b8; }
+
+    .answer-text {
+      margin-top: 8px;
+      font-size: 0.92rem;
+      color: var(--muted);
+      display: none;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .progress-box {
+      background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.68));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .progress-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .progress-number {
+      font-size: 1.75rem;
+      font-weight: 900;
+      margin-top: 6px;
+      letter-spacing: -0.03em;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 920px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: 22px;
+      }
+
+      .hero {
+        flex-direction: column;
+      }
+
+      .puzzle-grid {
+        grid-template-columns: repeat(4, 72px) 82px;
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .cell, .sum, .corner {
+        height: 72px;
+        border-radius: 18px;
+      }
+
+      .cell {
+        font-size: 2rem;
+      }
+
+      .sum {
+        font-size: 1.1rem;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="layout">
+      <div class="card">
+        <div class="hero">
+          <div>
+            <h1>Symbol Puzzle</h1>
+            <div class="tiny">Find the value of each symbol.</div>
+          </div>
+        </div>
+
+        <div class="pill-row">
+          <div class="pill">4 × 4 grid</div>
+          <div class="pill">1 hidden sum</div>
+          <div class="pill" id="rangeDisplay">Range 0 to 40</div>
+        </div>
+
+        <div class="toolbar">
+          <div class="range-box">
+            <div class="field">
+              <label for="minValue">Min</label>
+              <input id="minValue" type="number" value="0" />
+            </div>
+            <div class="field">
+              <label for="maxValue">Max</label>
+              <input id="maxValue" type="number" value="40" />
+            </div>
+          </div>
+          <button class="primary" onclick="newPuzzle()">New Puzzle</button>
+          <button class="secondary" onclick="toggleAnswers()">Answers</button>
+        </div>
+
+        <div class="grid-area">
+          <div id="puzzleGrid" class="puzzle-grid"></div>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <h2>Answers</h2>
+        <p class="subtle">Enter the numbers.</p>
+        <div id="answers"></div>
+
+        <div class="stats">
+          <div class="progress-box">
+            <div class="progress-label">Correct</div>
+            <div class="progress-number" id="correctCount">0 / 4</div>
+          </div>
+          <div class="progress-box">
+            <div class="progress-label">Missing sum</div>
+            <div class="progress-number" id="missingStatus">Pending</div>
+          </div>
+        </div>
+
+        <div class="footer-note">Change the range, then create a new puzzle.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SYMBOLS = [
+      { key: 'diamond', char: '◆', name: 'Diamond' },
+      { key: 'circle', char: '●', name: 'Circle' },
+      { key: 'triangle', char: '▲', name: 'Triangle' },
+      { key: 'square', char: '■', name: 'Square' }
+    ];
+
+    let showAnswers = false;
+    let puzzle = null;
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function uniqueRandomValues(count, min, max) {
+      const set = new Set();
+      let guard = 0;
+      while (set.size < count && guard < 5000) {
+        set.add(randInt(min, max));
+        guard++;
+      }
+      if (set.size < count) {
+        const values = [];
+        for (let i = 0; i < count; i++) values.push(min + i);
+        return values;
+      }
+      return shuffle(Array.from(set));
+    }
+
+    function rowCounts(grid, rowIndex) {
+      const counts = [0, 0, 0, 0];
+      for (let c = 0; c < 4; c++) counts[grid[rowIndex][c]]++;
+      return counts;
+    }
+
+    function colCounts(grid, colIndex) {
+      const counts = [0, 0, 0, 0];
+      for (let r = 0; r < 4; r++) counts[grid[r][colIndex]]++;
+      return counts;
+    }
+
+    function matrixRank(matrix) {
+      const m = matrix.map(row => row.map(Number));
+      const rows = m.length;
+      const cols = m[0] ? m[0].length : 0;
+      const EPS = 1e-9;
+      let rank = 0;
+      let currentRow = 0;
+
+      for (let col = 0; col < cols && currentRow < rows; col++) {
+        let pivot = currentRow;
+        for (let r = currentRow + 1; r < rows; r++) {
+          if (Math.abs(m[r][col]) > Math.abs(m[pivot][col])) pivot = r;
+        }
+        if (Math.abs(m[pivot][col]) < EPS) continue;
+
+        [m[currentRow], m[pivot]] = [m[pivot], m[currentRow]];
+        const pivotVal = m[currentRow][col];
+        for (let c = col; c < cols; c++) m[currentRow][c] /= pivotVal;
+
+        for (let r = 0; r < rows; r++) {
+          if (r === currentRow) continue;
+          const factor = m[r][col];
+          if (Math.abs(factor) < EPS) continue;
+          for (let c = col; c < cols; c++) {
+            m[r][c] -= factor * m[currentRow][c];
+          }
+        }
+
+        rank++;
+        currentRow++;
+      }
+      return rank;
+    }
+
+    function pickVisibleEquations(grid) {
+      const equations = [];
+      for (let r = 0; r < 4; r++) equations.push({ type: 'row', index: r, vector: rowCounts(grid, r) });
+      for (let c = 0; c < 4; c++) equations.push({ type: 'col', index: c, vector: colCounts(grid, c) });
+
+      const validHiddenChoices = equations.filter((eq, hiddenIdx) => {
+        const visibleVectors = equations.filter((_, idx) => idx !== hiddenIdx).map(item => item.vector);
+        return matrixRank(visibleVectors) === 4;
+      });
+
+      if (!validHiddenChoices.length) return null;
+      return validHiddenChoices[randInt(0, validHiddenChoices.length - 1)];
+    }
+
+    function generateGrid() {
+      for (let attempt = 0; attempt < 400; attempt++) {
+        const base = [0, 0, 1, 1, 2, 2, 3, 3];
+        while (base.length < 16) base.push(randInt(0, 3));
+        const shuffled = shuffle(base);
+        const grid = [];
+        for (let r = 0; r < 4; r++) grid.push(shuffled.slice(r * 4, r * 4 + 4));
+
+        if (new Set(shuffled).size !== 4) continue;
+
+        const hiddenEquation = pickVisibleEquations(grid);
+        if (!hiddenEquation) continue;
+
+        return { grid, hiddenEquation };
+      }
+
+      return {
+        grid: [
+          [0, 1, 2, 3],
+          [1, 2, 3, 0],
+          [2, 3, 0, 1],
+          [3, 0, 1, 2]
+        ],
+        hiddenEquation: { type: 'row', index: 2 }
+      };
+    }
+
+    function getRange() {
+      let min = Number(document.getElementById('minValue').value);
+      let max = Number(document.getElementById('maxValue').value);
+
+      if (!Number.isFinite(min)) min = 0;
+      if (!Number.isFinite(max)) max = 40;
+      if (min > max) [min, max] = [max, min];
+
+      if (max - min < 3) {
+        max = min + 3;
+        document.getElementById('maxValue').value = max;
+      }
+
+      document.getElementById('minValue').value = min;
+      document.getElementById('maxValue').value = max;
+      document.getElementById('rangeDisplay').textContent = 'Range ' + min + ' to ' + max;
+
+      return { min, max };
+    }
+
+    function makePuzzle() {
+      const range = getRange();
+      const values = uniqueRandomValues(4, range.min, range.max);
+      const valueMap = {
+        diamond: values[0],
+        circle: values[1],
+        triangle: values[2],
+        square: values[3]
+      };
+
+      const generated = generateGrid();
+      const grid = generated.grid;
+      const hiddenEquation = generated.hiddenEquation;
+
+      const rowSums = grid.map(row => row.reduce((sum, symbolIndex) => sum + values[symbolIndex], 0));
+      const colSums = Array.from({ length: 4 }, (_, c) =>
+        grid.reduce((sum, row) => sum + values[row[c]], 0)
+      );
+
+      const hiddenKey = hiddenEquation.type + '-' + hiddenEquation.index;
+      const hiddenAnswer = hiddenEquation.type === 'row'
+        ? rowSums[hiddenEquation.index]
+        : colSums[hiddenEquation.index];
+
+      return {
+        grid,
+        valueMap,
+        rowSums,
+        colSums,
+        hiddenKey,
+        hiddenAnswer
+      };
+    }
+
+    function totalForDisplay(type, index) {
+      const key = type + '-' + index;
+      if (key === puzzle.hiddenKey) return '?';
+      return type === 'row' ? puzzle.rowSums[index] : puzzle.colSums[index];
+    }
+
+    function buildGrid() {
+      const gridEl = document.getElementById('puzzleGrid');
+      gridEl.innerHTML = '';
+
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const symbol = SYMBOLS[puzzle.grid[r][c]];
+          const div = document.createElement('div');
+          div.className = 'cell';
+          div.textContent = symbol.char;
+          gridEl.appendChild(div);
+        }
+        const rowSum = document.createElement('div');
+        rowSum.className = 'sum';
+        rowSum.textContent = totalForDisplay('row', r);
+        gridEl.appendChild(rowSum);
+      }
+
+      for (let c = 0; c < 4; c++) {
+        const colSum = document.createElement('div');
+        colSum.className = 'sum col-sum';
+        colSum.textContent = totalForDisplay('col', c);
+        gridEl.appendChild(colSum);
+      }
+
+      const corner = document.createElement('div');
+      corner.className = 'corner';
+      corner.textContent = 'sum';
+      gridEl.appendChild(corner);
+    }
+
+    function buildAnswers() {
+      const answersEl = document.getElementById('answers');
+      answersEl.innerHTML = '';
+
+      SYMBOLS.forEach(symbol => {
+        const row = document.createElement('div');
+        row.className = 'answer-row';
+        row.innerHTML = `
+          <div class="answer-top">
+            <div class="symbol-label">
+              <span class="big-symbol">${symbol.char}</span>
+              <span>${symbol.name}</span>
+            </div>
+            <span id="status-${symbol.key}" class="status muted">•</span>
+          </div>
+          <input type="number" id="input-${symbol.key}" placeholder="Value" />
+          <div class="answer-text" id="answer-${symbol.key}">Answer: ${puzzle.valueMap[symbol.key]}</div>
+        `;
+        answersEl.appendChild(row);
+      });
+
+      const missing = document.createElement('div');
+      missing.className = 'answer-row';
+      missing.innerHTML = `
+        <div class="answer-top">
+          <div class="symbol-label">
+            <span>?</span>
+            <span>Missing sum</span>
+          </div>
+          <span id="status-missing" class="status muted">•</span>
+        </div>
+        <input type="number" id="input-missing" placeholder="Total" />
+        <div class="answer-text" id="answer-missing">Answer: ${puzzle.hiddenAnswer}</div>
+      `;
+      answersEl.appendChild(missing);
+
+      SYMBOLS.forEach(symbol => {
+        document.getElementById('input-' + symbol.key).addEventListener('input', checkAnswers);
+      });
+      document.getElementById('input-missing').addEventListener('input', checkAnswers);
+
+      refreshAnswerVisibility();
+      checkAnswers();
+    }
+
+    function refreshAnswerVisibility() {
+      document.querySelectorAll('.answer-text').forEach(el => {
+        el.style.display = showAnswers ? 'block' : 'none';
+      });
+    }
+
+    function markStatus(el, state) {
+      el.className = 'status';
+      if (state === 'ok') {
+        el.classList.add('ok');
+        el.textContent = '✓';
+      } else if (state === 'bad') {
+        el.classList.add('bad');
+        el.textContent = '✗';
+      } else {
+        el.classList.add('muted');
+        el.textContent = '•';
+      }
+    }
+
+    function checkAnswers() {
+      let correct = 0;
+
+      SYMBOLS.forEach(symbol => {
+        const input = document.getElementById('input-' + symbol.key).value;
+        const status = document.getElementById('status-' + symbol.key);
+        if (input === '') {
+          markStatus(status, 'pending');
+          return;
+        }
+        if (Number(input) === puzzle.valueMap[symbol.key]) {
+          correct++;
+          markStatus(status, 'ok');
+        } else {
+          markStatus(status, 'bad');
+        }
+      });
+
+      document.getElementById('correctCount').textContent = correct + ' / 4';
+
+      const missingInput = document.getElementById('input-missing').value;
+      const missingStatus = document.getElementById('status-missing');
+      const missingBox = document.getElementById('missingStatus');
+
+      if (missingInput === '') {
+        markStatus(missingStatus, 'pending');
+        missingBox.textContent = 'Pending';
+      } else if (Number(missingInput) === puzzle.hiddenAnswer) {
+        markStatus(missingStatus, 'ok');
+        missingBox.textContent = 'Correct';
+      } else {
+        markStatus(missingStatus, 'bad');
+        missingBox.textContent = 'Try again';
+      }
+    }
+
+    function newPuzzle() {
+      puzzle = makePuzzle();
+      buildGrid();
+      buildAnswers();
+    }
+
+    function toggleAnswers() {
+      showAnswers = !showAnswers;
+      refreshAnswerVisibility();
+    }
+
+    document.getElementById('minValue').addEventListener('change', getRange);
+    document.getElementById('maxValue').addEventListener('change', getRange);
+
+    newPuzzle();
+  </script>
+</body>
+</html>
