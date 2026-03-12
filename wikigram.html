@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Article Anagrams</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-2: #38bdf8;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      line-height: 1.05;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 820px;
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 18px 0 24px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.16s ease, opacity 0.16s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: 0.6; cursor: wait; transform: none; }
+
+    .primary { background: var(--accent); color: #052e16; }
+    .secondary { background: var(--accent-2); color: #082f49; }
+
+    .status {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.22);
+      color: #cbd5e1;
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin-bottom: 22px;
+      min-height: 48px;
+    }
+
+    .story-card {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      margin-bottom: 24px;
+    }
+
+    .story-text {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .story-title {
+      margin: 0;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      line-height: 1.2;
+    }
+
+    .story-meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .story-body {
+      color: var(--text);
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+
+    .story-link {
+      display: inline-block;
+      width: fit-content;
+      color: #7dd3fc;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .story-link:hover {
+      text-decoration: underline;
+    }
+
+    .story-image-wrap {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .story-image {
+      width: 100%;
+      max-height: 360px;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .image-placeholder {
+      width: 100%;
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      text-align: center;
+      padding: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      display: grid;
+      gap: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: rgba(34, 197, 94, 0.12);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .anagram {
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      letter-spacing: 0.22rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      min-height: 56px;
+      word-break: break-word;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+      min-height: 72px;
+    }
+
+    .answer {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fde68a;
+      min-height: 24px;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    code {
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .story-card,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="pill">Reading + vocabulary challenge</div>
+      <h1>Article Anagrams</h1>
+      <p class="sub">
+        Read the article, look at the image, then solve one 5-letter, one 6-letter,
+        and one 7-letter anagram. All three answers come from the same article.
+      </p>
+    </section>
+
+    <div class="toolbar">
+      <button id="newPuzzleBtn" class="primary">Generate New Puzzle</button>
+      <button id="revealAllBtn" class="secondary">Reveal All</button>
+    </div>
+
+    <div id="status" class="status">Loading an article and building your first puzzle...</div>
+
+    <section id="storyCard" class="story-card" hidden>
+      <div class="story-text">
+        <div class="pill">Read this article first</div>
+        <h2 id="storyTitle" class="story-title"></h2>
+        <div id="storyMeta" class="story-meta"></div>
+        <div id="storyBody" class="story-body"></div>
+        <a id="storyLink" class="story-link" href="#" target="_blank" rel="noopener noreferrer">Open full article</a>
+      </div>
+
+      <div class="story-image-wrap" id="storyImageWrap"></div>
+    </section>
+
+    <section id="cards" class="grid"></section>
+
+    <section class="footer">
+      This version uses one article at a time, keeps the reading length manageable,
+      and shows the main image when available.
+    </section>
+  </div>
+
+  <script>
+    const TARGET_LENGTHS = [5, 6, 7];
+
+    const COMMON_WORDS = new Set([
+      'about','after','again','against','among','because','before','being','below','between','could','first','found','great','group','house','local','might','never','other','people','place','right','small','sound','still','their','there','these','thing','think','those','three','today','under','using','where','which','while','would','years',
+      'across','around','become','behind','better','called','change','cities','coming','during','enough','family','former','global','having','however','inside','little','making','member','number','public','really','school','second','should','social','system','taking','within','without',
+      'another','country','current','despite','general','himself','hundred','nothing','outside','several','through','whether'
+    ]);
+
+    const statusEl = document.getElementById('status');
+    const cardsEl = document.getElementById('cards');
+    const newPuzzleBtn = document.getElementById('newPuzzleBtn');
+    const revealAllBtn = document.getElementById('revealAllBtn');
+
+    const storyCardEl = document.getElementById('storyCard');
+    const storyTitleEl = document.getElementById('storyTitle');
+    const storyMetaEl = document.getElementById('storyMeta');
+    const storyBodyEl = document.getElementById('storyBody');
+    const storyLinkEl = document.getElementById('storyLink');
+    const storyImageWrapEl = document.getElementById('storyImageWrap');
+
+    let currentPuzzle = [];
+    let currentArticle = null;
+
+    newPuzzleBtn.addEventListener('click', buildPuzzle);
+    revealAllBtn.addEventListener('click', revealAll);
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function scrambleWord(word) {
+      const chars = word.toUpperCase().split('');
+      let scrambled = word.toUpperCase();
+      let tries = 0;
+
+      while (scrambled === word.toUpperCase() && tries < 20) {
+        scrambled = shuffleArray(chars).join('');
+        tries += 1;
+      }
+
+      return scrambled;
+    }
+
+    function tokenise(text) {
+      return (text || '')
+        .toLowerCase()
+        .replace(/[^a-z\s-]/g, ' ')
+        .split(/\s+/)
+        .map(word => word.replace(/[^a-z]/g, ''))
+        .filter(Boolean);
+    }
+
+    function isGoodWord(word) {
+      if (!/^[a-z]+$/.test(word)) return false;
+      if (!TARGET_LENGTHS.includes(word.length)) return false;
+      if (COMMON_WORDS.has(word)) return false;
+      if (/(.)\1\1/.test(word)) return false;
+      return true;
+    }
+
+    async function fetchRandomArticle() {
+      const res = await fetch('https://en.wikipedia.org/api/rest_v1/page/random/summary', {
+        cache: 'no-store'
+      });
+
+      if (!res.ok) {
+        throw new Error('Could not load a random article.');
+      }
+
+      const data = await res.json();
+
+      return {
+        title: data.title || 'Untitled article',
+        text: data.extract || '',
+        url: data.content_urls?.desktop?.page || '',
+        image: data.originalimage?.source || data.thumbnail?.source || '',
+        description: data.description || ''
+      };
+    }
+
+    function buildPuzzleFromArticle(article) {
+      const words = shuffleArray(tokenise(`${article.title} ${article.text}`));
+      const selected = {};
+      const seen = new Set();
+
+      for (const word of words) {
+        if (!isGoodWord(word)) continue;
+        if (seen.has(word)) continue;
+        if (selected[word.length]) continue;
+
+        selected[word.length] = {
+          word,
+          scrambled: scrambleWord(word)
+        };
+
+        seen.add(word);
+      }
+
+      if (!selected[5] || !selected[6] || !selected[7]) {
+        return null;
+      }
+
+      return [selected[5], selected[6], selected[7]];
+    }
+
+    async function getUsableArticle(maxTries = 12) {
+      for (let i = 0; i < maxTries; i++) {
+        const article = await fetchRandomArticle();
+
+        if (!article.text || article.text.length < 180) continue;
+
+        const puzzle = buildPuzzleFromArticle(article);
+        if (puzzle) {
+          return { article, puzzle };
+        }
+      }
+
+      throw new Error('Could not find a suitable article after several tries.');
+    }
+
+    function renderArticle(article) {
+      currentArticle = article;
+      storyTitleEl.textContent = article.title;
+
+      storyMetaEl.innerHTML = `
+        <strong>Topic:</strong> ${article.description || 'General article'}<br>
+        <strong>Instruction:</strong> Read the article and use it to solve the three anagrams.
+      `;
+
+      storyBodyEl.textContent = article.text;
+      storyLinkEl.href = article.url || '#';
+      storyLinkEl.style.display = article.url ? 'inline-block' : 'none';
+
+      if (article.image) {
+        storyImageWrapEl.innerHTML = `
+          <img class="story-image" src="${article.image}" alt="${article.title}">
+        `;
+      } else {
+        storyImageWrapEl.innerHTML = `
+          <div class="image-placeholder">No main image available for this article.</div>
+        `;
+      }
+
+      storyCardEl.hidden = false;
+    }
+
+    function renderPuzzle(puzzle) {
+      cardsEl.innerHTML = '';
+
+      puzzle.forEach((entry, index) => {
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="pill">${entry.word.length}-letter word</div>
+          <div class="anagram">${entry.scrambled}</div>
+          <div class="meta">This word appears in the article above.</div>
+          <div class="answer" id="answer-${index}">Answer hidden</div>
+          <button class="secondary" data-index="${index}">Reveal</button>
+        `;
+        cardsEl.appendChild(card);
+      });
+
+      cardsEl.querySelectorAll('button[data-index]').forEach(button => {
+        button.addEventListener('click', () => {
+          const index = Number(button.dataset.index);
+          const answerEl = document.getElementById(`answer-${index}`);
+          const item = currentPuzzle[index];
+
+          answerEl.textContent = `Answer: ${item.word.toUpperCase()}`;
+          button.textContent = 'Revealed';
+          button.disabled = true;
+        });
+      });
+    }
+
+    function revealAll() {
+      currentPuzzle.forEach((item, index) => {
+        const answerEl = document.getElementById(`answer-${index}`);
+        const button = cardsEl.querySelector(`button[data-index="${index}"]`);
+
+        if (answerEl) {
+          answerEl.textContent = `Answer: ${item.word.toUpperCase()}`;
+        }
+
+        if (button) {
+          button.textContent = 'Revealed';
+          button.disabled = true;
+        }
+      });
+    }
+
+    async function buildPuzzle() {
+      newPuzzleBtn.disabled = true;
+      revealAllBtn.disabled = true;
+      cardsEl.innerHTML = '';
+      storyCardEl.hidden = true;
+      statusEl.textContent = 'Finding a good article and building anagrams...';
+
+      try {
+        const { article, puzzle } = await getUsableArticle();
+
+        currentPuzzle = puzzle;
+        renderArticle(article);
+        renderPuzzle(puzzle);
+
+        statusEl.textContent = 'New article loaded. Read it first, then solve the anagrams.';
+      } catch (error) {
+        statusEl.textContent = `Could not build the puzzle: ${error.message}`;
+      } finally {
+        newPuzzleBtn.disabled = false;
+        revealAllBtn.disabled = false;
+      }
+    }
+
+    buildPuzzle();
+  </script>
+</body>
+</html>
