@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rock Paper Scissors</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #eef6ff, #dfefff);
+      color: #122033;
+    }
+    .card {
+      width: min(92vw, 620px);
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2.2rem;
+    }
+    .sub {
+      margin: 0 0 24px;
+      color: #5a6b80;
+    }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    button {
+      border: none;
+      border-radius: 18px;
+      padding: 18px 14px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #e8f1ff;
+      color: #122033;
+      transition: transform 0.12s ease, background 0.12s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      background: #d8e8ff;
+    }
+    .result {
+      background: #f6f9ff;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+      line-height: 1.7;
+      min-height: 128px;
+    }
+    .big {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 18px 0 8px;
+    }
+    .score {
+      background: #f6f9ff;
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .score .label {
+      color: #5a6b80;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+    .score .value {
+      font-size: 1.7rem;
+      font-weight: 800;
+    }
+    .reset {
+      margin-top: 18px;
+      background: #122033;
+      color: white;
+      padding: 14px 20px;
+    }
+    .reset:hover {
+      background: #1b2c44;
+    }
+    @media (max-width: 560px) {
+      .choices, .scoreboard {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Rock Paper Scissors</h1>
+    <p class="sub">Pick one to play against the computer.</p>
+
+    <div class="choices">
+      <button onclick="play('rock')">🪨 Rock</button>
+      <button onclick="play('paper')">📄 Paper</button>
+      <button onclick="play('scissors')">✂️ Scissors</button>
+    </div>
+
+    <div class="result" id="resultBox">
+      <div class="big">Make your move</div>
+      <div>You: —</div>
+      <div>Computer: —</div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score">
+        <div class="label">You</div>
+        <div class="value" id="playerScore">0</div>
+      </div>
+      <div class="score">
+        <div class="label">Computer</div>
+        <div class="value" id="computerScore">0</div>
+      </div>
+      <div class="score">
+        <div class="label">Draws</div>
+        <div class="value" id="drawScore">0</div>
+      </div>
+    </div>
+
+    <button class="reset" onclick="resetGame()">Reset Score</button>
+  </div>
+
+  <script>
+    let playerScore = 0;
+    let computerScore = 0;
+    let drawScore = 0;
+
+    const emojis = {
+      rock: '🪨 Rock',
+      paper: '📄 Paper',
+      scissors: '✂️ Scissors'
+    };
+
+    function getComputerChoice() {
+      const choices = ['rock', 'paper', 'scissors'];
+      return choices[Math.floor(Math.random() * choices.length)];
+    }
+
+    function getWinner(player, computer) {
+      if (player === computer) return 'draw';
+      if (
+        (player === 'rock' && computer === 'scissors') ||
+        (player === 'paper' && computer === 'rock') ||
+        (player === 'scissors' && computer === 'paper')
+      ) {
+        return 'player';
+      }
+      return 'computer';
+    }
+
+    function play(playerChoice) {
+      const computerChoice = getComputerChoice();
+      const winner = getWinner(playerChoice, computerChoice);
+
+      let message = '';
+      if (winner === 'player') {
+        playerScore++;
+        message = 'You win!';
+      } else if (winner === 'computer') {
+        computerScore++;
+        message = 'Computer wins!';
+      } else {
+        drawScore++;
+        message = 'It\'s a draw!';
+      }
+
+      document.getElementById('resultBox').innerHTML = `
+        <div class="big">${message}</div>
+        <div>You: ${emojis[playerChoice]}</div>
+        <div>Computer: ${emojis[computerChoice]}</div>
+      `;
+
+      updateScore();
+    }
+
+    function updateScore() {
+      document.getElementById('playerScore').textContent = playerScore;
+      document.getElementById('computerScore').textContent = computerScore;
+      document.getElementById('drawScore').textContent = drawScore;
+    }
+
+    function resetGame() {
+      playerScore = 0;
+      computerScore = 0;
+      drawScore = 0;
+      updateScore();
+      document.getElementById('resultBox').innerHTML = `
+        <div class="big">Make your move</div>
+        <div>You: —</div>
+        <div>Computer: —</div>
+      `;
+    }
+  </script>
+</body>
+</html>
