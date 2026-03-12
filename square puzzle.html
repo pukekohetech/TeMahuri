@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Symbol Sum Puzzle</title>
+  <title>Emoji Sum Puzzle</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -16,7 +16,6 @@
       --muted: #64748b;
       --dark: #0f172a;
       --accent: #2563eb;
-      --accent-soft: #dbeafe;
       --good: #15803d;
       --bad: #dc2626;
     }
@@ -366,8 +365,8 @@
       <div class="card">
         <div class="hero">
           <div>
-            <h1>Symbol Puzzle</h1>
-            <div class="tiny">Find the value of each symbol.</div>
+            <h1>Emoji Puzzle</h1>
+            <div class="tiny">Find the value of each emoji.</div>
           </div>
         </div>
 
@@ -419,15 +418,97 @@
   </div>
 
   <script>
-    const SYMBOLS = [
-      { key: 'diamond', char: '◆', name: 'Diamond' },
-      { key: 'circle', char: '●', name: 'Circle' },
-      { key: 'triangle', char: '▲', name: 'Triangle' },
-      { key: 'square', char: '■', name: 'Square' }
+    const SLOT_KEYS = ['s1', 's2', 's3', 's4'];
+
+    const EMOJI_POOL = [
+      { char: '🍎', name: 'Apple' },
+      { char: '🍕', name: 'Pizza' },
+      { char: '⚽', name: 'Ball' },
+      { char: '🚗', name: 'Car' },
+      { char: '🌟', name: 'Star' },
+      { char: '🎈', name: 'Balloon' },
+      { char: '🐶', name: 'Dog' },
+      { char: '🐱', name: 'Cat' },
+      { char: '🦄', name: 'Unicorn' },
+      { char: '🐸', name: 'Frog' },
+      { char: '🍩', name: 'Donut' },
+      { char: '🍓', name: 'Strawberry' },
+      { char: '🍉', name: 'Watermelon' },
+      { char: '🌈', name: 'Rainbow' },
+      { char: '🔥', name: 'Fire' },
+      { char: '❄️', name: 'Snowflake' },
+      { char: '🌻', name: 'Sunflower' },
+      { char: '🪐', name: 'Planet' },
+      { char: '🎵', name: 'Music' },
+      { char: '🎲', name: 'Dice' },
+      { char: '🧩', name: 'Puzzle' },
+      { char: '🚌', name: 'Bus' },
+      { char: '✏️', name: 'Pencil' },
+      { char: '📚', name: 'Books' },
+      { char: '🖥️', name: 'Computer' },
+      { char: '🎮', name: 'Game' },
+      { char: '🏀', name: 'Basketball' },
+      { char: '🎯', name: 'Target' },
+      { char: '🦋', name: 'Butterfly' },
+      { char: '🐝', name: 'Bee' },
+      { char: '🌙', name: 'Moon' },
+      { char: '☀️', name: 'Sun' },
+      { char: '🤖', name: 'Robot' },
+      { char: '👻', name: 'Ghost' },
+      { char: '👽', name: 'Alien' },
+      { char: '💩', name: 'Poop' },
+      { char: '🤡', name: 'Clown' },
+      { char: '👾', name: 'Arcade Alien' },
+      { char: '🥸', name: 'Disguise Face' },
+      { char: '😹', name: 'Laughing Cat' },
+      { char: '🙃', name: 'Upside Down Face' },
+      { char: '🤪', name: 'Zany Face' },
+      { char: '😜', name: 'Winky Tongue' },
+      { char: '🤯', name: 'Mind Blown' },
+      { char: '🫠', name: 'Melting Face' },
+      { char: '🥳', name: 'Party Face' },
+      { char: '😎', name: 'Cool Face' },
+      { char: '🦖', name: 'Dinosaur' },
+      { char: '🦕', name: 'Long Neck Dino' },
+      { char: '🦥', name: 'Sloth' },
+      { char: '🦩', name: 'Flamingo' },
+      { char: '🦆', name: 'Duck' },
+      { char: '🐵', name: 'Monkey' },
+      { char: '🐷', name: 'Pig' },
+      { char: '🐙', name: 'Octopus' },
+      { char: '🦀', name: 'Crab' },
+      { char: '🧠', name: 'Brain' },
+      { char: '👀', name: 'Eyes' },
+      { char: '🦴', name: 'Bone' },
+      { char: '🧻', name: 'Toilet Roll' },
+      { char: '🧦', name: 'Socks' },
+      { char: '🪥', name: 'Toothbrush' },
+      { char: '🪠', name: 'Plunger' },
+      { char: '🛸', name: 'Flying Saucer' },
+      { char: '🚀', name: 'Rocket' },
+      { char: '🛼', name: 'Roller Skate' },
+      { char: '🎩', name: 'Top Hat' },
+      { char: '🧁', name: 'Cupcake' },
+      { char: '🍔', name: 'Burger' },
+      { char: '🍟', name: 'Fries' },
+      { char: '🌮', name: 'Taco' },
+      { char: '🍣', name: 'Sushi' },
+      { char: '🧃', name: 'Juice Box' },
+      { char: '🍿', name: 'Popcorn' },
+      { char: '🥨', name: 'Pretzel' },
+      { char: '🛁', name: 'Bath' },
+      { char: '🪩', name: 'Disco Ball' },
+      { char: '🎺', name: 'Trumpet' },
+      { char: '🥁', name: 'Drum' },
+      { char: '🪄', name: 'Magic Wand' },
+      { char: '🧸', name: 'Teddy' },
+      { char: '🪅', name: 'Pinata' },
+      { char: '🎭', name: 'Masks' }
     ];
 
     let showAnswers = false;
     let puzzle = null;
+    let activeSymbols = [];
 
     function randInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -449,12 +530,24 @@
         set.add(randInt(min, max));
         guard++;
       }
+
       if (set.size < count) {
         const values = [];
         for (let i = 0; i < count; i++) values.push(min + i);
         return values;
       }
+
       return shuffle(Array.from(set));
+    }
+
+    function pickEmojiSet() {
+      return shuffle(EMOJI_POOL)
+        .slice(0, 4)
+        .map((item, index) => ({
+          key: SLOT_KEYS[index],
+          char: item.char,
+          name: item.name
+        }));
     }
 
     function rowCounts(grid, rowIndex) {
@@ -482,10 +575,12 @@
         for (let r = currentRow + 1; r < rows; r++) {
           if (Math.abs(m[r][col]) > Math.abs(m[pivot][col])) pivot = r;
         }
+
         if (Math.abs(m[pivot][col]) < EPS) continue;
 
         [m[currentRow], m[pivot]] = [m[pivot], m[currentRow]];
         const pivotVal = m[currentRow][col];
+
         for (let c = col; c < cols; c++) m[currentRow][c] /= pivotVal;
 
         for (let r = 0; r < rows; r++) {
@@ -500,16 +595,23 @@
         rank++;
         currentRow++;
       }
+
       return rank;
     }
 
     function pickVisibleEquations(grid) {
       const equations = [];
-      for (let r = 0; r < 4; r++) equations.push({ type: 'row', index: r, vector: rowCounts(grid, r) });
-      for (let c = 0; c < 4; c++) equations.push({ type: 'col', index: c, vector: colCounts(grid, c) });
+      for (let r = 0; r < 4; r++) {
+        equations.push({ type: 'row', index: r, vector: rowCounts(grid, r) });
+      }
+      for (let c = 0; c < 4; c++) {
+        equations.push({ type: 'col', index: c, vector: colCounts(grid, c) });
+      }
 
       const validHiddenChoices = equations.filter((eq, hiddenIdx) => {
-        const visibleVectors = equations.filter((_, idx) => idx !== hiddenIdx).map(item => item.vector);
+        const visibleVectors = equations
+          .filter((_, idx) => idx !== hiddenIdx)
+          .map(item => item.vector);
         return matrixRank(visibleVectors) === 4;
       });
 
@@ -522,8 +624,11 @@
         const base = [0, 0, 1, 1, 2, 2, 3, 3];
         while (base.length < 16) base.push(randInt(0, 3));
         const shuffled = shuffle(base);
+
         const grid = [];
-        for (let r = 0; r < 4; r++) grid.push(shuffled.slice(r * 4, r * 4 + 4));
+        for (let r = 0; r < 4; r++) {
+          grid.push(shuffled.slice(r * 4, r * 4 + 4));
+        }
 
         if (new Set(shuffled).size !== 4) continue;
 
@@ -566,19 +671,24 @@
 
     function makePuzzle() {
       const range = getRange();
+      activeSymbols = pickEmojiSet();
+
       const values = uniqueRandomValues(4, range.min, range.max);
       const valueMap = {
-        diamond: values[0],
-        circle: values[1],
-        triangle: values[2],
-        square: values[3]
+        s1: values[0],
+        s2: values[1],
+        s3: values[2],
+        s4: values[3]
       };
 
       const generated = generateGrid();
       const grid = generated.grid;
       const hiddenEquation = generated.hiddenEquation;
 
-      const rowSums = grid.map(row => row.reduce((sum, symbolIndex) => sum + values[symbolIndex], 0));
+      const rowSums = grid.map(row =>
+        row.reduce((sum, symbolIndex) => sum + values[symbolIndex], 0)
+      );
+
       const colSums = Array.from({ length: 4 }, (_, c) =>
         grid.reduce((sum, row) => sum + values[row[c]], 0)
       );
@@ -610,12 +720,13 @@
 
       for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 4; c++) {
-          const symbol = SYMBOLS[puzzle.grid[r][c]];
+          const symbol = activeSymbols[puzzle.grid[r][c]];
           const div = document.createElement('div');
           div.className = 'cell';
           div.textContent = symbol.char;
           gridEl.appendChild(div);
         }
+
         const rowSum = document.createElement('div');
         rowSum.className = 'sum';
         rowSum.textContent = totalForDisplay('row', r);
@@ -639,7 +750,7 @@
       const answersEl = document.getElementById('answers');
       answersEl.innerHTML = '';
 
-      SYMBOLS.forEach(symbol => {
+      activeSymbols.forEach(symbol => {
         const row = document.createElement('div');
         row.className = 'answer-row';
         row.innerHTML = `
@@ -661,7 +772,7 @@
       missing.innerHTML = `
         <div class="answer-top">
           <div class="symbol-label">
-            <span>?</span>
+            <span>❓</span>
             <span>Missing sum</span>
           </div>
           <span id="status-missing" class="status muted">•</span>
@@ -671,9 +782,10 @@
       `;
       answersEl.appendChild(missing);
 
-      SYMBOLS.forEach(symbol => {
+      activeSymbols.forEach(symbol => {
         document.getElementById('input-' + symbol.key).addEventListener('input', checkAnswers);
       });
+
       document.getElementById('input-missing').addEventListener('input', checkAnswers);
 
       refreshAnswerVisibility();
@@ -703,13 +815,15 @@
     function checkAnswers() {
       let correct = 0;
 
-      SYMBOLS.forEach(symbol => {
+      activeSymbols.forEach(symbol => {
         const input = document.getElementById('input-' + symbol.key).value;
         const status = document.getElementById('status-' + symbol.key);
+
         if (input === '') {
           markStatus(status, 'pending');
           return;
         }
+
         if (Number(input) === puzzle.valueMap[symbol.key]) {
           correct++;
           markStatus(status, 'ok');
