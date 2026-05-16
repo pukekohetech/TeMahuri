@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simon Says Deluxe</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+      background: radial-gradient(circle at top, #2b1055, #000);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle, rgba(255,255,255,0.25) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: stars 12s linear infinite;
+      z-index: -1;
+    }
+
+    @keyframes stars {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(40px);
+      }
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 3rem;
+      letter-spacing: 3px;
+      text-shadow: 0 0 15px #fff, 0 0 30px #8f00ff;
+    }
+
+    #message {
+      font-size: 1.3rem;
+      min-height: 30px;
+      margin: 10px;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+    }
+
+    .game-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 15px;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(2, 170px);
+      grid-template-rows: repeat(2, 170px);
+      gap: 18px;
+      padding: 25px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      box-shadow: 0 0 40px rgba(255,255,255,0.25);
+      position: relative;
+    }
+
+    .game-board::after {
+      content: "SIMON";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: #111;
+      border: 6px solid white;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      letter-spacing: 2px;
+      box-shadow: 0 0 25px black;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .button {
+      cursor: pointer;
+      opacity: 0.75;
+      transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s;
+      border: 5px solid rgba(255,255,255,0.25);
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .button:hover {
+      opacity: 0.95;
+      transform: scale(1.03);
+    }
+
+    .number {
+      font-size: 3.2rem;
+      font-weight: bold;
+      pointer-events: none;
+      text-shadow: 0 0 10px black;
+      line-height: 1;
+    }
+
+    .colour-name {
+      margin-top: 8px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      pointer-events: none;
+      text-shadow: 0 0 8px black;
+    }
+
+    .green {
+      background: linear-gradient(135deg, #00ff87, #007a35);
+      border-radius: 100% 20px 20px 20px;
+    }
+
+    .red {
+      background: linear-gradient(135deg, #ff4b4b, #8b0000);
+      border-radius: 20px 100% 20px 20px;
+    }
+
+    .yellow {
+      background: linear-gradient(135deg, #fff700, #d88c00);
+      border-radius: 20px 20px 20px 100%;
+    }
+
+    .blue {
+      background: linear-gradient(135deg, #00c3ff, #0033cc);
+      border-radius: 20px 20px 100% 20px;
+    }
+
+    .active {
+      opacity: 1;
+      transform: scale(1.08);
+      box-shadow:
+        0 0 25px white,
+        0 0 50px currentColor,
+        inset 0 0 30px rgba(255,255,255,0.6);
+      filter: brightness(1.8);
+    }
+
+    .shake {
+      animation: shake 0.35s;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-12px); }
+      50% { transform: translateX(12px); }
+      75% { transform: translateX(-12px); }
+      100% { transform: translateX(0); }
+    }
+
+    #startBtn {
+      margin-top: 30px;
+      padding: 14px 32px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, #ff00cc, #3333ff);
+      box-shadow: 0 0 20px rgba(255, 0, 204, 0.7);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #startBtn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 35px rgba(255, 0, 204, 1);
+    }
+
+    .hint {
+      margin-top: 15px;
+      color: #ccc;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 500px) {
+      .game-board {
+        grid-template-columns: repeat(2, 135px);
+        grid-template-rows: repeat(2, 135px);
+      }
+
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      .game-board::after {
+        width: 95px;
+        height: 95px;
+        font-size: 0.85rem;
+      }
+
+      .number {
+        font-size: 2.4rem;
+      }
+
+      .colour-name {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Simon Says Deluxe</h1>
+
+  <p id="message">Press Start to begin</p>
+
+  <div class="score-row">
+    <div id="score">Level: 0</div>
+    <div id="bestScore">Best: 0</div>
+  </div>
+
+  <div class="game-area">
+    <div class="game-board" id="gameBoard">
+      <div class="button green" data-colour="green">
+        <span class="number">1</span>
+        <span class="colour-name">G</span>
+      </div>
+
+      <div class="button red" data-colour="red">
+        <span class="number">2</span>
+        <span class="colour-name">R</span>
+      </div>
+
+      <div class="button yellow" data-colour="yellow">
+        <span class="number">3</span>
+        <span class="colour-name">Y</span>
+      </div>
+
+      <div class="button blue" data-colour="blue">
+        <span class="number">4</span>
+        <span class="colour-name">B</span>
+      </div>
+    </div>
+  </div>
+
+  <button id="startBtn">Start Game</button>
+
+  <p class="hint">
+    Click the colours or use keys 1, 2, 3, 4. You can also use G, R, Y, B.
+  </p>
+
+  <script>
+    const colours = ["green", "red", "yellow", "blue"];
+
+    const soundFrequencies = {
+      green: 329.63,
+      red: 261.63,
+      yellow: 220.00,
+      blue: 392.00
+    };
+
+    const keyToColour = {
+      "1": "green",
+      "g": "green",
+
+      "2": "red",
+      "r": "red",
+
+      "3": "yellow",
+      "y": "yellow",
+
+      "4": "blue",
+      "b": "blue"
+    };
+
+    let sequence = [];
+    let playerSequence = [];
+    let level = 0;
+    let best = 0;
+    let playerTurn = false;
+    let audioContext;
+
+    const message = document.getElementById("message");
+    const score = document.getElementById("score");
+    const bestScore = document.getElementById("bestScore");
+    const startBtn = document.getElementById("startBtn");
+    const buttons = document.querySelectorAll(".button");
+    const gameBoard = document.getElementById("gameBoard");
+
+    startBtn.addEventListener("click", startGame);
+
+    buttons.forEach(button => {
+      button.addEventListener("click", () => {
+        const colour = button.dataset.colour;
+        chooseColour(colour);
+      });
+    });
+
+    document.addEventListener("keydown", event => {
+      const key = event.key.toLowerCase();
+      const colour = keyToColour[key];
+
+      if (!colour) return;
+
+      event.preventDefault();
+      chooseColour(colour);
+    });
+
+    function startGame() {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      sequence = [];
+      playerSequence = [];
+      level = 0;
+      playerTurn = false;
+
+      message.textContent = "Get ready...";
+      startBtn.textContent = "Restart Game";
+
+      setTimeout(nextLevel, 700);
+    }
+
+    function nextLevel() {
+      playerTurn = false;
+      playerSequence = [];
+      level++;
+
+      score.textContent = "Level: " + level;
+      message.textContent = "Watch carefully...";
+
+      const randomColour = colours[Math.floor(Math.random() * colours.length)];
+      sequence.push(randomColour);
+
+      setTimeout(playSequence, 700);
+    }
+
+    function playSequence() {
+      let i = 0;
+
+      const interval = setInterval(() => {
+        const colour = sequence[i];
+
+        flashColour(colour);
+        playTone(colour);
+
+        i++;
+
+        if (i >= sequence.length) {
+          clearInterval(interval);
+
+          setTimeout(() => {
+            playerTurn = true;
+            message.textContent = "Your turn!";
+          }, 500);
+        }
+      }, 750);
+    }
+
+    function chooseColour(colour) {
+      if (!playerTurn) return;
+
+      playerSequence.push(colour);
+
+      flashColour(colour);
+      playTone(colour);
+
+      checkAnswer();
+    }
+
+    function flashColour(colour) {
+      const button = document.querySelector(`[data-colour="${colour}"]`);
+
+      button.classList.add("active");
+
+      setTimeout(() => {
+        button.classList.remove("active");
+      }, 350);
+    }
+
+    function playTone(colour) {
+      if (!audioContext) return;
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.value = soundFrequencies[colour];
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      // Louder colour sound
+      gain.gain.setValueAtTime(0.45, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.35);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.35);
+    }
+
+    function playGameOverSound() {
+      if (!audioContext) return;
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(160, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(60, audioContext.currentTime + 0.6);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      gain.gain.setValueAtTime(0.25, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.6);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.6);
+    }
+
+    function checkAnswer() {
+      const currentIndex = playerSequence.length - 1;
+
+      if (playerSequence[currentIndex] !== sequence[currentIndex]) {
+        gameOver();
+        return;
+      }
+
+      if (playerSequence.length === sequence.length) {
+        playerTurn = false;
+        message.textContent = "Correct! Next round...";
+        setTimeout(nextLevel, 900);
+      }
+    }
+
+    function gameOver() {
+      playerTurn = false;
+
+      if (level > best) {
+        best = level;
+        bestScore.textContent = "Best: " + best;
+      }
+
+      message.textContent = "Game over! You reached level " + level + ".";
+      score.textContent = "Level: 0";
+      startBtn.textContent = "Play Again";
+
+      playGameOverSound();
+
+      gameBoard.classList.add("shake");
+
+      setTimeout(() => {
+        gameBoard.classList.remove("shake");
+      }, 400);
+    }
+  </script>
+</body>
+</html>
