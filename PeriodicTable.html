@@ -105,6 +105,30 @@
     .symbol{font-size:clamp(1.45rem,4.5vw,2.5rem);line-height:.95;font-weight:1000;margin-top:8px}
     .name{font-size:.68rem;font-weight:950;line-height:1.05;margin-top:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
     .type-pill{margin-top:4px;font-size:.55rem;font-weight:900;line-height:1;color:#111;background:rgba(255,209,102,.9);border-radius:999px;padding:3px 5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .board.hide-info .atomic-number,
+    .board.hide-info .atomic-mass,
+    .board.hide-info .name,
+    .board.hide-info .type-pill{
+      display:none;
+    }
+    .board.hide-info .symbol{
+      font-size:clamp(2rem,6vw,3.4rem);
+      margin-top:0;
+    }
+    .board.hide-info .front{
+      background:
+        radial-gradient(circle at 25% 18%,rgba(255,255,255,.32),transparent 24%),
+        linear-gradient(145deg,#ffffff,#bfc7ff);
+    }
+    .board.hide-info .front::after{
+      content:"?";
+      position:absolute;
+      bottom:7px;
+      right:9px;
+      font-size:1.05rem;
+      font-weight:1000;
+      color:rgba(17,17,17,.28);
+    }
     .mini{font-size:.66rem;font-weight:950;color:rgba(255,255,255,.86);text-align:center;line-height:1.1}
     .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:60;background:rgba(0,0,0,.45);backdrop-filter:blur(5px);text-align:center;padding:20px}
     .overlay.show{display:flex;animation:overlayPop .25s ease-out}@keyframes overlayPop{from{opacity:0}to{opacity:1}}
@@ -149,13 +173,12 @@
             <option value="challenge">Challenge 54</option>
           </select>
         </label>
-        <label class="control"><span>Questions</span>
-          <select id="questionLimitSelect">
-            <option value="6">6</option>
-            <option value="8" selected>8</option>
-            <option value="10">10</option>
-            <option value="12">12</option>
-            <option value="20">20</option>
+        <label class="control"><span>Difficulty</span>
+          <select id="difficultySelect">
+            <option value="easy">Easy — 10 questions</option>
+            <option value="medium" selected>Medium — 8 questions</option>
+            <option value="hard">Hard — 6 questions</option>
+            <option value="max">Max — 5 questions + hidden info</option>
           </select>
         </label>
         <label class="control"><span>Volume</span>
@@ -341,6 +364,12 @@
       {id:"radioactive", text:"Is it radioactive in this set?", test:e=>e.radioactive===true}
     ];
 
+    const difficultySettings = {
+      easy: { questions: 10, label: "Easy", hideInfo: false },
+      medium: { questions: 8, label: "Medium", hideInfo: false },
+      hard: { questions: 6, label: "Hard", hideInfo: false },
+      max: { questions: 5, label: "Max", hideInfo: true }
+    };
     let elements=[], secret=null, possible=new Set(), questionsLeft=8, questionLimit=8, askedQuestions=[], gameOver=false, wins=Number(localStorage.getItem("periodicGuessWhoWins")||0);
     let mode="student", currentComputerQuestion=null, computerReadyToGuess=false;
 
@@ -350,7 +379,7 @@
     const questionSelect=$("questionSelect"), askBtn=$("askBtn"), answerBanner=$("answerBanner"), guessSelect=$("guessSelect"), guessBtn=$("guessBtn");
     const newGameBtn=$("newGameBtn"), revealBtn=$("revealBtn"), resetScoreBtn=$("resetScoreBtn"), overlayNewGameBtn=$("overlayNewGameBtn");
     const resultOverlay=$("resultOverlay"), resultTitle=$("resultTitle"), resultText=$("resultText"), messageEl=$("messageEl");
-    const setSelect=$("setSelect"), questionLimitSelect=$("questionLimitSelect"), volumeSelect=$("volumeSelect"), modeSelect=$("modeSelect");
+    const setSelect=$("setSelect"), difficultySelect=$("difficultySelect"), volumeSelect=$("volumeSelect"), modeSelect=$("modeSelect");
     const studentControls=$("studentControls"), computerControls=$("computerControls"), guessBox=$("guessBox"), computerQuestion=$("computerQuestion");
     const yesBtn=$("yesBtn"), noBtn=$("noBtn"), computerGuessBtn=$("computerGuessBtn"), hintText=$("hintText");
 
@@ -433,11 +462,9 @@
       ensureAudio();
       resultOverlay.classList.remove("show");
       mode=modeSelect.value;
-      if(mode==="computer"){
-        questionLimitSelect.value="20";
-      }
-      questionLimit=Number(questionLimitSelect.value);
-      questionsLeft=questionLimit;
+      const difficulty = difficultySettings[difficultySelect.value] || difficultySettings.medium;
+      questionLimit = mode === "computer" ? 20 : difficulty.questions;
+      questionsLeft = questionLimit;
       askedQuestions=[];
       gameOver=false;
       currentComputerQuestion=null;
@@ -450,6 +477,7 @@
 
       setupMenus();
       renderBoard();
+      board.classList.toggle("hide-info", mode === "student" && (difficultySettings[difficultySelect.value] || difficultySettings.medium).hideInfo);
       updateBoard();
 
       studentControls.style.display=mode==="student" ? "grid" : "none";
@@ -462,15 +490,17 @@
         mysteryName.textContent="Ask questions first";
         answerBanner.className="answer-banner";
         answerBanner.textContent="Pick a question to narrow the board.";
-        messageEl.textContent="Ask property questions, then guess the secret element.";
-        hintText.textContent="Student guesses: the computer has secretly chosen an element. Ask limited questions, then guess.";
+        messageEl.textContent=`${difficulty.label} difficulty: ask up to ${questionLimit} questions, then guess the secret element.`;
+        hintText.textContent = difficulty.hideInfo
+          ? "Max difficulty: extra element information is hidden. Students mostly use symbols and their periodic-table knowledge."
+          : "Student guesses: the computer has secretly chosen an element. Ask limited questions, then guess.";
       } else {
         mysteryLabel.textContent="Computer Guesses";
         mysterySymbol.textContent="20?";
         mysteryName.textContent="Think of one element";
         computerQuestion.className="answer-banner thinking";
         computerQuestion.textContent="Think of one element from the board. I will ask yes/no questions.";
-        messageEl.textContent="Answer honestly. The computer will eliminate elements and guess.";
+        messageEl.textContent="Answer honestly. The computer has up to 20 questions to eliminate elements and guess.";
         hintText.textContent="Computer guesses: secretly pick one element from the board. Answer yes/no questions honestly.";
         setTimeout(nextComputerQuestion, 350);
       }
@@ -681,7 +711,7 @@
     computerGuessBtn.addEventListener("click", computerMakeGuess);
     modeSelect.addEventListener("change", newGame);
     setSelect.addEventListener("change", newGame);
-    questionLimitSelect.addEventListener("change", newGame);
+    difficultySelect.addEventListener("change", newGame);
     volumeSelect.addEventListener("change",()=>{ensureAudio();beep(660,.08,"triangle",.25,0);beep(880,.08,"triangle",.25,.09)});
     resultOverlay.addEventListener("click",e=>{if(e.target===resultOverlay)resultOverlay.classList.remove("show")});
     window.addEventListener("resize", resizeCanvas);
