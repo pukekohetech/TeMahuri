@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Periodic Table Guess Who</title>
+  <style>
+    :root{
+      --bg1:#14142b; --bg2:#261447; --bg3:#073b4c;
+      --card:rgba(255,255,255,.12); --text:#fff; --muted:#d9ddff;
+      --accent:#ffd166; --accent2:#06d6a0; --danger:#ef476f; --blue:#118ab2;
+      --shadow:0 18px 40px rgba(0,0,0,.35); --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:
+      radial-gradient(circle at 15% 15%,rgba(255,209,102,.25),transparent 25%),
+      radial-gradient(circle at 85% 20%,rgba(6,214,160,.22),transparent 28%),
+      radial-gradient(circle at 50% 95%,rgba(239,71,111,.2),transparent 30%),
+      linear-gradient(135deg,var(--bg1),var(--bg2) 55%,var(--bg3));overflow-x:hidden}
+    body{padding:14px}
+    .app{width:min(1400px,100%);margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    h1{margin:0;font-size:clamp(1.35rem,3vw,2.35rem);line-height:1;letter-spacing:.5px;text-shadow:0 4px 14px rgba(0,0,0,.35)}
+    .subtitle{margin:4px 0 0;color:var(--muted);font-size:.9rem}
+    .top-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
+    .control{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);padding:7px 9px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.18);white-space:nowrap}
+    .control span{color:var(--muted);font-weight:850;font-size:.83rem}
+    button,select{font:inherit}
+    select{border:none;border-radius:999px;padding:7px 9px;background:#fff;color:#18182e;font-weight:900;outline:none;min-height:34px;max-width:270px}
+    button{border:none;border-radius:999px;padding:10px 14px;font-weight:950;color:#121225;background:var(--accent);cursor:pointer;transition:.14s transform ease,.14s filter ease;box-shadow:0 9px 18px rgba(0,0,0,.25);min-height:38px}
+    button:hover:not(:disabled){transform:translateY(-1px) scale(1.02);filter:brightness(1.06)}
+    button:active:not(:disabled){transform:translateY(1px) scale(.98)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    button.secondary{background:#fff} button.green{background:var(--accent2)} button.blue{background:#8ecae6} button.danger{background:var(--danger);color:#fff}
+    .main-grid{display:grid;grid-template-columns:minmax(300px,.8fr) minmax(560px,1.45fr);gap:12px;align-items:stretch}
+    .panel{background:var(--card);border:1px solid rgba(255,255,255,.18);border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(14px)}
+    .side-panel{min-height:calc(100vh - 110px);padding:14px;display:flex;flex-direction:column;gap:12px}
+    .mystery-card{flex:1;min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(255,255,255,.22),rgba(255,255,255,.08)),radial-gradient(circle at 20% 20%,rgba(255,255,255,.22),transparent 25%);border:1px solid rgba(255,255,255,.18);border-radius:22px;position:relative;overflow:hidden;text-align:center}
+    .mystery-card::before{content:"";position:absolute;inset:-60px;background:conic-gradient(from 0deg,transparent,rgba(255,255,255,.18),transparent,rgba(255,209,102,.18),transparent);animation:spin 9s linear infinite;opacity:.6}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .mystery-inner{position:relative;z-index:1;width:100%;padding:8px}
+    .small-label{color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-weight:950;font-size:.78rem}
+    .mystery-symbol{font-size:clamp(4.8rem,15vw,10rem);font-weight:1000;line-height:1;margin:3px 0 8px;text-shadow:0 10px 30px rgba(0,0,0,.4)}
+    .mystery-name{font-size:clamp(1.05rem,3vw,1.65rem);font-weight:950;min-height:1.3em}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .stat{background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:10px 8px}
+    .stat-value{display:block;font-size:clamp(1.35rem,4vw,2.45rem);font-weight:1000;font-variant-numeric:tabular-nums;line-height:1}
+    .stat-name{display:block;margin-top:4px;color:var(--muted);font-weight:850;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}
+    .box{display:grid;gap:8px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:10px}
+    .box label{display:grid;gap:5px;color:var(--muted);font-size:.82rem;font-weight:850}
+    .box select{width:100%;max-width:none;border-radius:15px}
+    .answer-banner{min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);font-weight:950;color:#fff;padding:8px}
+    .answer-banner.yes{background:rgba(6,214,160,.24);border-color:rgba(6,214,160,.42)}
+    .answer-banner.no{background:rgba(239,71,111,.24);border-color:rgba(239,71,111,.42)}
+    .answer-banner.thinking{background:rgba(255,209,102,.2);border-color:rgba(255,209,102,.42)}
+    .row{display:flex;gap:8px}.row select{flex:1;min-width:0}
+    .side-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .big-action{grid-column:1 / -1;font-size:1.05rem;padding:13px 14px}
+    .hint{color:var(--muted);text-align:center;font-size:.83rem;line-height:1.35;margin:0}
+    .board-panel{min-height:calc(100vh - 110px);padding:12px;display:flex;flex-direction:column;gap:10px}
+    .board-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.board-head h2{margin:0;font-size:1.25rem;line-height:1}
+    .message{margin:0;color:var(--muted);font-weight:850;text-align:right;min-height:1.4em}
+    .board{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:8px;align-content:start;perspective:1000px}
+    .element-card{width:100%;aspect-ratio:1/1.12;min-height:82px;border:none;padding:0;border-radius:16px;background:transparent;box-shadow:none;position:relative;transform-style:preserve-3d;cursor:pointer;outline:none}
+    .element-card:hover{transform:none;filter:none}
+    .card-inner{position:absolute;inset:0;border-radius:16px;transform-style:preserve-3d;transition:transform .42s cubic-bezier(.2,.8,.2,1),opacity .22s ease;box-shadow:0 10px 22px rgba(0,0,0,.25)}
+    .element-card.eliminated .card-inner{
+      transform:rotateY(180deg);
+      opacity:1;
+      filter:brightness(.72) saturate(.55);
+    }
+    .element-card.possible .card-inner{box-shadow:0 0 0 2px rgba(6,214,160,.65),0 10px 22px rgba(0,0,0,.25)}
+    .element-card.guess-highlight .card-inner{box-shadow:0 0 0 4px rgba(255,209,102,.95),0 0 28px rgba(255,209,102,.7),0 10px 22px rgba(0,0,0,.25);animation:pulse .75s ease-in-out infinite alternate}
+    @keyframes pulse{to{transform:scale(1.035)}}
+    .element-card.wrong-guess .card-inner{animation:wrongShake .35s linear}
+    @keyframes wrongShake{0%,100%{translate:0 0}20%{translate:-5px 0}40%{translate:5px 0}60%{translate:-4px 0}80%{translate:4px 0}}
+    .card-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;backface-visibility:hidden;border:2px solid rgba(255,255,255,.2);overflow:hidden;user-select:none;padding:6px}
+    .front{background:radial-gradient(circle at 25% 18%,rgba(255,255,255,.36),transparent 24%),linear-gradient(145deg,#fff,#d9ddff);color:#111}
+    .back{
+      transform:rotateY(180deg);
+      background:
+        radial-gradient(circle at 30% 20%,rgba(255,255,255,.08),transparent 25%),
+        linear-gradient(145deg,#050509,#10101c 55%,#17172a);
+      color:#ffffff;
+      border-color:rgba(239,71,111,.55);
+    }
+    .out-mark{
+      font-size:clamp(1.7rem,4.6vw,3rem);
+      font-weight:1000;
+      color:var(--danger);
+      text-shadow:0 0 18px rgba(239,71,111,.75),0 4px 12px rgba(0,0,0,.65);
+      line-height:.9;
+    }
+    .out-mark::after{
+      content:"OUT";
+      display:block;
+      margin-top:5px;
+      font-size:.52em;
+      letter-spacing:.14em;
+      color:#ffffff;
+      text-shadow:0 3px 10px rgba(0,0,0,.85);
+    }
+    .atomic-number{position:absolute;top:5px;left:7px;font-size:.7rem;font-weight:1000;opacity:.75}
+    .atomic-mass{position:absolute;top:5px;right:7px;font-size:.65rem;font-weight:900;opacity:.75}
+    .symbol{font-size:clamp(1.45rem,4.5vw,2.5rem);line-height:.95;font-weight:1000;margin-top:8px}
+    .name{font-size:.68rem;font-weight:950;line-height:1.05;margin-top:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+    .type-pill{margin-top:4px;font-size:.55rem;font-weight:900;line-height:1;color:#111;background:rgba(255,209,102,.9);border-radius:999px;padding:3px 5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mini{font-size:.66rem;font-weight:950;color:rgba(255,255,255,.86);text-align:center;line-height:1.1}
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:60;background:rgba(0,0,0,.45);backdrop-filter:blur(5px);text-align:center;padding:20px}
+    .overlay.show{display:flex;animation:overlayPop .25s ease-out}@keyframes overlayPop{from{opacity:0}to{opacity:1}}
+    .result-card{width:min(760px,96vw);border-radius:32px;padding:28px;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.3),transparent 22%),linear-gradient(135deg,#ff006e,#8338ec,#3a86ff,#06d6a0);box-shadow:0 30px 100px rgba(0,0,0,.55);border:3px solid rgba(255,255,255,.45);animation:celebrateBounce .8s cubic-bezier(.2,1.8,.2,1) both}
+    @keyframes celebrateBounce{0%{transform:scale(.6) rotate(-4deg)}70%{transform:scale(1.08) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+    .result-card h2{margin:0;font-size:clamp(2.5rem,8vw,5.5rem);line-height:.9;text-shadow:0 8px 22px rgba(0,0,0,.45)}
+    .result-card p{margin:12px 0 20px;font-size:clamp(1.05rem,3vw,1.6rem);font-weight:900}
+    canvas#confettiCanvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:50}
+    @media (orientation:landscape) and (min-width:720px){body{padding:10px}header{margin-bottom:8px}.main-grid{grid-template-columns:minmax(310px,32vw) 1fr}.side-panel,.board-panel{min-height:calc(100vh - 90px)}.board{gap:7px}.element-card{min-height:78px}}
+    @media (min-width:1180px){.board{grid-template-columns:repeat(auto-fit,minmax(82px,1fr))}}
+    @media (max-width:900px){body{padding:10px}header{flex-direction:column;align-items:stretch}.top-controls{justify-content:flex-start}.main-grid{grid-template-columns:1fr}.side-panel,.board-panel{min-height:auto}.mystery-card{min-height:220px}.message{text-align:left}.board{grid-template-columns:repeat(auto-fit,minmax(68px,1fr))}}
+    @media (max-width:520px){.row{flex-direction:column}.board{grid-template-columns:repeat(4,minmax(62px,1fr));gap:6px}.element-card{min-height:74px}.card-inner,.card-face{border-radius:12px}.symbol{font-size:1.55rem}.name{font-size:.6rem}.atomic-number,.atomic-mass{font-size:.55rem}.type-pill{display:none}}
+  </style>
+</head>
+<body>
+  <canvas id="confettiCanvas"></canvas>
+  <div class="overlay" id="resultOverlay" role="dialog" aria-modal="true">
+    <div class="result-card">
+      <h2 id="resultTitle">Correct!</h2>
+      <p id="resultText">The element was...</p>
+      <button class="big-action" id="overlayNewGameBtn">New Game</button>
+    </div>
+  </div>
+
+  <div class="app">
+    <header>
+      <div>
+        <h1>Periodic Table Guess Who</h1>
+        <p class="subtitle">Ask property questions, eliminate elements, then guess — or let the computer guess 20 Questions style.</p>
+      </div>
+      <div class="top-controls">
+        <label class="control"><span>Mode</span>
+          <select id="modeSelect">
+            <option value="student">Student guesses</option>
+            <option value="computer">Computer guesses</option>
+          </select>
+        </label>
+        <label class="control"><span>Element set</span>
+          <select id="setSelect">
+            <option value="starter">Starter 24</option>
+            <option value="standard" selected>Standard 36</option>
+            <option value="challenge">Challenge 54</option>
+          </select>
+        </label>
+        <label class="control"><span>Questions</span>
+          <select id="questionLimitSelect">
+            <option value="6">6</option>
+            <option value="8" selected>8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+            <option value="20">20</option>
+          </select>
+        </label>
+        <label class="control"><span>Volume</span>
+          <select id="volumeSelect">
+            <option value="0">Muted</option>
+            <option value="0.45">Normal</option>
+            <option value="0.8" selected>Loud</option>
+            <option value="1">Very loud</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <section class="panel side-panel">
+        <div class="mystery-card">
+          <div class="mystery-inner">
+            <div class="small-label" id="mysteryLabel">Mystery Element</div>
+            <div class="mystery-symbol" id="mysterySymbol">?</div>
+            <div class="mystery-name" id="mysteryName">Ask questions first</div>
+            <div class="stats">
+              <div class="stat"><span class="stat-value" id="questionsLeftEl">8</span><span class="stat-name">Questions Left</span></div>
+              <div class="stat"><span class="stat-value" id="possibleEl">36</span><span class="stat-name">Possible</span></div>
+              <div class="stat"><span class="stat-value" id="askedEl">0</span><span class="stat-name">Asked</span></div>
+              <div class="stat"><span class="stat-value" id="scoreEl">0</span><span class="stat-name">Wins</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box" id="studentControls">
+          <label>Choose a yes/no question
+            <select id="questionSelect"></select>
+          </label>
+          <button class="green" id="askBtn">Ask Question</button>
+          <div class="answer-banner" id="answerBanner">Pick a question to narrow the board.</div>
+        </div>
+
+        <div class="box" id="computerControls" style="display:none">
+          <div class="small-label">Computer Question</div>
+          <div class="answer-banner thinking" id="computerQuestion">Think of one element from the board, then start.</div>
+          <div class="row">
+            <button class="green" id="yesBtn">Yes</button>
+            <button class="danger" id="noBtn">No</button>
+          </div>
+          <button class="blue" id="computerGuessBtn" disabled>Computer Guess</button>
+        </div>
+
+        <div class="box" id="guessBox">
+          <div class="small-label">Final Guess</div>
+          <div class="row">
+            <select id="guessSelect"></select>
+            <button class="blue" id="guessBtn">Guess</button>
+          </div>
+        </div>
+
+        <div class="side-buttons">
+          <button class="secondary big-action" id="newGameBtn">New Game</button>
+          <button class="secondary" id="revealBtn">Reveal</button>
+          <button class="danger" id="resetScoreBtn">Reset Wins</button>
+        </div>
+
+        <p class="hint" id="hintText">
+          Student guesses: ask limited questions, then guess the secret element. Computer guesses: secretly pick an element and answer honestly.
+        </p>
+      </section>
+
+      <section class="panel board-panel">
+        <div class="board-head">
+          <h2>Elements</h2>
+          <p class="message" id="messageEl">Use the question menu to eliminate elements.</p>
+        </div>
+        <div class="board" id="board"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const allElements = [
+      {n:1,s:"H",name:"Hydrogen",mass:1.008,period:1,group:1,category:"nonmetal",state:"gas",block:"s"},
+      {n:2,s:"He",name:"Helium",mass:4.003,period:1,group:18,category:"noble gas",state:"gas",block:"s"},
+      {n:3,s:"Li",name:"Lithium",mass:6.94,period:2,group:1,category:"alkali metal",state:"solid",block:"s"},
+      {n:4,s:"Be",name:"Beryllium",mass:9.012,period:2,group:2,category:"alkaline earth metal",state:"solid",block:"s"},
+      {n:5,s:"B",name:"Boron",mass:10.81,period:2,group:13,category:"metalloid",state:"solid",block:"p"},
+      {n:6,s:"C",name:"Carbon",mass:12.01,period:2,group:14,category:"nonmetal",state:"solid",block:"p"},
+      {n:7,s:"N",name:"Nitrogen",mass:14.01,period:2,group:15,category:"nonmetal",state:"gas",block:"p"},
+      {n:8,s:"O",name:"Oxygen",mass:16.00,period:2,group:16,category:"nonmetal",state:"gas",block:"p"},
+      {n:9,s:"F",name:"Fluorine",mass:19.00,period:2,group:17,category:"halogen",state:"gas",block:"p"},
+      {n:10,s:"Ne",name:"Neon",mass:20.18,period:2,group:18,category:"noble gas",state:"gas",block:"p"},
+      {n:11,s:"Na",name:"Sodium",mass:22.99,period:3,group:1,category:"alkali metal",state:"solid",block:"s"},
+      {n:12,s:"Mg",name:"Magnesium",mass:24.31,period:3,group:2,category:"alkaline earth metal",state:"solid",block:"s"},
+      {n:13,s:"Al",name:"Aluminium",mass:26.98,period:3,group:13,category:"post-transition metal",state:"solid",block:"p"},
+      {n:14,s:"Si",name:"Silicon",mass:28.09,period:3,group:14,category:"metalloid",state:"solid",block:"p"},
+      {n:15,s:"P",name:"Phosphorus",mass:30.97,period:3,group:15,category:"nonmetal",state:"solid",block:"p"},
+      {n:16,s:"S",name:"Sulfur",mass:32.06,period:3,group:16,category:"nonmetal",state:"solid",block:"p"},
+      {n:17,s:"Cl",name:"Chlorine",mass:35.45,period:3,group:17,category:"halogen",state:"gas",block:"p"},
+      {n:18,s:"Ar",name:"Argon",mass:39.95,period:3,group:18,category:"noble gas",state:"gas",block:"p"},
+      {n:19,s:"K",name:"Potassium",mass:39.10,period:4,group:1,category:"alkali metal",state:"solid",block:"s"},
+      {n:20,s:"Ca",name:"Calcium",mass:40.08,period:4,group:2,category:"alkaline earth metal",state:"solid",block:"s"},
+      {n:21,s:"Sc",name:"Scandium",mass:44.96,period:4,group:3,category:"transition metal",state:"solid",block:"d"},
+      {n:22,s:"Ti",name:"Titanium",mass:47.87,period:4,group:4,category:"transition metal",state:"solid",block:"d"},
+      {n:23,s:"V",name:"Vanadium",mass:50.94,period:4,group:5,category:"transition metal",state:"solid",block:"d"},
+      {n:24,s:"Cr",name:"Chromium",mass:52.00,period:4,group:6,category:"transition metal",state:"solid",block:"d"},
+      {n:25,s:"Mn",name:"Manganese",mass:54.94,period:4,group:7,category:"transition metal",state:"solid",block:"d"},
+      {n:26,s:"Fe",name:"Iron",mass:55.85,period:4,group:8,category:"transition metal",state:"solid",block:"d"},
+      {n:27,s:"Co",name:"Cobalt",mass:58.93,period:4,group:9,category:"transition metal",state:"solid",block:"d"},
+      {n:28,s:"Ni",name:"Nickel",mass:58.69,period:4,group:10,category:"transition metal",state:"solid",block:"d"},
+      {n:29,s:"Cu",name:"Copper",mass:63.55,period:4,group:11,category:"transition metal",state:"solid",block:"d"},
+      {n:30,s:"Zn",name:"Zinc",mass:65.38,period:4,group:12,category:"transition metal",state:"solid",block:"d"},
+      {n:31,s:"Ga",name:"Gallium",mass:69.72,period:4,group:13,category:"post-transition metal",state:"solid",block:"p"},
+      {n:32,s:"Ge",name:"Germanium",mass:72.63,period:4,group:14,category:"metalloid",state:"solid",block:"p"},
+      {n:33,s:"As",name:"Arsenic",mass:74.92,period:4,group:15,category:"metalloid",state:"solid",block:"p"},
+      {n:34,s:"Se",name:"Selenium",mass:78.97,period:4,group:16,category:"nonmetal",state:"solid",block:"p"},
+      {n:35,s:"Br",name:"Bromine",mass:79.90,period:4,group:17,category:"halogen",state:"liquid",block:"p"},
+      {n:36,s:"Kr",name:"Krypton",mass:83.80,period:4,group:18,category:"noble gas",state:"gas",block:"p"},
+      {n:37,s:"Rb",name:"Rubidium",mass:85.47,period:5,group:1,category:"alkali metal",state:"solid",block:"s"},
+      {n:38,s:"Sr",name:"Strontium",mass:87.62,period:5,group:2,category:"alkaline earth metal",state:"solid",block:"s"},
+      {n:39,s:"Y",name:"Yttrium",mass:88.91,period:5,group:3,category:"transition metal",state:"solid",block:"d"},
+      {n:40,s:"Zr",name:"Zirconium",mass:91.22,period:5,group:4,category:"transition metal",state:"solid",block:"d"},
+      {n:41,s:"Nb",name:"Niobium",mass:92.91,period:5,group:5,category:"transition metal",state:"solid",block:"d"},
+      {n:42,s:"Mo",name:"Molybdenum",mass:95.95,period:5,group:6,category:"transition metal",state:"solid",block:"d"},
+      {n:43,s:"Tc",name:"Technetium",mass:98.00,period:5,group:7,category:"transition metal",state:"solid",block:"d",radioactive:true},
+      {n:44,s:"Ru",name:"Ruthenium",mass:101.07,period:5,group:8,category:"transition metal",state:"solid",block:"d"},
+      {n:45,s:"Rh",name:"Rhodium",mass:102.91,period:5,group:9,category:"transition metal",state:"solid",block:"d"},
+      {n:46,s:"Pd",name:"Palladium",mass:106.42,period:5,group:10,category:"transition metal",state:"solid",block:"d"},
+      {n:47,s:"Ag",name:"Silver",mass:107.87,period:5,group:11,category:"transition metal",state:"solid",block:"d"},
+      {n:48,s:"Cd",name:"Cadmium",mass:112.41,period:5,group:12,category:"transition metal",state:"solid",block:"d"},
+      {n:49,s:"In",name:"Indium",mass:114.82,period:5,group:13,category:"post-transition metal",state:"solid",block:"p"},
+      {n:50,s:"Sn",name:"Tin",mass:118.71,period:5,group:14,category:"post-transition metal",state:"solid",block:"p"},
+      {n:51,s:"Sb",name:"Antimony",mass:121.76,period:5,group:15,category:"metalloid",state:"solid",block:"p"},
+      {n:52,s:"Te",name:"Tellurium",mass:127.60,period:5,group:16,category:"metalloid",state:"solid",block:"p"},
+      {n:53,s:"I",name:"Iodine",mass:126.90,period:5,group:17,category:"halogen",state:"solid",block:"p"},
+      {n:54,s:"Xe",name:"Xenon",mass:131.29,period:5,group:18,category:"noble gas",state:"gas",block:"p"}
+    ];
+
+    const setSizes = {starter:24, standard:36, challenge:54};
+
+    function isMetal(e){return ["alkali metal","alkaline earth metal","transition metal","post-transition metal"].includes(e.category)}
+
+    const questionBank = [
+      {id:"metal", text:"Is it a metal?", test:e=>isMetal(e)},
+      {id:"nonmetal", text:"Is it a non-metal?", test:e=>["nonmetal","halogen","noble gas"].includes(e.category)},
+      {id:"metalloid", text:"Is it a metalloid?", test:e=>e.category==="metalloid"},
+      {id:"solid", text:"Is it solid at room temperature?", test:e=>e.state==="solid"},
+      {id:"gas", text:"Is it a gas at room temperature?", test:e=>e.state==="gas"},
+      {id:"liquid", text:"Is it a liquid at room temperature?", test:e=>e.state==="liquid"},
+      {id:"alkali", text:"Is it an alkali metal?", test:e=>e.category==="alkali metal"},
+      {id:"alkaline", text:"Is it an alkaline earth metal?", test:e=>e.category==="alkaline earth metal"},
+      {id:"transition", text:"Is it a transition metal?", test:e=>e.category==="transition metal"},
+      {id:"halogen", text:"Is it a halogen?", test:e=>e.category==="halogen"},
+      {id:"noble", text:"Is it a noble gas?", test:e=>e.category==="noble gas"},
+      {id:"posttrans", text:"Is it a post-transition metal?", test:e=>e.category==="post-transition metal"},
+      {id:"period1", text:"Is it in period 1?", test:e=>e.period===1},
+      {id:"period2", text:"Is it in period 2?", test:e=>e.period===2},
+      {id:"period3", text:"Is it in period 3?", test:e=>e.period===3},
+      {id:"period4", text:"Is it in period 4?", test:e=>e.period===4},
+      {id:"period5", text:"Is it in period 5?", test:e=>e.period===5},
+      {id:"group1", text:"Is it in group 1?", test:e=>e.group===1},
+      {id:"group2", text:"Is it in group 2?", test:e=>e.group===2},
+      {id:"group13", text:"Is it in group 13?", test:e=>e.group===13},
+      {id:"group14", text:"Is it in group 14?", test:e=>e.group===14},
+      {id:"group15", text:"Is it in group 15?", test:e=>e.group===15},
+      {id:"group16", text:"Is it in group 16?", test:e=>e.group===16},
+      {id:"group17", text:"Is it in group 17?", test:e=>e.group===17},
+      {id:"group18", text:"Is it in group 18?", test:e=>e.group===18},
+      {id:"sblock", text:"Is it in the s-block?", test:e=>e.block==="s"},
+      {id:"pblock", text:"Is it in the p-block?", test:e=>e.block==="p"},
+      {id:"dblock", text:"Is it in the d-block?", test:e=>e.block==="d"},
+      {id:"atomic10", text:"Is its atomic number 10 or less?", test:e=>e.n<=10},
+      {id:"atomic18", text:"Is its atomic number 18 or less?", test:e=>e.n<=18},
+      {id:"atomic20plus", text:"Is its atomic number greater than 20?", test:e=>e.n>20},
+      {id:"atomic36plus", text:"Is its atomic number greater than 36?", test:e=>e.n>36},
+      {id:"evennumber", text:"Is its atomic number even?", test:e=>e.n%2===0},
+      {id:"mass20", text:"Is its atomic mass less than 20?", test:e=>e.mass<20},
+      {id:"mass40", text:"Is its atomic mass less than 40?", test:e=>e.mass<40},
+      {id:"mass50plus", text:"Is its atomic mass greater than 50?", test:e=>e.mass>50},
+      {id:"mass80plus", text:"Is its atomic mass greater than 80?", test:e=>e.mass>80},
+      {id:"mass100plus", text:"Is its atomic mass greater than 100?", test:e=>e.mass>100},
+      {id:"oneletter", text:"Does its symbol have one letter?", test:e=>e.s.length===1},
+      {id:"twoletters", text:"Does its symbol have two letters?", test:e=>e.s.length===2},
+      {id:"symbolmatches", text:"Does its symbol start with the same letter as its name?", test:e=>e.s[0].toLowerCase()===e.name[0].toLowerCase()},
+      {id:"shortname", text:"Does its name have 6 letters or fewer?", test:e=>e.name.length<=6},
+      {id:"life", text:"Is it one of CHNOPS, the main life elements?", test:e=>["C","H","N","O","P","S"].includes(e.s)},
+      {id:"radioactive", text:"Is it radioactive in this set?", test:e=>e.radioactive===true}
+    ];
+
+    let elements=[], secret=null, possible=new Set(), questionsLeft=8, questionLimit=8, askedQuestions=[], gameOver=false, wins=Number(localStorage.getItem("periodicGuessWhoWins")||0);
+    let mode="student", currentComputerQuestion=null, computerReadyToGuess=false;
+
+    const $=id=>document.getElementById(id);
+    const board=$("board"), mysteryLabel=$("mysteryLabel"), mysterySymbol=$("mysterySymbol"), mysteryName=$("mysteryName");
+    const questionsLeftEl=$("questionsLeftEl"), possibleEl=$("possibleEl"), askedEl=$("askedEl"), scoreEl=$("scoreEl");
+    const questionSelect=$("questionSelect"), askBtn=$("askBtn"), answerBanner=$("answerBanner"), guessSelect=$("guessSelect"), guessBtn=$("guessBtn");
+    const newGameBtn=$("newGameBtn"), revealBtn=$("revealBtn"), resetScoreBtn=$("resetScoreBtn"), overlayNewGameBtn=$("overlayNewGameBtn");
+    const resultOverlay=$("resultOverlay"), resultTitle=$("resultTitle"), resultText=$("resultText"), messageEl=$("messageEl");
+    const setSelect=$("setSelect"), questionLimitSelect=$("questionLimitSelect"), volumeSelect=$("volumeSelect"), modeSelect=$("modeSelect");
+    const studentControls=$("studentControls"), computerControls=$("computerControls"), guessBox=$("guessBox"), computerQuestion=$("computerQuestion");
+    const yesBtn=$("yesBtn"), noBtn=$("noBtn"), computerGuessBtn=$("computerGuessBtn"), hintText=$("hintText");
+
+    // Audio
+    let audioCtx=null;
+    function getVolume(){return Number(volumeSelect.value||0.8)}
+    function ensureAudio(){if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)()} if(audioCtx.state==="suspended") audioCtx.resume()}
+    function beep(freq=440,duration=.12,type="sine",gain=.4,when=0){if(getVolume()<=0)return;ensureAudio();const now=audioCtx.currentTime+when,osc=audioCtx.createOscillator(),vol=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,now);vol.gain.setValueAtTime(.0001,now);vol.gain.exponentialRampToValueAtTime(Math.max(.0001,gain*getVolume()),now+.012);vol.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(vol);vol.connect(audioCtx.destination);osc.start(now);osc.stop(now+duration+.03)}
+    function noiseBurst(duration=.22,gain=.2,when=0){if(getVolume()<=0)return;ensureAudio();const now=audioCtx.currentTime+when,bufferSize=Math.floor(audioCtx.sampleRate*duration),buffer=audioCtx.createBuffer(1,bufferSize,audioCtx.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<bufferSize;i++)data[i]=Math.random()*2-1;const source=audioCtx.createBufferSource(),filter=audioCtx.createBiquadFilter(),vol=audioCtx.createGain();source.buffer=buffer;filter.type="bandpass";filter.frequency.setValueAtTime(1600,now);filter.frequency.exponentialRampToValueAtTime(550,now+duration);vol.gain.setValueAtTime(.0001,now);vol.gain.exponentialRampToValueAtTime(gain*getVolume(),now+.02);vol.gain.exponentialRampToValueAtTime(.0001,now+duration);source.connect(filter);filter.connect(vol);vol.connect(audioCtx.destination);source.start(now);source.stop(now+duration)}
+    function playStart(){beep(330,.09,"square",.3,0);beep(440,.09,"square",.32,.09);beep(660,.16,"triangle",.42,.18)}
+    function playYes(){beep(523,.08,"square",.33,0);beep(659,.08,"square",.35,.08);beep(784,.14,"triangle",.42,.16)}
+    function playNo(){beep(220,.1,"sawtooth",.28,0);beep(165,.16,"sawtooth",.27,.1)}
+    function playFlip(){noiseBurst(.12,.16,0);beep(430,.05,"triangle",.18,.02)}
+    function playWin(){noiseBurst(.55,.42,0);[523,659,784,1046,784,1046,1318,1568].forEach((n,i)=>beep(n,.16,i%2?"triangle":"square",.5,.22+i*.11))}
+    function playLose(){beep(330,.16,"sawtooth",.32,0);beep(247,.18,"sawtooth",.3,.15);beep(196,.28,"sawtooth",.28,.31)}
+
+    function shuffleArray(arr){const copy=[...arr];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
+    function escapeHtml(str){return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+    function getElementBySymbol(symbol){return elements.find(e=>e.s===symbol)}
+
+    function setupMenus(){
+      questionSelect.innerHTML="";
+      questionBank.forEach(q=>{
+        const opt=document.createElement("option");
+        opt.value=q.id; opt.textContent=q.text; questionSelect.appendChild(opt);
+      });
+      guessSelect.innerHTML="";
+      elements.forEach(e=>{
+        const opt=document.createElement("option");
+        opt.value=e.s; opt.textContent=`${e.s} — ${e.name}`; guessSelect.appendChild(opt);
+      });
+    }
+
+    function renderBoard(){
+      board.innerHTML="";
+      elements.forEach(e=>{
+        const btn=document.createElement("button");
+        btn.type="button"; btn.className="element-card possible"; btn.dataset.symbol=e.s;
+        btn.innerHTML=`
+          <span class="card-inner">
+            <span class="card-face front">
+              <span class="atomic-number">${e.n}</span>
+              <span class="atomic-mass">${Math.round(e.mass)}</span>
+              <span class="symbol">${e.s}</span>
+              <span class="name">${escapeHtml(e.name)}</span>
+              <span class="type-pill">${escapeHtml(e.category)}</span>
+            </span>
+            <span class="card-face back">
+              <span class="out-mark">✕</span>
+              <span class="mini">Not this one</span>
+            </span>
+          </span>`;
+        btn.addEventListener("click",()=>{ if(mode==="student" && !gameOver){guessSelect.value=e.s; makeGuess()} });
+        board.appendChild(btn);
+      });
+    }
+
+    function updateBoard(){
+      document.querySelectorAll(".element-card").forEach(card=>{
+        const symbol=card.dataset.symbol;
+        card.classList.toggle("eliminated", !possible.has(symbol));
+        card.classList.toggle("possible", possible.has(symbol));
+      });
+      possibleEl.textContent=possible.size;
+    }
+
+    function updateStats(){
+      questionsLeftEl.textContent=questionsLeft;
+      possibleEl.textContent=possible.size;
+      askedEl.textContent=askedQuestions.length;
+      scoreEl.textContent=wins;
+      askBtn.disabled=gameOver || questionsLeft<=0 || mode!=="student";
+      guessBtn.disabled=gameOver || mode!=="student";
+      yesBtn.disabled=gameOver || mode!=="computer" || !currentComputerQuestion;
+      noBtn.disabled=gameOver || mode!=="computer" || !currentComputerQuestion;
+      computerGuessBtn.disabled=gameOver || mode!=="computer" || possible.size===0;
+    }
+
+    function newGame(){
+      ensureAudio();
+      resultOverlay.classList.remove("show");
+      mode=modeSelect.value;
+      if(mode==="computer"){
+        questionLimitSelect.value="20";
+      }
+      questionLimit=Number(questionLimitSelect.value);
+      questionsLeft=questionLimit;
+      askedQuestions=[];
+      gameOver=false;
+      currentComputerQuestion=null;
+      computerReadyToGuess=false;
+      const finishRow = document.getElementById("computerFinishRow");
+      if (finishRow) finishRow.style.display = "none";
+      elements=allElements.slice(0,setSizes[setSelect.value]);
+      possible=new Set(elements.map(e=>e.s));
+      secret=elements[Math.floor(Math.random()*elements.length)];
+
+      setupMenus();
+      renderBoard();
+      updateBoard();
+
+      studentControls.style.display=mode==="student" ? "grid" : "none";
+      computerControls.style.display=mode==="computer" ? "grid" : "none";
+      guessBox.style.display=mode==="student" ? "grid" : "none";
+
+      if(mode==="student"){
+        mysteryLabel.textContent="Mystery Element";
+        mysterySymbol.textContent="?";
+        mysteryName.textContent="Ask questions first";
+        answerBanner.className="answer-banner";
+        answerBanner.textContent="Pick a question to narrow the board.";
+        messageEl.textContent="Ask property questions, then guess the secret element.";
+        hintText.textContent="Student guesses: the computer has secretly chosen an element. Ask limited questions, then guess.";
+      } else {
+        mysteryLabel.textContent="Computer Guesses";
+        mysterySymbol.textContent="20?";
+        mysteryName.textContent="Think of one element";
+        computerQuestion.className="answer-banner thinking";
+        computerQuestion.textContent="Think of one element from the board. I will ask yes/no questions.";
+        messageEl.textContent="Answer honestly. The computer will eliminate elements and guess.";
+        hintText.textContent="Computer guesses: secretly pick one element from the board. Answer yes/no questions honestly.";
+        setTimeout(nextComputerQuestion, 350);
+      }
+
+      updateStats();
+      playStart();
+    }
+
+    function askStudentQuestion(){
+      if(gameOver || questionsLeft<=0) return;
+      ensureAudio();
+      const q=questionBank.find(x=>x.id===questionSelect.value);
+      if(!q || askedQuestions.includes(q.id)) return;
+
+      askedQuestions.push(q.id);
+      questionsLeft--;
+
+      const answer=q.test(secret);
+      answerBanner.className=`answer-banner ${answer ? "yes":"no"}`;
+      answerBanner.textContent=`${answer ? "YES" : "NO"} — ${q.text}`;
+
+      const before=possible.size;
+      possible=new Set([...possible].filter(symbol=>{
+        const e=getElementBySymbol(symbol);
+        return q.test(e)===answer;
+      }));
+      const eliminated=before-possible.size;
+
+      questionSelect.querySelector(`option[value="${q.id}"]`).disabled=true;
+      updateBoard();
+      updateStats();
+      playFlip();
+      if(answer) playYes(); else playNo();
+
+      messageEl.textContent=questionsLeft>0
+        ? `${eliminated} element${eliminated===1?"":"s"} eliminated.`
+        : "No questions left. Make your final guess!";
+    }
+
+    function makeGuess(){
+      if(gameOver) return;
+      ensureAudio();
+      const guess=getElementBySymbol(guessSelect.value);
+      if(!guess) return;
+      if(guess.s===secret.s){
+        wins++; localStorage.setItem("periodicGuessWhoWins", String(wins));
+        finish(true, `Correct — it was ${secret.name} (${secret.s})!`);
+      } else {
+        const card=document.querySelector(`.element-card[data-symbol="${guess.s}"]`);
+        if(card){card.classList.add("wrong-guess"); setTimeout(()=>card.classList.remove("wrong-guess"),450)}
+        finish(false, `Not quite — it was ${secret.name} (${secret.s}), not ${guess.name}.`);
+      }
+    }
+
+    function chooseBestComputerQuestion(){
+      const candidates=[...possible].map(getElementBySymbol);
+      let best=null, bestScore=Infinity;
+      questionBank.forEach(q=>{
+        if(askedQuestions.includes(q.id)) return;
+        const yesCount=candidates.filter(e=>q.test(e)).length;
+        const noCount=candidates.length-yesCount;
+        if(yesCount===0 || noCount===0) return;
+        const score=Math.abs(yesCount-noCount);
+        if(score<bestScore){best=q; bestScore=score}
+      });
+      return best;
+    }
+
+    function nextComputerQuestion(){
+      if(gameOver || mode!=="computer") return;
+      document.querySelectorAll(".element-card").forEach(c=>c.classList.remove("guess-highlight"));
+
+      if(possible.size<=1 || questionsLeft<=0){
+        computerMakeGuess();
+        return;
+      }
+
+      const q=chooseBestComputerQuestion();
+      if(!q){
+        computerMakeGuess();
+        return;
+      }
+
+      currentComputerQuestion=q;
+      computerQuestion.className="answer-banner thinking";
+      computerQuestion.textContent="Computer asks: " + q.text;
+      mysterySymbol.textContent="?";
+      mysteryName.textContent="Answer yes or no";
+      yesBtn.disabled=false;
+      noBtn.disabled=false;
+      computerGuessBtn.disabled=false;
+      updateStats();
+    }
+
+    function answerComputerQuestion(isYes){
+      if(gameOver || !currentComputerQuestion || questionsLeft<=0) return;
+      ensureAudio();
+      const q=currentComputerQuestion;
+      askedQuestions.push(q.id);
+      questionsLeft--;
+
+      const before=possible.size;
+      possible=new Set([...possible].filter(symbol=>{
+        const e=getElementBySymbol(symbol);
+        return q.test(e)===isYes;
+      }));
+      const eliminated=before-possible.size;
+
+      currentComputerQuestion=null;
+      updateBoard();
+      updateStats();
+      playFlip();
+      if(isYes) playYes(); else playNo();
+
+      computerQuestion.className=`answer-banner ${isYes ? "yes" : "no"}`;
+      computerQuestion.textContent=`You said ${isYes ? "YES" : "NO"} — ${eliminated} eliminated.`;
+      messageEl.textContent=`Computer has ${possible.size} possible element${possible.size===1?"":"s"} left.`;
+
+      setTimeout(nextComputerQuestion, 850);
+    }
+
+    function computerMakeGuess(){
+      if(gameOver || mode!=="computer") return;
+      const candidates=[...possible].map(getElementBySymbol);
+      const guess=candidates[0];
+
+      if(!guess){
+        finish(false, "I have no possible elements left. One answer may have been inconsistent.");
+        return;
+      }
+
+      document.querySelectorAll(".element-card").forEach(c=>c.classList.remove("guess-highlight"));
+      const card=document.querySelector(`.element-card[data-symbol="${guess.s}"]`);
+      if(card) card.classList.add("guess-highlight");
+
+      mysterySymbol.textContent=guess.s;
+      mysteryName.textContent=`I guess ${guess.name}!`;
+      computerQuestion.className="answer-banner thinking";
+      computerQuestion.textContent=`My guess is ${guess.name} (${guess.s}). Was I right?`;
+      messageEl.textContent="Use Correct or Wrong to finish the round.";
+      yesBtn.disabled=true;
+      noBtn.disabled=true;
+      computerGuessBtn.disabled=true;
+
+      if(!document.getElementById("correctComputerBtn")){
+        const row=document.createElement("div");
+        row.className="row";
+        row.id="computerFinishRow";
+        row.innerHTML=`<button class="green" id="correctComputerBtn">Correct</button><button class="danger" id="wrongComputerBtn">Wrong</button>`;
+        computerControls.appendChild(row);
+        document.getElementById("correctComputerBtn").addEventListener("click",()=>{wins++;localStorage.setItem("periodicGuessWhoWins",String(wins));finish(true,`Computer guessed ${guess.name} (${guess.s})!`)});
+        document.getElementById("wrongComputerBtn").addEventListener("click",()=>finish(false,`Computer guessed ${guess.name} (${guess.s}), but it was wrong.`));
+      }
+      document.getElementById("computerFinishRow").style.display="flex";
+      playYes();
+    }
+
+    function finish(won,text){
+      gameOver=true;
+      revealSecretIfStudent();
+      resultTitle.textContent=won ? "Correct!" : "Game Over";
+      resultText.textContent=text;
+      updateStats();
+      if(won){playWin();launchConfetti()} else playLose();
+      resultOverlay.classList.add("show");
+    }
+
+    function revealSecretIfStudent(){
+      if(mode==="student"){
+        mysterySymbol.textContent=secret.s;
+        mysteryName.textContent=`${secret.name} • Atomic #${secret.n}`;
+        possible=new Set([secret.s]);
+        updateBoard();
+      }
+    }
+
+    function reveal(){
+      if(mode==="student"){
+        finish(false, `Revealed — the mystery element was ${secret.name} (${secret.s}).`);
+      } else {
+        computerMakeGuess();
+      }
+    }
+
+    function resetWins(){
+      wins=0;
+      localStorage.setItem("periodicGuessWhoWins","0");
+      updateStats();
+      messageEl.textContent="Wins reset.";
+      playNo();
+    }
+
+    // Confetti
+    const canvas=$("confettiCanvas"), ctx=canvas.getContext("2d");
+    let confettiPieces=[], confettiAnimation=null;
+    function resizeCanvas(){canvas.width=window.innerWidth*devicePixelRatio;canvas.height=window.innerHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}
+    function launchConfetti(){resizeCanvas();confettiPieces=[];const colours=["#ffd166","#06d6a0","#118ab2","#ef476f","#fff","#8338ec","#ffbe0b"];for(let i=0;i<280;i++){confettiPieces.push({x:Math.random()*window.innerWidth,y:-20-Math.random()*window.innerHeight*.35,vx:(Math.random()-.5)*9,vy:Math.random()*4+4,size:Math.random()*8+4,spin:Math.random()*Math.PI,rotSpeed:(Math.random()-.5)*.35,colour:colours[Math.floor(Math.random()*colours.length)],life:220+Math.random()*80})}if(confettiAnimation)cancelAnimationFrame(confettiAnimation);animateConfetti()}
+    function animateConfetti(){ctx.clearRect(0,0,window.innerWidth,window.innerHeight);confettiPieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.035;p.vx*=.992;p.spin+=p.rotSpeed;p.life-=1;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.spin);ctx.fillStyle=p.colour;ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*.62);ctx.restore()});confettiPieces=confettiPieces.filter(p=>p.life>0&&p.y<window.innerHeight+60);if(confettiPieces.length)confettiAnimation=requestAnimationFrame(animateConfetti);else{ctx.clearRect(0,0,window.innerWidth,window.innerHeight);confettiAnimation=null}}
+
+    askBtn.addEventListener("click", askStudentQuestion);
+    guessBtn.addEventListener("click", makeGuess);
+    newGameBtn.addEventListener("click", newGame);
+    overlayNewGameBtn.addEventListener("click", newGame);
+    revealBtn.addEventListener("click", reveal);
+    resetScoreBtn.addEventListener("click", resetWins);
+    yesBtn.addEventListener("click", ()=>answerComputerQuestion(true));
+    noBtn.addEventListener("click", ()=>answerComputerQuestion(false));
+    computerGuessBtn.addEventListener("click", computerMakeGuess);
+    modeSelect.addEventListener("change", newGame);
+    setSelect.addEventListener("change", newGame);
+    questionLimitSelect.addEventListener("change", newGame);
+    volumeSelect.addEventListener("change",()=>{ensureAudio();beep(660,.08,"triangle",.25,0);beep(880,.08,"triangle",.25,.09)});
+    resultOverlay.addEventListener("click",e=>{if(e.target===resultOverlay)resultOverlay.classList.remove("show")});
+    window.addEventListener("resize", resizeCanvas);
+    document.addEventListener("keydown",e=>{if(e.target.matches("input,select,textarea"))return;if(e.key.toLowerCase()==="n")newGame()});
+
+    resizeCanvas();
+    newGame();
+  </script>
+</body>
+</html>
