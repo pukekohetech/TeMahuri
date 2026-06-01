@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown Conundrum Challenge</title>
+  <style>
+    :root{
+      --bg1:#111827; --bg2:#312e81; --panel:rgba(255,255,255,.12); --panel2:rgba(255,255,255,.18);
+      --text:#ffffff; --muted:rgba(255,255,255,.76); --gold:#fbbf24; --blue:#38bdf8;
+      --green:#34d399; --red:#fb7185; --purple:#a78bfa; --card:#f8fafc; --ink:#111827;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(56,189,248,.32),transparent 32%),radial-gradient(circle at bottom right,rgba(251,191,36,.32),transparent 34%),linear-gradient(135deg,var(--bg1),var(--bg2));overflow-x:hidden}
+    .wrap{width:min(1180px,94vw);margin:0 auto;padding:22px 0 40px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
+    h1{margin:0;font-size:clamp(2rem,5vw,4rem);letter-spacing:-.05em;line-height:.96;text-shadow:0 5px 20px rgba(0,0,0,.35)}
+    .subtitle{font-weight:800;color:var(--muted);margin-top:8px;font-size:1.02rem}
+    .top-controls,.actions,.score-buttons{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+    .pill,.setting-line{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:9px 12px;font-weight:900;color:white}
+    .pill input{width:76px;border:0;border-radius:12px;padding:7px 8px;font-size:1rem;font-weight:900;text-align:center;color:var(--ink)}
+    button{border:0;border-radius:16px;padding:12px 16px;font-size:1rem;font-weight:1000;cursor:pointer;color:#08111f;box-shadow:0 8px 22px rgba(0,0,0,.18);transition:transform .12s ease,filter .12s ease,opacity .12s ease}
+    button:hover{transform:translateY(-2px);filter:brightness(1.04)}
+    button:active{transform:translateY(1px) scale(.99)}
+    button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .btn-gold{background:linear-gradient(135deg,#fde68a,var(--gold))}
+    .btn-blue{background:linear-gradient(135deg,#bae6fd,var(--blue))}
+    .btn-green{background:linear-gradient(135deg,#bbf7d0,var(--green))}
+    .btn-red{background:linear-gradient(135deg,#fecdd3,var(--red))}
+    .btn-purple{background:linear-gradient(135deg,#ddd6fe,var(--purple))}
+    .btn-ghost{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.26)}
+    .grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+    .panel{background:var(--panel);border:1px solid rgba(255,255,255,.18);border-radius:30px;padding:18px;box-shadow:0 20px 55px rgba(0,0,0,.28);backdrop-filter:blur(10px)}
+    .main-card{min-height:560px;display:flex;flex-direction:column;justify-content:center;gap:18px;text-align:center}
+    .timer-row{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
+    .timer-circle{width:132px;height:132px;border-radius:50%;padding:9px;background:conic-gradient(var(--green) 360deg,rgba(255,255,255,.15) 0deg);box-shadow:0 12px 35px rgba(0,0,0,.24)}
+    .timer-inner{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:rgba(17,24,39,.88);font-size:3.1rem;font-weight:1000;line-height:1}
+    .status-box{text-align:left;max-width:630px}
+    .status-line{font-size:clamp(1.15rem,2vw,1.65rem);font-weight:1000;line-height:1.1}
+    .muted{color:var(--muted);font-weight:750;margin-top:6px}
+    .tiles{display:grid;grid-template-columns:repeat(9,minmax(42px,1fr));gap:10px;max-width:920px;margin:8px auto;width:100%}
+    .tile{aspect-ratio:1 / 1.13;border-radius:18px;background:linear-gradient(180deg,#fff,#dbeafe);color:var(--ink);display:grid;place-items:center;font-size:clamp(2.1rem,6vw,4.2rem);font-weight:1000;box-shadow:0 12px 22px rgba(0,0,0,.22), inset 0 -8px 0 rgba(0,0,0,.08);text-shadow:0 2px 0 rgba(255,255,255,.65);user-select:none}
+    .tile.empty{background:rgba(255,255,255,.12);color:rgba(255,255,255,.35);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
+    .answer-area{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+    .answer-input{width:min(520px,100%);text-align:center;border:0;border-radius:18px;padding:15px 16px;font-size:clamp(1.4rem,4vw,2.3rem);font-weight:1000;letter-spacing:.08em;color:var(--ink);text-transform:uppercase;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+    .message{min-height:54px;border-radius:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);padding:14px;font-size:1.1rem;font-weight:900;display:grid;place-items:center}
+    .message.good{background:rgba(52,211,153,.20);border-color:rgba(52,211,153,.45)}
+    .message.bad{background:rgba(251,113,133,.20);border-color:rgba(251,113,133,.45)}
+    .message.warn{background:rgba(251,191,36,.20);border-color:rgba(251,191,36,.45)}
+    .side-card{display:grid;gap:16px}
+    .side-card section{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:14px}
+    .mini-title{margin:0 0 10px;font-size:1rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.84)}
+    .answer-word{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:16px;text-align:center;font-size:1.85rem;font-weight:1000;letter-spacing:.06em;color:#fff;word-break:break-word}
+    .score-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .score-card{background:rgba(255,255,255,.10);border-radius:18px;padding:12px;text-align:center;border:1px solid rgba(255,255,255,.13)}
+    .score-card label{display:block;color:var(--muted);font-weight:900;margin-bottom:4px}.score{font-size:2.5rem;font-weight:1000}.score-buttons button{padding:8px 10px;border-radius:12px;font-size:.92rem}
+    .settings{display:grid;gap:8px}.setting-line{justify-content:space-between;border-radius:16px;padding:9px 10px}.setting-line input{width:22px;height:22px;accent-color:var(--gold)}
+    .history-list{max-height:160px;overflow:auto;display:grid;gap:7px;padding-right:4px}.history-item{display:flex;justify-content:space-between;gap:10px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:9px 11px;font-weight:850;font-size:.95rem}
+    .kbd{display:inline-block;min-width:26px;padding:3px 7px;border-radius:8px;background:rgba(255,255,255,.20);border:1px solid rgba(255,255,255,.26);color:white;text-align:center;font-weight:1000}.shortcut-grid{display:grid;gap:6px;color:var(--muted);font-weight:750}
+    .custom-box{display:none;margin-top:10px}.custom-box.open{display:block}.custom-box textarea{width:100%;min-height:140px;border:0;border-radius:16px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:.95rem;resize:vertical;color:var(--ink)}
+    .flash{animation:flashGlow .6s ease}@keyframes flashGlow{0%,100%{filter:none}35%{filter:drop-shadow(0 0 22px rgba(251,191,36,.9))}}
+    .shake{animation:shake .32s ease}@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+    .celebration{position:fixed;inset:0;pointer-events:none;z-index:10;overflow:hidden}.confetti{position:absolute;width:12px;height:18px;border-radius:4px;top:-20px;opacity:.9;animation:fall 1.1s linear forwards}@keyframes fall{to{transform:translateY(calc(100vh + 40px)) rotate(540deg);opacity:0}}
+    .big-overlay{position:fixed;inset:0;z-index:9;pointer-events:none;display:grid;place-items:center;opacity:0;transform:scale(.94);transition:.18s ease}.big-overlay.show{opacity:1;transform:scale(1)}.overlay-card{background:rgba(17,24,39,.88);border:1px solid rgba(255,255,255,.25);border-radius:36px;padding:34px 46px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.42)}.overlay-title{font-size:clamp(3rem,9vw,7rem);font-weight:1000;color:var(--gold);letter-spacing:-.05em}.overlay-sub{font-size:clamp(1.3rem,4vw,2.5rem);font-weight:1000}
+    footer{text-align:center;color:var(--muted);font-weight:750;margin-top:18px}.hidden{display:none!important}
+    @media(max-width:900px){header{flex-direction:column;align-items:flex-start}.top-controls{justify-content:flex-start}.grid{grid-template-columns:1fr}.main-card{min-height:auto}.tiles{gap:7px}.tile{border-radius:14px}.timer-circle{width:112px;height:112px}.timer-inner{font-size:2.6rem}}
+    @media print{body{background:white;color:#111}.top-controls,.side-card,.actions,footer,.answer-area,.message{display:none!important}.panel{box-shadow:none;border:0;background:white}.tile{border:2px solid #111;box-shadow:none}.timer-row{display:none}.wrap{width:100%;padding:0}.grid{display:block}h1{color:#111;text-shadow:none}.subtitle{color:#333}.main-card{min-height:auto}}
+  </style>
+</head>
+<body>
+  <div class="celebration" id="celebration"></div>
+  <div class="big-overlay" id="overlay"><div class="overlay-card"><div class="overlay-title" id="overlayTitle">TIME!</div><div class="overlay-sub" id="overlaySub"></div></div></div>
+  <main class="wrap">
+    <header>
+      <div><h1>Countdown Conundrum</h1><div class="subtitle">Random 9-letter anagrams from your conundrum list.</div></div>
+      <div class="top-controls">
+        <label class="pill">Timer <input id="timerLength" type="number" min="5" max="180" step="5" value="30"> sec</label>
+        <button type="button" class="btn-ghost" id="fullScreenBtn">Fullscreen</button>
+        <button type="button" class="btn-ghost" id="printBtn">Print</button>
+      </div>
+    </header>
+    <section class="grid">
+      <div class="panel main-card" id="mainCard">
+        <div class="timer-row" id="timerRow"><div class="timer-circle" id="timerCircle"><div class="timer-inner" id="timeDisplay">30</div></div><div class="status-box"><div class="status-line" id="statusLine">Press New Conundrum to begin.</div><div class="muted" id="progressLine">Loaded <strong>473</strong> conundrums. No repeats until the set is used up.</div></div></div>
+        <div class="tiles" id="tiles" aria-label="Conundrum letters"></div>
+        <div class="answer-area"><input id="answerInput" class="answer-input" maxlength="20" placeholder="TYPE ANSWER" autocomplete="off" spellcheck="false"><button type="button" class="btn-green" id="checkBtn">Check</button></div>
+        <div class="message" id="message">Choose a conundrum, start the clock, then students race to solve the 9-letter word.</div>
+        <div class="actions"><button type="button" class="btn-gold" id="newBtn">New Conundrum</button><button type="button" class="btn-blue" id="startBtn">Start</button><button type="button" class="btn-purple" id="shuffleBtn">Shuffle Letters</button><button type="button" class="btn-red" id="revealBtn">Reveal Answer</button><button type="button" class="btn-ghost" id="resetBtn">Reset Timer</button></div>
+      </div>
+      <aside class="panel side-card">
+        <section><h2 class="mini-title">Answer</h2><div class="answer-word" id="answerReveal">?????????</div></section>
+        <section><h2 class="mini-title">Team scoring</h2><div class="score-grid"><div class="score-card"><label>Team 1</label><div class="score" id="score1">0</div><div class="score-buttons"><button type="button" class="btn-green" data-score="1" data-change="10">+10</button><button type="button" class="btn-ghost" data-score="1" data-change="-10">-10</button></div></div><div class="score-card"><label>Team 2</label><div class="score" id="score2">0</div><div class="score-buttons"><button type="button" class="btn-green" data-score="2" data-change="10">+10</button><button type="button" class="btn-ghost" data-score="2" data-change="-10">-10</button></div></div></div><div class="actions" style="margin-top:10px"><button type="button" class="btn-ghost" id="scoreResetBtn">Reset scores</button></div></section>
+        <section><h2 class="mini-title">Settings</h2><div class="settings"><label class="setting-line"><span>Use original list scramble</span><input id="originalScramble" type="checkbox" checked></label><label class="setting-line"><span>Auto-start new round</span><input id="autoStart" type="checkbox"></label><label class="setting-line"><span>Reveal on time up</span><input id="autoReveal" type="checkbox" checked></label><label class="setting-line"><span>Sound effects</span><input id="soundOn" type="checkbox" checked></label></div></section>
+        <section><h2 class="mini-title">Recent conundrums</h2><div class="history-list" id="historyList"><div class="history-item"><span>No rounds yet</span><span>--</span></div></div></section>
+        <section><h2 class="mini-title">Keyboard shortcuts</h2><div class="shortcut-grid"><div><span class="kbd">N</span> new conundrum</div><div><span class="kbd">Space</span> start / pause</div><div><span class="kbd">Enter</span> check answer</div><div><span class="kbd">S</span> shuffle letters</div><div><span class="kbd">R</span> reveal answer</div></div></section>
+        <section><button type="button" class="btn-ghost" id="customToggle">Add / replace word list</button><div class="custom-box" id="customBox"><textarea id="customText" placeholder="Paste lines like: SCRAMBLE ANSWER, or just one 9-letter answer per line"></textarea><div class="actions"><button type="button" class="btn-blue" id="loadCustomBtn">Load pasted list</button><button type="button" class="btn-ghost" id="restoreBtn">Restore original list</button></div></div></section>
+      </aside>
+    </section>
+    <footer>Tip: the conundrum answer is worth 10 points in the TV game, so the score buttons add 10 by default.</footer>
+  </main>
+  <script>
+    var ORIGINAL_CONUNDRUMS = [{"scramble":"ABLEGATES","answer":"STAGEABLE"},{"scramble":"ABSENTERS","answer":"STEENBRAS"},{"scramble":"ACADEMIES","answer":"ACADEMISE"},{"scramble":"ACCIDENTS","answer":"DESICCANT"},{"scramble":"ACCOUTRES","answer":"CORUSCATE"},{"scramble":"ACHROITES","answer":"RHOTACISE"},{"scramble":"ACRIDONES","answer":"SARCODINE"},{"scramble":"ACRYLATES","answer":"CATALYSER"},{"scramble":"ACUATIONS","answer":"CAUSATION"},{"scramble":"ADJUTAGES","answer":"ADJUSTAGE"},{"scramble":"AEGROTATS","answer":"ASTROGATE"},{"scramble":"AEROLITHS","answer":"HORSETAIL"},{"scramble":"AESTHETES","answer":"ATHETESES"},{"scramble":"AGNITIONS","answer":"SIGNATION"},{"scramble":"AIRPHONES","answer":"ORPHANISE"},{"scramble":"ALBITIZES","answer":"STABILIZE"},{"scramble":"ALKALIDES","answer":"ALKALISED"},{"scramble":"ALLOCUTES","answer":"LACTULOSE"},{"scramble":"ALMONRIES","answer":"NORMALISE"},{"scramble":"ALTERANTS","answer":"TRANSLATE"},{"scramble":"ALTERATES","answer":"ALETASTER"},{"scramble":"AMNESTIES","answer":"MEATINESS"},{"scramble":"ANALOGIES","answer":"ANALOGISE"},{"scramble":"ANATOMIES","answer":"ANATOMISE"},{"scramble":"ANECDOTES","answer":"COSTEANED"},{"scramble":"ANGELICAS","answer":"ANALGESIC"},{"scramble":"ANIMATICS","answer":"ANIMASTIC"},{"scramble":"ANTELOPES","answer":"PLEONASTE"},{"scramble":"ANTEPONES","answer":"PENTOSANE"},{"scramble":"ANTIDOTES","answer":"STATIONED"},{"scramble":"ANTIQUERS","answer":"QUANTISER"},{"scramble":"APERTURES","answer":"REPASTURE"},{"scramble":"APOLOGIES","answer":"APOLOGISE"},{"scramble":"ARGONAUTS","answer":"ANGOSTURA"},{"scramble":"ARGUMENTS","answer":"MUSTANGER"},{"scramble":"ARTEFACTS","answer":"AFTERCAST"},{"scramble":"ARTILISES","answer":"SERIALIST"},{"scramble":"ARTOTYPES","answer":"POETASTRY"},{"scramble":"AUTOHELMS","answer":"MALTHOUSE"},{"scramble":"BALLONETS","answer":"BALLSTONE"},{"scramble":"BELIEVERS","answer":"EVERSIBLE"},{"scramble":"BELITTERS","answer":"TREBLIEST"},{"scramble":"BEVATRONS","answer":"OBSERVANT"},{"scramble":"BIATHLONS","answer":"ABSINTHOL"},{"scramble":"BINOMIALS","answer":"ALBINOISM"},{"scramble":"CABRIOLES","answer":"CARBOLISE"},{"scramble":"CALUMNIES","answer":"MASCULINE"},{"scramble":"CALUTRONS","answer":"CONSTRUAL"},{"scramble":"CAMISOLES","answer":"COSEISMAL"},{"scramble":"CANISTERS","answer":"SCENARIST"},{"scramble":"CAPITOLOS","answer":"APOSTOLIC"},{"scramble":"CAPONIERS","answer":"PROSCENIA"},{"scramble":"CAPTURERS","answer":"SUPERCRAT"},{"scramble":"CAROUSELS","answer":"SUCRALOSE"},{"scramble":"CATAMITES","answer":"MASTICATE"},{"scramble":"CATENOIDS","answer":"SONICATED"},{"scramble":"CAUTERIES","answer":"CAUTERISE"},{"scramble":"CHANTEURS","answer":"STAUNCHER"},{"scramble":"CHARACINS","answer":"SACCHARIN"},{"scramble":"CHICKLETS","answer":"CHECKLIST"},{"scramble":"CHOLIAMBS","answer":"SHAMBOLIC"},{"scramble":"CHROMATES","answer":"STOMACHER"},{"scramble":"CITATIONS","answer":"ACTIONIST"},{"scramble":"CITRININS","answer":"INTRINSIC"},{"scramble":"CITYSHIPS","answer":"PHYSICIST"},{"scramble":"CLARINETS","answer":"LARCENIST"},{"scramble":"CLEANSERS","answer":"CLEARNESS"},{"scramble":"CLEARINGS","answer":"RESCALING"},{"scramble":"CLODPOLES","answer":"SCOLLOPED"},{"scramble":"CLUPEOIDS","answer":"DISCOUPLE"},{"scramble":"COGITATES","answer":"GEOSTATIC"},{"scramble":"COLLATORS","answer":"COLOSTRAL"},{"scramble":"COMPANIES","answer":"CAMPESINO"},{"scramble":"COMPLEATS","answer":"ECTOPLASM"},{"scramble":"CONCEDERS","answer":"CRESCENDO"},{"scramble":"CONCUSSES","answer":"CONCESSUS"},{"scramble":"CONTINUOS","answer":"CONTUSION"},{"scramble":"CREODONTS","answer":"CONSORTED"},{"scramble":"DATELINES","answer":"DENTALISE"},{"scramble":"DATOLITES","answer":"TOTALISED"},{"scramble":"DEADENERS","answer":"SERENADED"},{"scramble":"DECADENTS","answer":"DESCANTED"},{"scramble":"DECANTERS","answer":"DESCANTER"},{"scramble":"DECENTRES","answer":"REDESCENT"},{"scramble":"DEMARCHES","answer":"SCHMEARED"},{"scramble":"DENATURES","answer":"SAUNTERED"},{"scramble":"DENDRITES","answer":"REDISTEND"},{"scramble":"DERIVATES","answer":"ADVERTISE"},{"scramble":"DESCALERS","answer":"RECLASSED"},{"scramble":"DESCRIALS","answer":"LASERDISC"},{"scramble":"DETAILERS","answer":"LATERISED"},{"scramble":"DETHRONES","answer":"SHORTENED"},{"scramble":"DIASPORAS","answer":"PARADOSIS"},{"scramble":"DICHOREES","answer":"DISCOHERE"},{"scramble":"DIGNIFIES","answer":"SIGNIFIED"},{"scramble":"DISCROWNS","answer":"CROSSWIND"},{"scramble":"DISINTERS","answer":"DIRTINESS"},{"scramble":"DITTANIES","answer":"DAINTIEST"},{"scramble":"DIVERTERS","answer":"RESTRIVED"},{"scramble":"DUATHLONS","answer":"SOUTHLAND"},{"scramble":"DUNGAREES","answer":"UNGREASED"},{"scramble":"EARLSHIPS","answer":"SPLASHIER"},{"scramble":"EASTLINGS","answer":"SLANGIEST"},{"scramble":"ECSTASIES","answer":"ECSTASISE"},{"scramble":"EDUCATORS","answer":"CROUSTADE"},{"scramble":"EGILOPSES","answer":"GOSPELISE"},{"scramble":"ELECTIONS","answer":"SELECTION"},{"scramble":"ELECTIVES","answer":"SELECTIVE"},{"scramble":"ELICITORS","answer":"RESOLICIT"},{"scramble":"EMPHASIES","answer":"EMPHASISE"},{"scramble":"ENCEINTES","answer":"SENTIENCE"},{"scramble":"ENCOMIUMS","answer":"COMMUNISE"},{"scramble":"ENDANGERS","answer":"GREENSAND"},{"scramble":"ERGATIVES","answer":"GRAVESITE"},{"scramble":"ESCAROLES","answer":"CASSEROLE"},{"scramble":"ESPRESSOS","answer":"REPOSSESS"},{"scramble":"ESTHESIAS","answer":"AESTHESIS"},{"scramble":"ESTIMATES","answer":"STEAMIEST"},{"scramble":"EUPHONIES","answer":"EUPHONISE"},{"scramble":"EVANISHES","answer":"HEAVINESS"},{"scramble":"EVILDOERS","answer":"OVERSLIDE"},{"scramble":"EXERCISES","answer":"SEXERCISE"},{"scramble":"FACTORIES","answer":"FACTORISE"},{"scramble":"FANTASIES","answer":"FANTASISE"},{"scramble":"FATOUSHES","answer":"HOUSEFAST"},{"scramble":"FELLATORS","answer":"FORESTALL"},{"scramble":"FERINGHIS","answer":"FINGERISH"},{"scramble":"FOOTNOTES","answer":"FOOTSTONE"},{"scramble":"FORECASTS","answer":"FACTORESS"},{"scramble":"FOREHOCKS","answer":"FORESHOCK"},{"scramble":"FORTIETHS","answer":"FROTHIEST"},{"scramble":"FUDGICLES","answer":"FUDGSICLE"},{"scramble":"GANGLIONS","answer":"SINGALONG"},{"scramble":"GENERANTS","answer":"TRANSGENE"},{"scramble":"GENITIVES","answer":"INGESTIVE"},{"scramble":"GENOMERES","answer":"GREENSOME"},{"scramble":"GERANIUMS","answer":"MEASURING"},{"scramble":"GINESTRAS","answer":"ASSERTING"},{"scramble":"GINORITES","answer":"SORTIEING"},{"scramble":"GRADIENTS","answer":"GARDENIST"},{"scramble":"GRAFFITIS","answer":"SGRAFFITI"},{"scramble":"GRAPHEMES","answer":"PESHMERGA"},{"scramble":"GROUPAGES","answer":"GASPERGOU"},{"scramble":"GYRATIONS","answer":"SIGNATORY"},{"scramble":"HANDBELLS","answer":"BANDSHELL"},{"scramble":"HANDCLAPS","answer":"HANDCLASP"},{"scramble":"HANDGATES","answer":"STAGEHAND"},{"scramble":"HEADLAMPS","answer":"LAMPSHADE"},{"scramble":"HEDONISTS","answer":"DISHONEST"},{"scramble":"HEPTAMERS","answer":"PETERSHAM"},{"scramble":"HIRELINGS","answer":"RELISHING"},{"scramble":"HISTORIES","answer":"HISTORISE"},{"scramble":"HOLOTYPES","answer":"PHOTOLYSE"},{"scramble":"IDENTISMS","answer":"TIMIDNESS"},{"scramble":"IDIOLECTS","answer":"SOLICITED"},{"scramble":"IDOLATERS","answer":"STEROIDAL"},{"scramble":"IMMANTLES","answer":"MENTALISM"},{"scramble":"IMMORTALS","answer":"MORTALISM"},{"scramble":"IMPIERCES","answer":"IMPRECISE"},{"scramble":"INCHARGES","answer":"SEARCHING"},{"scramble":"INCREASES","answer":"SCENARISE"},{"scramble":"INDIGENTS","answer":"DESTINING"},{"scramble":"INGATHERS","answer":"HANGRIEST"},{"scramble":"INSALATAS","answer":"ASSAILANT"},{"scramble":"INSTANCES","answer":"INCESSANT"},{"scramble":"INTAGLIOS","answer":"ISOLATING"},{"scramble":"INTERMITS","answer":"TERMINIST"},{"scramble":"INTRUDERS","answer":"UNSTIRRED"},{"scramble":"INUNDATES","answer":"UNSTAINED"},{"scramble":"IRONWEEDS","answer":"ROSINWEED"},{"scramble":"IRRITATES","answer":"ARTERITIS"},{"scramble":"ISOMORPHS","answer":"MORPHOSIS"},{"scramble":"ISSUANCES","answer":"SAUCINESS"},{"scramble":"KILLDEERS","answer":"RESKILLED"},{"scramble":"LACHRYMAS","answer":"MARSHALCY"},{"scramble":"LANGUAGES","answer":"SLANGUAGE"},{"scramble":"LAVATIONS","answer":"SALVATION"},{"scramble":"LICENSEES","answer":"NIECELESS"},{"scramble":"LIONESSES","answer":"NOISELESS"},{"scramble":"LITERATES","answer":"STATELIER"},{"scramble":"LOGICIANS","answer":"COALISING"},{"scramble":"LOGOTYPES","answer":"PESTOLOGY"},{"scramble":"LONGLINES","answer":"ONSELLING"},{"scramble":"LONGSHIPS","answer":"SPLOSHING"},{"scramble":"LUMBERERS","answer":"SLUMBERER"},{"scramble":"MACONITES","answer":"ENCOMIAST"},{"scramble":"MACULATES","answer":"MASCULATE"},{"scramble":"MAGNOLIAS","answer":"ANALOGISM"},{"scramble":"MALENGINS","answer":"SIGNALMEN"},{"scramble":"MANICURES","answer":"MUSCARINE"},{"scramble":"MARTYRIES","answer":"MARTYRISE"},{"scramble":"MASERINGS","answer":"REMASSING"},{"scramble":"MEATBALLS","answer":"BLASTEMAL"},{"scramble":"MECHANICS","answer":"MISCHANCE"},{"scramble":"MEDIATORS","answer":"AMORTISED"},{"scramble":"MEDITATES","answer":"ESTIMATED"},{"scramble":"MELISSINS","answer":"SLIMINESS"},{"scramble":"MERIDIANS","answer":"MARINISED"},{"scramble":"MESOLINES","answer":"SOLEMNISE"},{"scramble":"METALATES","answer":"STALEMATE"},{"scramble":"MIMOSINES","answer":"MISONEISM"},{"scramble":"MISERINGS","answer":"GRIMINESS"},{"scramble":"MISTELLES","answer":"SMELLIEST"},{"scramble":"MOBILISES","answer":"OMISSIBLE"},{"scramble":"MODERANTS","answer":"TRANSOMED"},{"scramble":"MODERATOS","answer":"ASTRODOME"},{"scramble":"MONICKERS","answer":"MISRECKON"},{"scramble":"MONKHOODS","answer":"MONKSHOOD"},{"scramble":"MONOTONES","answer":"MOONSTONE"},{"scramble":"MOONRISES","answer":"ROOMINESS"},{"scramble":"MORIBANAS","answer":"AMBROSIAN"},{"scramble":"MORINITES","answer":"MISORIENT"},{"scramble":"MUGGINSES","answer":"MUGGINESS"},{"scramble":"MUTINEERS","answer":"NEUTERISM"},{"scramble":"MYLONITES","answer":"SOLEMNITY"},{"scramble":"NAILERIES","answer":"LINEARISE"},{"scramble":"NARGHILES","answer":"SHEARLING"},{"scramble":"NATIONALS","answer":"SANTOLINA"},{"scramble":"NECTARIES","answer":"NECTARISE"},{"scramble":"NEOLOGIES","answer":"NEOLOGISE"},{"scramble":"NEPOTISTS","answer":"POTTINESS"},{"scramble":"NIDICOLES","answer":"SILICONED"},{"scramble":"NIGRIFIES","answer":"SIGNIFIER"},{"scramble":"NINIAMERS","answer":"MIANSERIN"},{"scramble":"NIVENITES","answer":"INTENSIVE"},{"scramble":"NOMADISES","answer":"MIDSEASON"},{"scramble":"NOTECARDS","answer":"TRANSCODE"},{"scramble":"NOVELINGS","answer":"SLOVENING"},{"scramble":"NOVELISES","answer":"OLIVENESS"},{"scramble":"NYCTERIDS","answer":"STRIDENCY"},{"scramble":"ODOMETERS","answer":"OSTEODERM"},{"scramble":"OHMMETERS","answer":"MESOTHERM"},{"scramble":"OLFACTORS","answer":"COLORFAST"},{"scramble":"OMNICIDES","answer":"MENISCOID"},{"scramble":"OOPHAGIES","answer":"OESOPHAGI"},{"scramble":"OPERETTAS","answer":"POETASTER"},{"scramble":"ORBITALES","answer":"STROBILAE"},{"scramble":"ORGANRIES","answer":"ORGANISER"},{"scramble":"ORGANULES","answer":"GRANULOSE"},{"scramble":"ORIGANUMS","answer":"IGNORAMUS"},{"scramble":"ORNAMENTS","answer":"SEMANTRON"},{"scramble":"ORTICANTS","answer":"NARCOTIST"},{"scramble":"ORVIETANS","answer":"OVERSTAIN"},{"scramble":"OSCULATES","answer":"CASSOULET"},{"scramble":"OSETROVAS","answer":"OSSETROVA"},{"scramble":"OUTGRABES","answer":"SUBROGATE"},{"scramble":"OUTPLANTS","answer":"POSTULANT"},{"scramble":"OUTRAGERS","answer":"SURROGATE"},{"scramble":"OUTSIDERS","answer":"DIOESTRUS"},{"scramble":"OVERBEATS","answer":"OBSERVATE"},{"scramble":"OVERCURES","answer":"VERRUCOSE"},{"scramble":"OVERHEADS","answer":"OVERSHADE"},{"scramble":"OVERHEARS","answer":"OVERSHARE"},{"scramble":"OVERRULES","answer":"REVELROUS"},{"scramble":"OVERSALES","answer":"RESOLVASE"},{"scramble":"OVERSELLS","answer":"LOVERLESS"},{"scramble":"OVERWARMS","answer":"OVERSWARM"},{"scramble":"OVERWELLS","answer":"OVERSWELL"},{"scramble":"PADLOPERS","answer":"PROLAPSED"},{"scramble":"PAGANRIES","answer":"PAGANISER"},{"scramble":"PALISADOS","answer":"PALISSADO"},{"scramble":"PANDEMICS","answer":"MINDSCAPE"},{"scramble":"PANGOLINS","answer":"PLAINSONG"},{"scramble":"PARANOIDS","answer":"DIASPORAN"},{"scramble":"PARCLOSES","answer":"PROCESSAL"},{"scramble":"PARNESSES","answer":"SPARENESS"},{"scramble":"PAROCHETS","answer":"PROSTHECA"},{"scramble":"PARTICLES","answer":"SPARTICLE"},{"scramble":"PASGUARDS","answer":"PASSGUARD"},{"scramble":"PATINATES","answer":"PASTINATE"},{"scramble":"PATRONEES","answer":"PERSONATE"},{"scramble":"PECTORALS","answer":"PRECOSTAL"},{"scramble":"PECULATES","answer":"SPECULATE"},{"scramble":"PEDICATES","answer":"SPECIATED"},{"scramble":"PELERINES","answer":"PRESENILE"},{"scramble":"PENTAMERS","answer":"PENMASTER"},{"scramble":"PERENTIES","answer":"PRIESTEEN"},{"scramble":"PERICARPS","answer":"SCRAPPIER"},{"scramble":"PERICOPES","answer":"PERISCOPE"},{"scramble":"PERONIUMS","answer":"UNPROMISE"},{"scramble":"PEROPUSES","answer":"SUPERPOSE"},{"scramble":"PERORATES","answer":"PARROTESE"},{"scramble":"PERSONALS","answer":"RESPONSAL"},{"scramble":"PETASITES","answer":"EPISTATES"},{"scramble":"PETITIONS","answer":"POINTIEST"},{"scramble":"PHORONIDS","answer":"RHODOPSIN"},{"scramble":"PHOTOPIAS","answer":"PHOTOPSIA"},{"scramble":"PHTANITES","answer":"PANTHEIST"},{"scramble":"PHYLLOMES","answer":"MESOPHYLL"},{"scramble":"PICKERELS","answer":"SPECKLIER"},{"scramble":"PICTURERS","answer":"SCRIPTURE"},{"scramble":"PIERCINGS","answer":"PRECISING"},{"scramble":"PIGNOLIAS","answer":"OPALISING"},{"scramble":"PILLORIES","answer":"PILLORISE"},{"scramble":"PILOTRIES","answer":"PISTOLIER"},{"scramble":"PINACATES","answer":"PANACEIST"},{"scramble":"PINAFORES","answer":"PROFANISE"},{"scramble":"PINFISHES","answer":"SNIPEFISH"},{"scramble":"PINKERSES","answer":"PERKINESS"},{"scramble":"PINWHEELS","answer":"WHEELSPIN"},{"scramble":"PIPERATES","answer":"APPETISER"},{"scramble":"PISCATORS","answer":"SPACISTOR"},{"scramble":"PLASTOMES","answer":"MESOPLAST"},{"scramble":"PLEBEIANS","answer":"ALBESPINE"},{"scramble":"PLIANCIES","answer":"CISALPINE"},{"scramble":"PODOMERES","answer":"PROSODEME"},{"scramble":"POIVRADES","answer":"VAPORISED"},{"scramble":"POLYEMIAS","answer":"POLYSEMIA"},{"scramble":"POLYOPIAS","answer":"POLYOPSIA"},{"scramble":"PONERINES","answer":"PENSIONER"},{"scramble":"POOLSIDES","answer":"PODSOLISE"},{"scramble":"PORTABLES","answer":"SPORTABLE"},{"scramble":"PORTUISES","answer":"POSTURISE"},{"scramble":"POSTFACES","answer":"SOFTSCAPE"},{"scramble":"POTARITES","answer":"OPERATIST"},{"scramble":"POTTERERS","answer":"PROTESTER"},{"scramble":"PRECURSES","answer":"REPERCUSS"},{"scramble":"PRELIMITS","answer":"REPTILISM"},{"scramble":"PREMIATES","answer":"MISREPEAT"},{"scramble":"PRESIDERS","answer":"DISPERSER"},{"scramble":"PRESSIONS","answer":"PROSINESS"},{"scramble":"PRIAPISES","answer":"PERIAPSIS"},{"scramble":"PRIGGINGS","answer":"SPRIGGING"},{"scramble":"PRIMARIES","answer":"PRIMARISE"},{"scramble":"PRINTINGS","answer":"SPRINTING"},{"scramble":"PRINTOUTS","answer":"OUTSPRINT"},{"scramble":"PROCURERS","answer":"PRECURSOR"},{"scramble":"PROCURESS","answer":"PERCUSSOR"},{"scramble":"PRODNOSES","answer":"SPONSORED"},{"scramble":"PROGGINGS","answer":"SPROGGING"},{"scramble":"PROMISORS","answer":"PROMISSOR"},{"scramble":"PROPOSERS","answer":"OPPRESSOR"},{"scramble":"PROROGUES","answer":"SEROGROUP"},{"scramble":"PROTEUSES","answer":"PESTEROUS"},{"scramble":"PROVOKEES","answer":"OVERSPOKE"},{"scramble":"PSAMMITES","answer":"SPAMMIEST"},{"scramble":"PTEROPODS","answer":"PROPTOSED"},{"scramble":"PUTCHISMS","answer":"PUTSCHISM"},{"scramble":"PUTREFIES","answer":"STUPEFIER"},{"scramble":"PUTTERERS","answer":"SPUTTERER"},{"scramble":"PYROLITES","answer":"LEPROSITY"},{"scramble":"QUATORZES","answer":"QUARTZOSE"},{"scramble":"QUIBBINGS","answer":"SQUIBBING"},{"scramble":"QUICKINGS","answer":"SQUICKING"},{"scramble":"QUIDDINGS","answer":"SQUIDDING"},{"scramble":"QUILLIONS","answer":"SQUILLION"},{"scramble":"QUINDENES","answer":"SEQUINNED"},{"scramble":"RADIOLESS","answer":"SOLARISED"},{"scramble":"RASAMALAS","answer":"RASSAMALA"},{"scramble":"RASGEADOS","answer":"DOGARESSA"},{"scramble":"RAVELINGS","answer":"SLAVERING"},{"scramble":"READHERES","answer":"REHEARSED"},{"scramble":"REALITIES","answer":"RESILIATE"},{"scramble":"REBUTTALS","answer":"TRUSTABLE"},{"scramble":"RECANVASS","answer":"CANVASSER"},{"scramble":"RECASINGS","answer":"CARESSING"},{"scramble":"RECOINERS","answer":"RESORCINE"},{"scramble":"RECOUPERS","answer":"PRECOURSE"},{"scramble":"RECROSSES","answer":"SORCERESS"},{"scramble":"REDEVOTES","answer":"STEVEDORE"},{"scramble":"REDPOINTS","answer":"DRIPSTONE"},{"scramble":"REDUCENTS","answer":"ENCRUSTED"},{"scramble":"REFUSANTS","answer":"TRANSFUSE"},{"scramble":"REINCITES","answer":"CRETINISE"},{"scramble":"REINDUCTS","answer":"INCRUSTED"},{"scramble":"REINETTES","answer":"SERINETTE"},{"scramble":"REINGESTS","answer":"GENITRESS"},{"scramble":"RELAXANTS","answer":"TRANSAXLE"},{"scramble":"RELIGIONS","answer":"RESOILING"},{"scramble":"REMINDERS","answer":"MISRENDER"},{"scramble":"RENATURES","answer":"SAUNTERER"},{"scramble":"REPETENDS","answer":"PRESENTED"},{"scramble":"RERATINGS","answer":"ARRESTING"},{"scramble":"RESELECTS","answer":"ELECTRESS"},{"scramble":"RESIGNALS","answer":"GRAINLESS"},{"scramble":"RESIGNERS","answer":"REINGRESS"},{"scramble":"RESILVERS","answer":"RIVERLESS"},{"scramble":"RESINATES","answer":"IRATENESS"},{"scramble":"RESISTERS","answer":"STRESSIER"},{"scramble":"RESPLICES","answer":"PRICELESS"},{"scramble":"RETINITES","answer":"ENTERITIS"},{"scramble":"RETINULAS","answer":"UNREALIST"},{"scramble":"RETINULES","answer":"UNSTERILE"},{"scramble":"REVENUERS","answer":"UNRESERVE"},{"scramble":"RHEOTOMES","answer":"OTHERSOME"},{"scramble":"RICOCHETS","answer":"ORCHESTIC"},{"scramble":"RIDGELETS","answer":"GLISTERED"},{"scramble":"RIMSTONES","answer":"MONITRESS"},{"scramble":"RINGSIDES","answer":"RIGIDNESS"},{"scramble":"RISALDARS","answer":"RISSALDAR"},{"scramble":"ROCAILLES","answer":"LOCALISER"},{"scramble":"ROTATIONS","answer":"SORTATION"},{"scramble":"ROUSETTES","answer":"ROUSSETTE"},{"scramble":"SALEROOMS","answer":"SALESROOM"},{"scramble":"SALTINESS","answer":"STAINLESS"},{"scramble":"SATANISTS","answer":"ASSISTANT"},{"scramble":"SCENARIOS","answer":"SARCOSINE"},{"scramble":"SCHOOLERS","answer":"CHLOROSES"},{"scramble":"SEMIOTICS","answer":"SOCIETISM"},{"scramble":"SENTENCES","answer":"SENESCENT"},{"scramble":"SEVIRATES","answer":"ASSERTIVE"},{"scramble":"SHIPMATES","answer":"STEAMSHIP"},{"scramble":"SHUTTLERS","answer":"TRUTHLESS"},{"scramble":"SIDESTEPS","answer":"PISSEDEST"},{"scramble":"SIDEWIPES","answer":"SIDESWIPE"},{"scramble":"SINIGANGS","answer":"ASSIGNING"},{"scramble":"SIRENIANS","answer":"RAININESS"},{"scramble":"SLALOMERS","answer":"MORALLESS"},{"scramble":"SLEEVEENS","answer":"ELEVENSES"},{"scramble":"SNATCHERS","answer":"CHANTRESS"},{"scramble":"SOLITUDES","answer":"DISSOLUTE"},{"scramble":"SONGLINES","answer":"LESSONING"},{"scramble":"SOUTHINGS","answer":"STOUSHING"},{"scramble":"SPLINTERS","answer":"PRINTLESS"},{"scramble":"SPOLIATES","answer":"POSTALISE"},{"scramble":"SUBSIDIES","answer":"SUBSIDISE"},{"scramble":"SULPHITES","answer":"PLUSHIEST"},{"scramble":"SUMMARIES","answer":"SUMMARISE"},{"scramble":"SUPERINGS","answer":"SUPERSIGN"},{"scramble":"SURGERIES","answer":"REGISSEUR"},{"scramble":"SURTITLES","answer":"SULTRIEST"},{"scramble":"TABLEFULS","answer":"STABLEFUL"},{"scramble":"TAMPERERS","answer":"PREMASTER"},{"scramble":"TARNISHES","answer":"STARSHINE"},{"scramble":"TAUTOMERS","answer":"OUTMASTER"},{"scramble":"TEASPOONS","answer":"SOAPSTONE"},{"scramble":"TECHNICAS","answer":"CHANCIEST"},{"scramble":"TELEWORKS","answer":"STEELWORK"},{"scramble":"TELLINIDS","answer":"INSTILLED"},{"scramble":"TENDANCES","answer":"ASCENDENT"},{"scramble":"TENTACLES","answer":"LATESCENT"},{"scramble":"TERMONERS","answer":"MONSTERER"},{"scramble":"TESTIFIES","answer":"FEISTIEST"},{"scramble":"TETRAMERS","answer":"SMATTERER"},{"scramble":"THERAPIES","answer":"THERAPISE"},{"scramble":"THEREMINS","answer":"INTERMESH"},{"scramble":"THERMIONS","answer":"HORSEMINT"},{"scramble":"THROSTLES","answer":"TROTHLESS"},{"scramble":"TICKSEEDS","answer":"STICKSEED"},{"scramble":"TONALITES","answer":"ALSTONITE"},{"scramble":"TORNADOES","answer":"ROADSTONE"},{"scramble":"TORTOISES","answer":"ROOTSIEST"},{"scramble":"TRACERIES","answer":"CAREERIST"},{"scramble":"TRAGEDIES","answer":"TRAGEDISE"},{"scramble":"TRAGOPANS","answer":"PARAGNOST"},{"scramble":"TRAPPINGS","answer":"STRAPPING"},{"scramble":"TRIAZINES","answer":"SANITIZER"},{"scramble":"TRICYCLES","answer":"RECYCLIST"},{"scramble":"TRIFECTAS","answer":"CRAFTIEST"},{"scramble":"TRIGLYPHS","answer":"SPRIGHTLY"},{"scramble":"TRIMMINGS","answer":"STRIMMING"},{"scramble":"TRINITIES","answer":"RETINITIS"},{"scramble":"TRUTHINGS","answer":"THRUSTING"},{"scramble":"TYPICITES","answer":"SEPTICITY"},{"scramble":"TYRANNIES","answer":"TYRANNISE"},{"scramble":"ULCERATES","answer":"CUARTELES"},{"scramble":"UNBURDENS","answer":"SUNBURNED"},{"scramble":"UNDERBIDS","answer":"DISBURDEN"},{"scramble":"UNDERPAYS","answer":"UNSPRAYED"},{"scramble":"UNTEACHES","answer":"CHANTEUSE"},{"scramble":"UPRISINGS","answer":"SUSPIRING"},{"scramble":"URANOTILS","answer":"INSULATOR"},{"scramble":"URBANISTS","answer":"SUBSTRAIN"},{"scramble":"URTICATES","answer":"RUSTICATE"},{"scramble":"VALIDATES","answer":"SALIVATED"},{"scramble":"VERIFIERS","answer":"VERSIFIER"},{"scramble":"VIOLATERS","answer":"OLIVASTER"},{"scramble":"WETNESSES","answer":"SWEETNESS"},{"scramble":"WHITECAPS","answer":"PATCHWISE"},{"scramble":"WHITLINGS","answer":"WHISTLING"},{"scramble":"WHORESONS","answer":"SNOWSHOER"},{"scramble":"WINGOVERS","answer":"OVERSWING"},{"scramble":"WORKMATES","answer":"MEATWORKS"}];
+    var conundrums = ORIGINAL_CONUNDRUMS.slice(0);
+    var unused = [];
+    var current = null;
+    var currentLetters = [];
+    var historyList = [];
+    var timerId = null;
+    var running = false;
+    var timerLength = 30;
+    var timeLeft = 30;
+    var revealed = false;
+    var scores = {"1":0,"2":0};
+    var audioCtx = null;
+
+    function byId(id){ return document.getElementById(id); }
+    function cleanWord(value){ return String(value || '').toUpperCase().replace(/[^A-Z]/g,''); }
+    function shuffleArray(array){
+      var copy = array.slice(0);
+      for(var i = copy.length - 1; i > 0; i--){
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = copy[i]; copy[i] = copy[j]; copy[j] = temp;
+      }
+      return copy;
+    }
+    function resetUnused(){
+      unused = [];
+      for(var i=0;i<conundrums.length;i++){ unused.push(i); }
+      unused = shuffleArray(unused);
+    }
+    function safeText(id, value){ var node = byId(id); if(node){ node.textContent = value; } }
+    function setMessage(text, type){
+      var m = byId('message');
+      if(!m){ return; }
+      m.textContent = text;
+      m.className = 'message' + (type ? ' ' + type : '');
+    }
+    function ensureAudio(){
+      if(!byId('soundOn') || !byId('soundOn').checked){ return false; }
+      try{
+        var AudioClass = window.AudioContext || window.webkitAudioContext;
+        if(!AudioClass){ return false; }
+        if(!audioCtx){ audioCtx = new AudioClass(); }
+        if(audioCtx.state === 'suspended' && audioCtx.resume){ audioCtx.resume(); }
+        return true;
+      }catch(err){ return false; }
+    }
+    function playTone(freq,duration,type,gain,delay){
+      if(!ensureAudio()){ return; }
+      try{
+        delay = delay || 0; type = type || 'sine'; gain = gain || 0.08; duration = duration || 0.1;
+        var osc = audioCtx.createOscillator();
+        var vol = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+        vol.gain.setValueAtTime(0.0001, audioCtx.currentTime + delay);
+        vol.gain.exponentialRampToValueAtTime(gain, audioCtx.currentTime + delay + 0.015);
+        vol.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + delay + duration);
+        osc.connect(vol); vol.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + delay);
+        osc.stop(audioCtx.currentTime + delay + duration + 0.03);
+      }catch(err){}
+    }
+    function soundClick(){ playTone(560,0.06,'square',0.055,0); }
+    function soundTick(){ playTone(420,0.045,'sine',0.045,0); }
+    function soundWrong(){ playTone(160,0.13,'sawtooth',0.08,0); playTone(110,0.16,'sawtooth',0.06,0.08); }
+    function soundCorrect(){ playTone(523.25,0.10,'triangle',0.09,0); playTone(659.25,0.10,'triangle',0.09,0.11); playTone(783.99,0.16,'triangle',0.1,0.22); }
+    function soundTime(){ playTone(220,0.18,'square',0.11,0); playTone(165,0.18,'square',0.1,0.2); playTone(110,0.32,'square',0.1,0.42); }
+
+    function renderTiles(){
+      var holder = byId('tiles');
+      if(!holder){ return; }
+      holder.innerHTML = '';
+      var letters = currentLetters.length ? currentLetters : ['?','?','?','?','?','?','?','?','?'];
+      for(var i=0;i<9;i++){
+        var card = document.createElement('div');
+        card.className = letters[i] === '?' ? 'tile empty' : 'tile';
+        card.textContent = letters[i] || '?';
+        holder.appendChild(card);
+      }
+    }
+    function updateTimerDisplay(){
+      timerLength = Math.max(5, Math.min(180, parseInt(byId('timerLength').value,10) || 30));
+      timeLeft = Math.max(0, Math.min(timeLeft, timerLength));
+      safeText('timeDisplay', String(timeLeft));
+      var circle = byId('timerCircle');
+      if(circle){
+        var percent = timerLength ? (timeLeft / timerLength) : 0;
+        var deg = Math.max(0, Math.min(360, percent * 360));
+        var col = timeLeft <= 5 ? 'var(--red)' : (timeLeft <= 10 ? 'var(--gold)' : 'var(--green)');
+        circle.style.background = 'conic-gradient(' + col + ' ' + deg + 'deg, rgba(255,255,255,.15) 0deg)';
+      }
+      safeText('startBtn', running ? 'Pause' : 'Start');
+    }
+    function resetTimer(){
+      stopTimer();
+      timerLength = Math.max(5, Math.min(180, parseInt(byId('timerLength').value,10) || 30));
+      byId('timerLength').value = timerLength;
+      timeLeft = timerLength;
+      updateTimerDisplay();
+    }
+    function startTimer(){
+      if(!current){ newConundrum(false); }
+      if(running){ return; }
+      running = true;
+      safeText('startBtn','Pause');
+      setMessage('Timer running. Solve the conundrum!', 'warn');
+      soundClick();
+      timerId = window.setInterval(function(){
+        timeLeft -= 1;
+        updateTimerDisplay();
+        if(timeLeft > 0 && timeLeft <= 5){ soundTick(); }
+        if(timeLeft <= 0){ finishTimer(); }
+      },1000);
+    }
+    function stopTimer(){
+      if(timerId){ window.clearInterval(timerId); timerId = null; }
+      running = false;
+      updateTimerDisplay();
+    }
+    function toggleTimer(){
+      if(running){ stopTimer(); setMessage('Paused.', 'warn'); soundClick(); }
+      else { startTimer(); }
+    }
+    function finishTimer(){
+      stopTimer();
+      timeLeft = 0;
+      updateTimerDisplay();
+      soundTime();
+      if(byId('autoReveal') && byId('autoReveal').checked){ revealAnswer(false); }
+      showOverlay('TIME!', current ? current.answer : '');
+      setMessage('Time is up. Check answers, reveal the word, or start a new conundrum.', 'warn');
+    }
+
+    function makeLetters(item){
+      var originalBox = byId('originalScramble');
+      var useOriginal = originalBox && originalBox.checked;
+      var word = useOriginal && item.scramble ? item.scramble : shuffleArray(item.answer.split('')).join('');
+      return word.split('');
+    }
+    function newConundrum(playSound){
+      if(!conundrums.length){ setMessage('No conundrums loaded.', 'bad'); return; }
+      if(unused.length === 0){ resetUnused(); }
+      stopTimer();
+      var index = unused.pop();
+      current = conundrums[index];
+      currentLetters = makeLetters(current);
+      revealed = false;
+      byId('answerInput').value = '';
+      safeText('answerReveal','?????????');
+      renderTiles();
+      resetTimer();
+      safeText('statusLine','Conundrum ready. Press Start.');
+      setMessage('New conundrum loaded. Good luck!', '');
+      historyList.unshift({scramble: currentLetters.join(''), answer: current.answer, shown:false});
+      if(historyList.length > 8){ historyList.pop(); }
+      renderHistory();
+      updateProgress();
+      if(playSound){ soundClick(); flashTiles(); }
+      if(byId('autoStart') && byId('autoStart').checked){ startTimer(); }
+    }
+    function shuffleCurrentLetters(){
+      if(!current){ newConundrum(false); }
+      if(!current){ return; }
+      currentLetters = shuffleArray(currentLetters);
+      renderTiles();
+      safeText('statusLine','Letters shuffled.');
+      setMessage('Letters shuffled.', 'warn');
+      soundClick();
+      flashTiles();
+    }
+    function revealAnswer(playSound){
+      if(!current){ setMessage('Start a conundrum first.', 'bad'); soundWrong(); return; }
+      revealed = true;
+      safeText('answerReveal', current.answer);
+      safeText('statusLine','Answer: ' + current.answer);
+      setMessage('Answer revealed: ' + current.answer, 'warn');
+      if(historyList.length){ historyList[0].shown = true; renderHistory(); }
+      if(playSound){ soundClick(); }
+    }
+    function checkAnswer(){
+      if(!current){ setMessage('Start a conundrum first.', 'bad'); soundWrong(); return; }
+      var guess = cleanWord(byId('answerInput').value);
+      byId('answerInput').value = guess;
+      if(!guess){ setMessage('Type an answer first.', 'bad'); soundWrong(); return; }
+      if(guess === current.answer){
+        stopTimer();
+        revealed = true;
+        safeText('answerReveal', current.answer);
+        safeText('statusLine','Correct! ' + current.answer);
+        setMessage('Correct! ' + current.answer + ' is the answer.', 'good');
+        if(historyList.length){ historyList[0].shown = true; renderHistory(); }
+        soundCorrect(); celebrate(); showOverlay('CORRECT!', current.answer);
+      }else{
+        setMessage('Not quite. Try again or reveal the answer.', 'bad');
+        shakeMain(); soundWrong();
+      }
+    }
+    function updateProgress(){
+      var used = Math.max(0, conundrums.length - unused.length);
+      var text = 'Loaded ' + conundrums.length + ' conundrums. Used ' + used + ' this cycle. Remaining ' + unused.length + '.';
+      var line = byId('progressLine');
+      if(line){ line.textContent = text; }
+    }
+    function renderHistory(){
+      var box = byId('historyList');
+      if(!box){ return; }
+      box.innerHTML = '';
+      if(historyList.length === 0){
+        var empty = document.createElement('div'); empty.className='history-item'; empty.innerHTML='<span>No rounds yet</span><span>--</span>'; box.appendChild(empty); return;
+      }
+      for(var i=0;i<historyList.length;i++){
+        var item = historyList[i];
+        var row = document.createElement('div'); row.className='history-item';
+        var left = document.createElement('span'); left.textContent = item.scramble;
+        var right = document.createElement('span'); right.textContent = item.shown ? item.answer : '?????????';
+        row.appendChild(left); row.appendChild(right); box.appendChild(row);
+      }
+    }
+    function changeScore(team, amount){
+      scores[team] = (scores[team] || 0) + amount;
+      if(scores[team] < 0){ scores[team] = 0; }
+      updateScores();
+      playTone(amount > 0 ? 700 : 220,0.08,'triangle',0.07,0);
+    }
+    function updateScores(){ safeText('score1', scores['1']); safeText('score2', scores['2']); }
+    function flashTiles(){ var t = byId('tiles'); if(!t){return;} t.classList.remove('flash'); void t.offsetWidth; t.classList.add('flash'); }
+    function shakeMain(){ var m = byId('mainCard'); if(!m){return;} m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake'); }
+    function showOverlay(title, sub){
+      safeText('overlayTitle', title || 'TIME!'); safeText('overlaySub', sub || '');
+      var o = byId('overlay'); if(!o){ return; }
+      o.classList.add('show');
+      window.setTimeout(function(){ o.classList.remove('show'); }, 1600);
+    }
+    function celebrate(){
+      var area = byId('celebration'); if(!area){ return; }
+      var colors = ['#fbbf24','#38bdf8','#34d399','#fb7185','#a78bfa','#ffffff'];
+      for(var i=0;i<80;i++){
+        var piece = document.createElement('div'); piece.className='confetti';
+        piece.style.left = Math.random() * 100 + 'vw'; piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+        piece.style.animationDelay = Math.random() * 0.35 + 's'; piece.style.transform = 'rotate(' + Math.floor(Math.random()*360) + 'deg)';
+        area.appendChild(piece);
+        (function(el){ window.setTimeout(function(){ if(el.parentNode){ el.parentNode.removeChild(el); } }, 1800); })(piece);
+      }
+    }
+    function parseCustomLine(line){
+      var words = line.toUpperCase().match(/[A-Z]{9}/g);
+      if(!words || words.length === 0){ return null; }
+      if(words.length >= 2){ return {scramble: words[0], answer: words[1]}; }
+      return {scramble: shuffleArray(words[0].split('')).join(''), answer: words[0]};
+    }
+    function loadCustomList(){
+      var raw = byId('customText').value || '';
+      var next = [];
+      var lines = raw.split(/\r?\n/);
+      for(var i=0;i<lines.length;i++){
+        var item = parseCustomLine(lines[i]);
+        if(item){ next.push(item); }
+      }
+      if(next.length === 0){ setMessage('No valid 9-letter words or scramble-answer pairs found.', 'bad'); soundWrong(); return; }
+      conundrums = next; current = null; currentLetters = []; historyList = [];
+      resetUnused(); renderTiles(); renderHistory(); resetTimer(); updateProgress();
+      safeText('answerReveal','?????????'); safeText('statusLine','Custom list ready.');
+      setMessage('Loaded ' + conundrums.length + ' custom conundrum' + (conundrums.length === 1 ? '' : 's') + '.', 'good'); soundCorrect();
+    }
+    function restoreOriginalList(){
+      conundrums = ORIGINAL_CONUNDRUMS.slice(0); current = null; currentLetters = []; historyList = [];
+      resetUnused(); renderTiles(); renderHistory(); resetTimer(); updateProgress();
+      safeText('answerReveal','?????????'); safeText('statusLine','Original list ready.');
+      setMessage('Original conundrum list restored.', 'good'); soundCorrect();
+    }
+    function addClick(id, fn){ var node = byId(id); if(node){ node.addEventListener('click', fn); } }
+    function init(){
+      resetUnused(); resetTimer(); renderTiles(); renderHistory(); updateProgress(); updateScores();
+      addClick('newBtn', function(){ newConundrum(true); });
+      addClick('startBtn', toggleTimer);
+      addClick('resetBtn', resetTimer);
+      addClick('shuffleBtn', shuffleCurrentLetters);
+      addClick('revealBtn', function(){ revealAnswer(true); });
+      addClick('checkBtn', checkAnswer);
+      addClick('printBtn', function(){ window.print(); });
+      addClick('fullScreenBtn', function(){
+        if(!document.fullscreenElement && document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen(); }
+        else if(document.exitFullscreen){ document.exitFullscreen(); }
+      });
+      addClick('scoreResetBtn', function(){ scores = {"1":0,"2":0}; updateScores(); soundClick(); });
+      addClick('customToggle', function(){ var box=byId('customBox'); if(box){ box.classList.toggle('open'); } });
+      addClick('loadCustomBtn', loadCustomList);
+      addClick('restoreBtn', restoreOriginalList);
+      byId('timerLength').addEventListener('change', resetTimer);
+      byId('answerInput').addEventListener('input', function(){ this.value = cleanWord(this.value); });
+      byId('answerInput').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ checkAnswer(); } });
+      var scoreButtons = document.querySelectorAll('[data-score]');
+      for(var i=0;i<scoreButtons.length;i++){
+        scoreButtons[i].addEventListener('click', function(){ changeScore(this.getAttribute('data-score'), parseInt(this.getAttribute('data-change'),10) || 0); });
+      }
+      window.addEventListener('keydown', function(e){
+        var active = document.activeElement;
+        var tag = active && active.tagName ? active.tagName.toUpperCase() : '';
+        var typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+        if(typing && e.key !== 'Escape'){ return; }
+        if(e.code === 'Space'){ e.preventDefault(); toggleTimer(); }
+        else if(e.key && e.key.toLowerCase() === 'n'){ newConundrum(true); }
+        else if(e.key && e.key.toLowerCase() === 's'){ shuffleCurrentLetters(); }
+        else if(e.key && e.key.toLowerCase() === 'r'){ revealAnswer(true); }
+        else if(e.key === 'Escape' && active && active.blur){ active.blur(); }
+      });
+    }
+    if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  </script>
+</body>
+</html>
