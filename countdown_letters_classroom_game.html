@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>9 Letter Word Challenge</title>
+  <style>
+    :root {
+      --bg1: #111827;
+      --bg2: #312e81;
+      --panel: rgba(255,255,255,0.12);
+      --panel2: rgba(255,255,255,0.18);
+      --text: #ffffff;
+      --muted: rgba(255,255,255,0.75);
+      --gold: #fbbf24;
+      --blue: #38bdf8;
+      --green: #34d399;
+      --red: #fb7185;
+      --card: #f8fafc;
+      --cardText: #111827;
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,0.35), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(251,191,36,0.32), transparent 35%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      width: min(1180px, 94vw);
+      margin: 0 auto;
+      padding: 22px 0 40px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      text-shadow: 0 5px 20px rgba(0,0,0,0.35);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .top-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .pill {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 999px;
+      padding: 10px 14px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    }
+
+    input[type="number"] {
+      width: 76px;
+      padding: 8px 9px;
+      border-radius: 12px;
+      border: 0;
+      font-weight: 800;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 16px;
+      color: #111827;
+      background: #e5e7eb;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+      transition: transform 0.08s ease, filter 0.15s ease, opacity 0.15s ease;
+      user-select: none;
+    }
+
+    button:hover { filter: brightness(1.05); }
+    button:active { transform: translateY(2px) scale(0.99); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .btn-blue { background: linear-gradient(180deg, #7dd3fc, #38bdf8); }
+    .btn-gold { background: linear-gradient(180deg, #fde68a, #fbbf24); }
+    .btn-green { background: linear-gradient(180deg, #86efac, #34d399); }
+    .btn-red { background: linear-gradient(180deg, #fda4af, #fb7185); }
+    .btn-dark { background: #111827; color: white; border: 1px solid rgba(255,255,255,0.25); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .letter-rack {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 10px;
+      margin: 16px 0 18px;
+    }
+
+    .letter-card {
+      aspect-ratio: 0.82;
+      min-height: 92px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, var(--card), #dbeafe);
+      color: var(--cardText);
+      display: grid;
+      place-items: center;
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      font-weight: 1000;
+      box-shadow: inset 0 -8px 0 rgba(0,0,0,0.08), 0 12px 22px rgba(0,0,0,0.25);
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .letter-card.empty {
+      background: rgba(255,255,255,0.12);
+      border: 2px dashed rgba(255,255,255,0.25);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.25);
+    }
+
+    .letter-card.pop {
+      animation: pop 0.26s ease-out;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.72) rotate(-4deg); opacity: 0; }
+      85% { transform: scale(1.08) rotate(1deg); }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    .chooser {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .big-choice {
+      min-height: 96px;
+      font-size: clamp(1.1rem, 2vw, 1.7rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .big-choice span {
+      font-size: 0.82rem;
+      opacity: 0.8;
+      font-weight: 800;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .timer-box {
+      text-align: center;
+      padding: 18px;
+      border-radius: 28px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .timer {
+      font-size: clamp(4rem, 13vw, 9rem);
+      font-weight: 1000;
+      line-height: 0.9;
+      letter-spacing: -0.08em;
+      margin: 10px 0;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 8px 22px rgba(0,0,0,0.4);
+    }
+
+    .timer.warning { color: var(--gold); animation: pulse 0.8s infinite; }
+    .timer.danger { color: var(--red); animation: pulse 0.45s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.045); }
+    }
+
+    .bar {
+      height: 18px;
+      background: rgba(255,255,255,0.16);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.18);
+      margin: 10px 0 16px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--green), var(--blue), var(--gold));
+      border-radius: 999px;
+      transition: width 0.25s linear;
+    }
+
+    .timer-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .word-entry {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .word-entry input[type="text"], .word-entry input[type="search"] {
+      width: 100%;
+      padding: 15px 16px;
+      border-radius: 18px;
+      border: 0;
+      font-size: 1.2rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      outline: none;
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.05);
+    }
+
+    .entry-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .score-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      max-height: 220px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .score-item {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-weight: 900;
+    }
+
+    .score-word {
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      word-break: break-word;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      border-radius: 999px;
+      padding: 6px 9px;
+      background: rgba(0,0,0,0.24);
+      color: #fff;
+      font-weight: 1000;
+    }
+
+    .rules {
+      margin-top: 14px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.96rem;
+    }
+
+    .rules strong { color: white; }
+
+    .found {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .found h2, .panel h2 {
+      margin: 0 0 10px;
+      font-size: 1.25rem;
+    }
+
+    .small-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .shuffle-area {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(120px);
+      background: #111827;
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 13px 18px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      font-weight: 900;
+      transition: transform 0.25s ease;
+      z-index: 50;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    .celebration {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 40;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 12px;
+      height: 20px;
+      top: -30px;
+      border-radius: 3px;
+      animation: fall 1.8s linear forwards;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0.9; }
+    }
+
+    .keyboard-hint {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      header { align-items: flex-start; flex-direction: column; }
+      .top-controls { justify-content: flex-start; }
+      .grid { grid-template-columns: 1fr; }
+      .letter-rack { gap: 7px; }
+      .letter-card { min-height: 70px; border-radius: 14px; }
+    }
+
+    @media (max-width: 560px) {
+      .chooser, .timer-buttons, .shuffle-area, .entry-row { grid-template-columns: 1fr; }
+      .letter-rack { grid-template-columns: repeat(3, 1fr); }
+      .letter-card { aspect-ratio: 1.1; }
+    }
+
+    @media print {
+      body { background: white; color: black; }
+      .top-controls, .chooser, .timer-box, .word-entry button, .small-actions, .keyboard-hint { display: none !important; }
+      .wrap { width: 100%; padding: 0; }
+      .grid { grid-template-columns: 1fr; }
+      .panel { box-shadow: none; border: 2px solid #111; background: white; color: black; }
+      .letter-card { border: 2px solid #111; color: black; box-shadow: none; }
+      .rules, .subtitle { color: #222; }
+    }
+  </style>
+</head>
+<body>
+  <div class="celebration" id="celebration"></div>
+  <div class="toast" id="toast">Message</div>
+
+  <main class="wrap">
+    <header>
+      <div>
+        <h1>9 Letter Word Challenge</h1>
+        <div class="subtitle">Pick vowels and consonants, then race the timer to build the longest word.</div>
+      </div>
+      <div class="top-controls">
+        <label class="pill">
+          Timer
+          <input id="timeInput" type="number" min="5" max="180" step="5" value="30" />
+          sec
+        </label>
+        <button class="btn-dark" id="soundBtn" type="button">🔊 Sound On</button>
+        <button class="btn-dark" id="printBtn" type="button">🖨️ Print</button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="status-row">
+          <div id="letterCount">Letters chosen: 0 / 9</div>
+          <div id="mixCount">Vowels: 0 · Consonants: 0</div>
+        </div>
+
+        <div class="letter-rack" id="letterRack" aria-label="Selected letters"></div>
+
+        <div class="chooser">
+          <button class="big-choice btn-blue" id="consonantBtn" type="button">
+            Consonant
+            <span>Shortcut: C</span>
+          </button>
+          <button class="big-choice btn-gold" id="vowelBtn" type="button">
+            Vowel
+            <span>Shortcut: V</span>
+          </button>
+        </div>
+
+        <div class="shuffle-area">
+          <button class="btn-dark" id="undoBtn" type="button">↩️ Undo Last Letter</button>
+          <button class="btn-dark" id="shuffleBtn" type="button">🔀 Shuffle Letters</button>
+        </div>
+
+        <div class="found">
+          <h2>Class letters</h2>
+          <div id="lettersText" style="font-size:1.6rem;font-weight:1000;letter-spacing:0.12em;min-height:2rem;">—</div>
+          <div class="rules">
+            <strong>Scoring:</strong> 1 point for each letter in a valid word. A 9-letter word is worth <strong>18 points</strong>.
+            Teacher checks spelling and whether the word can be made using the letters shown.
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="timer-box">
+          <div style="font-weight:900;color:var(--muted);">Round timer</div>
+          <div class="timer" id="timerDisplay">30</div>
+          <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+          <div class="timer-buttons">
+            <button class="btn-green" id="startBtn" type="button">▶ Start</button>
+            <button class="btn-red" id="resetTimerBtn" type="button">⟲ Reset</button>
+          </div>
+          <div class="keyboard-hint">Shortcuts: Space = start/pause · R = reset round</div>
+        </div>
+
+        <div class="word-entry">
+          <h2 style="margin:0;">Add student words</h2>
+          <input id="studentName" type="text" placeholder="Student / team name" autocomplete="off" />
+          <div class="entry-row">
+            <input id="wordInput" type="search" placeholder="Best word" autocomplete="off" />
+            <button class="btn-green" id="addWordBtn" type="button">Add</button>
+          </div>
+          <div id="wordMessage" class="rules">Words are checked against the selected letters, but spelling is teacher-verified.</div>
+          <div class="score-list" id="scoreList"></div>
+          <div class="small-actions">
+            <button class="btn-dark" id="clearScoresBtn" type="button">Clear Scores</button>
+            <button class="btn-dark" id="sortScoresBtn" type="button">Sort Scores</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="small-actions">
+      <button class="btn-red" id="newRoundBtn" type="button">✨ New Round</button>
+      <button class="btn-dark" id="demoBtn" type="button">Fill Random 9 Letters</button>
+    </div>
+  </main>
+
+  <script>
+    const MAX_LETTERS = 9;
+
+    // Letter bags loosely weighted for English classroom play.
+    const vowels = "AAAAAAAAAEEEEEEEEEEEEIIIIIIIIOOOOOOOOUUU".split("");
+    const consonants = "BBCCCDDDDDFFGGGHHHHJKLLLLMMNNNNNNPPQRRRRRRSSSSSSTTTTTTTVVWWXYYZ".split("");
+
+    const state = {
+      letters: [],
+      scores: [],
+      running: false,
+      timeLeft: 30,
+      totalTime: 30,
+      timerId: null,
+      soundOn: true,
+      sorted: false
+    };
+
+    const rack = document.getElementById("letterRack");
+    const letterCount = document.getElementById("letterCount");
+    const mixCount = document.getElementById("mixCount");
+    const lettersText = document.getElementById("lettersText");
+    const consonantBtn = document.getElementById("consonantBtn");
+    const vowelBtn = document.getElementById("vowelBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const timeInput = document.getElementById("timeInput");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const barFill = document.getElementById("barFill");
+    const startBtn = document.getElementById("startBtn");
+    const resetTimerBtn = document.getElementById("resetTimerBtn");
+    const newRoundBtn = document.getElementById("newRoundBtn");
+    const demoBtn = document.getElementById("demoBtn");
+    const soundBtn = document.getElementById("soundBtn");
+    const printBtn = document.getElementById("printBtn");
+    const studentName = document.getElementById("studentName");
+    const wordInput = document.getElementById("wordInput");
+    const addWordBtn = document.getElementById("addWordBtn");
+    const scoreList = document.getElementById("scoreList");
+    const wordMessage = document.getElementById("wordMessage");
+    const clearScoresBtn = document.getElementById("clearScoresBtn");
+    const sortScoresBtn = document.getElementById("sortScoresBtn");
+    const toast = document.getElementById("toast");
+    const celebration = document.getElementById("celebration");
+
+    function randomFrom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function initRack() {
+      rack.innerHTML = "";
+      for (let i = 0; i < MAX_LETTERS; i++) {
+        const card = document.createElement("div");
+        card.className = "letter-card empty";
+        card.textContent = "?";
+        rack.appendChild(card);
+      }
+    }
+
+    function renderRack(popLast = false) {
+      [...rack.children].forEach((card, i) => {
+        const letter = state.letters[i];
+        card.textContent = letter || "?";
+        card.className = letter ? "letter-card" : "letter-card empty";
+        if (popLast && i === state.letters.length - 1) {
+          card.classList.add("pop");
+          setTimeout(() => card.classList.remove("pop"), 280);
+        }
+      });
+
+      const vowelCount = state.letters.filter(l => "AEIOU".includes(l)).length;
+      const consonantCount = state.letters.length - vowelCount;
+      letterCount.textContent = `Letters chosen: ${state.letters.length} / ${MAX_LETTERS}`;
+      mixCount.textContent = `Vowels: ${vowelCount} · Consonants: ${consonantCount}`;
+      lettersText.textContent = state.letters.length ? state.letters.join(" ") : "—";
+
+      const full = state.letters.length >= MAX_LETTERS;
+      consonantBtn.disabled = full;
+      vowelBtn.disabled = full;
+      undoBtn.disabled = state.letters.length === 0 || state.running;
+      shuffleBtn.disabled = state.letters.length < 2;
+
+      if (full) {
+        showToast("9 letters ready. Start the timer!");
+        playTone(740, 0.08, "triangle", 0.35);
+      }
+    }
+
+    function addLetter(type) {
+      if (state.letters.length >= MAX_LETTERS || state.running) return;
+      const letter = type === "vowel" ? randomFrom(vowels) : randomFrom(consonants);
+      state.letters.push(letter);
+      renderRack(true);
+      playTone(type === "vowel" ? 660 : 440, 0.08, "square", 0.18);
+    }
+
+    function undoLetter() {
+      if (state.running) return;
+      state.letters.pop();
+      renderRack();
+      playTone(220, 0.07, "sawtooth", 0.15);
+    }
+
+    function shuffleLetters() {
+      for (let i = state.letters.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [state.letters[i], state.letters[j]] = [state.letters[j], state.letters[i]];
+      }
+      renderRack();
+      playTone(500, 0.05, "triangle", 0.2);
+      setTimeout(() => playTone(650, 0.05, "triangle", 0.2), 55);
+    }
+
+    function setTimeFromInput() {
+      const value = Number(timeInput.value);
+      const clean = Math.max(5, Math.min(180, Number.isFinite(value) ? value : 30));
+      timeInput.value = clean;
+      state.totalTime = clean;
+      state.timeLeft = clean;
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      timerDisplay.textContent = state.timeLeft;
+      timerDisplay.classList.toggle("warning", state.timeLeft <= 10 && state.timeLeft > 5);
+      timerDisplay.classList.toggle("danger", state.timeLeft <= 5);
+      const percent = state.totalTime ? (state.timeLeft / state.totalTime) * 100 : 0;
+      barFill.style.width = `${Math.max(0, percent)}%`;
+    }
+
+    function startPauseTimer() {
+      if (state.letters.length < MAX_LETTERS) {
+        showToast("Choose 9 letters first.");
+        playTone(160, 0.12, "sawtooth", 0.2);
+        return;
+      }
+
+      if (state.running) {
+        clearInterval(state.timerId);
+        state.running = false;
+        startBtn.textContent = "▶ Start";
+        showToast("Timer paused.");
+        return;
+      }
+
+      if (state.timeLeft <= 0) resetTimerOnly();
+
+      state.running = true;
+      startBtn.textContent = "⏸ Pause";
+      playStartSound();
+
+      state.timerId = setInterval(() => {
+        state.timeLeft -= 1;
+        updateTimerDisplay();
+
+        if (state.timeLeft > 0 && state.timeLeft <= 5) {
+          playTone(880, 0.07, "square", 0.22);
+        }
+
+        if (state.timeLeft <= 0) {
+          clearInterval(state.timerId);
+          state.running = false;
+          state.timeLeft = 0;
+          updateTimerDisplay();
+          startBtn.textContent = "▶ Start";
+          playEndSound();
+          confettiBlast();
+          showToast("Time! Pens down / hands up.");
+          wordInput.focus();
+        }
+      }, 1000);
+    }
+
+    function resetTimerOnly() {
+      clearInterval(state.timerId);
+      state.running = false;
+      startBtn.textContent = "▶ Start";
+      setTimeFromInput();
+      playTone(260, 0.08, "triangle", 0.18);
+    }
+
+    function newRound() {
+      clearInterval(state.timerId);
+      state.letters = [];
+      state.running = false;
+      state.sorted = false;
+      startBtn.textContent = "▶ Start";
+      setTimeFromInput();
+      renderRack();
+      wordInput.value = "";
+      wordMessage.textContent = "Words are checked against the selected letters, but spelling is teacher-verified.";
+      showToast("New round ready.");
+    }
+
+    function fillRandomLetters() {
+      if (state.running) return;
+      state.letters = [];
+      // Classroom-friendly mix: 4 vowels, 5 consonants, then shuffle.
+      for (let i = 0; i < 4; i++) state.letters.push(randomFrom(vowels));
+      for (let i = 0; i < 5; i++) state.letters.push(randomFrom(consonants));
+      shuffleLetters();
+      renderRack(true);
+      showToast("Random 9-letter set filled.");
+    }
+
+    function canMakeWord(word) {
+      const available = [...state.letters];
+      for (const char of word) {
+        const index = available.indexOf(char);
+        if (index === -1) return false;
+        available.splice(index, 1);
+      }
+      return true;
+    }
+
+    function scoreWord(word) {
+      return word.length === 9 ? 18 : word.length;
+    }
+
+    function addWord() {
+      const name = studentName.value.trim() || "Team";
+      const word = wordInput.value.toUpperCase().replace(/[^A-Z]/g, "");
+
+      if (!word) {
+        wordMessage.textContent = "Type a word first.";
+        return;
+      }
+
+      if (!state.letters.length) {
+        wordMessage.textContent = "Choose letters before adding words.";
+        return;
+      }
+
+      if (word.length > 9) {
+        wordMessage.textContent = "That word is too long for this round.";
+        playTone(150, 0.1, "sawtooth", 0.2);
+        return;
+      }
+
+      if (!canMakeWord(word)) {
+        wordMessage.textContent = `“${word}” cannot be made from ${state.letters.join("")}.`;
+        playTone(150, 0.1, "sawtooth", 0.2);
+        return;
+      }
+
+      const score = scoreWord(word);
+      state.scores.push({ name, word, score, length: word.length });
+      wordInput.value = "";
+      wordMessage.textContent = `Added ${word}: ${score} point${score === 1 ? "" : "s"}. Teacher still checks spelling.`;
+      renderScores();
+      playTone(720, 0.08, "triangle", 0.22);
+      if (word.length === 9) {
+        confettiBlast();
+        playEndSound();
+      }
+      wordInput.focus();
+    }
+
+    function renderScores() {
+      scoreList.innerHTML = "";
+      const list = state.sorted
+        ? [...state.scores].sort((a, b) => b.score - a.score || b.length - a.length || a.word.localeCompare(b.word))
+        : state.scores;
+
+      if (!list.length) {
+        const empty = document.createElement("div");
+        empty.className = "rules";
+        empty.textContent = "No student words added yet.";
+        scoreList.appendChild(empty);
+        return;
+      }
+
+      list.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "score-item";
+        row.innerHTML = `
+          <span><span class="score-word">${escapeHtml(item.word)}</span><br><span style="color:rgba(255,255,255,0.72);font-size:0.86rem;">${escapeHtml(item.name)}</span></span>
+          <span class="badge">${item.length}</span>
+          <span class="badge">${item.score} pts</span>
+        `;
+        scoreList.appendChild(row);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"]/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[s]));
+    }
+
+    function clearScores() {
+      state.scores = [];
+      renderScores();
+      showToast("Scores cleared.");
+    }
+
+    function toggleSortScores() {
+      state.sorted = !state.sorted;
+      sortScoresBtn.textContent = state.sorted ? "Unsort Scores" : "Sort Scores";
+      renderScores();
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    let audioContext = null;
+
+    function getAudioContext() {
+      if (!state.soundOn) return null;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return null;
+      if (!audioContext) audioContext = new AudioContext();
+      return audioContext;
+    }
+
+    function playTone(freq = 440, duration = 0.1, type = "sine", volume = 0.18) {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    }
+
+    function playStartSound() {
+      [330, 440, 660].forEach((f, i) => setTimeout(() => playTone(f, 0.09, "triangle", 0.28), i * 95));
+    }
+
+    function playEndSound() {
+      [880, 740, 660, 990].forEach((f, i) => setTimeout(() => playTone(f, 0.12, i % 2 ? "square" : "triangle", 0.32), i * 120));
+    }
+
+    function confettiBlast() {
+      const colors = ["#fbbf24", "#38bdf8", "#34d399", "#fb7185", "#ffffff", "#a78bfa"];
+      for (let i = 0; i < 70; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = `${Math.random() * 0.35}s`;
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+        celebration.appendChild(piece);
+        setTimeout(() => piece.remove(), 2300);
+      }
+    }
+
+    consonantBtn.addEventListener("click", () => addLetter("consonant"));
+    vowelBtn.addEventListener("click", () => addLetter("vowel"));
+    undoBtn.addEventListener("click", undoLetter);
+    shuffleBtn.addEventListener("click", shuffleLetters);
+    timeInput.addEventListener("change", resetTimerOnly);
+    startBtn.addEventListener("click", startPauseTimer);
+    resetTimerBtn.addEventListener("click", resetTimerOnly);
+    newRoundBtn.addEventListener("click", newRound);
+    demoBtn.addEventListener("click", fillRandomLetters);
+    addWordBtn.addEventListener("click", addWord);
+    clearScoresBtn.addEventListener("click", clearScores);
+    sortScoresBtn.addEventListener("click", toggleSortScores);
+    printBtn.addEventListener("click", () => window.print());
+
+    soundBtn.addEventListener("click", () => {
+      state.soundOn = !state.soundOn;
+      soundBtn.textContent = state.soundOn ? "🔊 Sound On" : "🔇 Sound Off";
+      if (state.soundOn) playTone(520, 0.08, "triangle", 0.2);
+    });
+
+    wordInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") addWord();
+    });
+
+    studentName.addEventListener("keydown", e => {
+      if (e.key === "Enter") wordInput.focus();
+    });
+
+    document.addEventListener("keydown", e => {
+      const tag = document.activeElement.tagName.toLowerCase();
+      const typing = tag === "input" || tag === "textarea";
+
+      if (!typing && e.key.toLowerCase() === "c") addLetter("consonant");
+      if (!typing && e.key.toLowerCase() === "v") addLetter("vowel");
+      if (!typing && e.key.toLowerCase() === "r") newRound();
+      if (!typing && e.code === "Space") {
+        e.preventDefault();
+        startPauseTimer();
+      }
+    });
+
+    initRack();
+    setTimeFromInput();
+    renderRack();
+    renderScores();
+  </script>
+</body>
+</html>

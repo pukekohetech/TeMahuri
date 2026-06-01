@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Countdown Numbers Challenge</title>
+  <style>
+    :root {
+      --bg1: #111827;
+      --bg2: #312e81;
+      --panel: rgba(255,255,255,0.12);
+      --panel2: rgba(255,255,255,0.18);
+      --text: #ffffff;
+      --muted: rgba(255,255,255,0.75);
+      --gold: #fbbf24;
+      --blue: #38bdf8;
+      --green: #34d399;
+      --red: #fb7185;
+      --purple: #a78bfa;
+      --card: #f8fafc;
+      --cardText: #111827;
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,0.35), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(251,191,36,0.32), transparent 35%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      width: min(1180px, 94vw);
+      margin: 0 auto;
+      padding: 22px 0 40px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      text-shadow: 0 5px 20px rgba(0,0,0,0.35);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .top-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .pill {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 999px;
+      padding: 10px 14px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+    }
+
+    label { color: var(--muted); font-weight: 700; }
+
+    input, textarea, select {
+      font: inherit;
+      border: 0;
+      outline: 0;
+      border-radius: 12px;
+    }
+
+    input[type="number"] {
+      width: 78px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.9);
+      color: #111827;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      background: var(--card);
+      color: var(--cardText);
+      box-shadow: 0 8px 0 rgba(0,0,0,0.24), 0 14px 26px rgba(0,0,0,0.22);
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease, opacity 0.12s ease;
+    }
+
+    button:hover { filter: brightness(1.05); }
+    button:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0,0,0,0.24), 0 8px 16px rgba(0,0,0,0.2); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.2); }
+
+    .btn-blue { background: linear-gradient(135deg, #67e8f9, #38bdf8); color: #073449; }
+    .btn-green { background: linear-gradient(135deg, #86efac, #34d399); color: #052e16; }
+    .btn-gold { background: linear-gradient(135deg, #fde68a, #fbbf24); color: #3b2600; }
+    .btn-red { background: linear-gradient(135deg, #fda4af, #fb7185); color: #4c0519; }
+    .btn-purple { background: linear-gradient(135deg, #ddd6fe, #a78bfa); color: #24104f; }
+    .btn-dark { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.22); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 28px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2.3vw, 2rem);
+      letter-spacing: -0.03em;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    .number-board {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin: 18px 0 14px;
+    }
+
+    .number-card, .empty-card {
+      min-height: 110px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      font-size: clamp(2.1rem, 5vw, 4rem);
+      font-weight: 1000;
+      letter-spacing: -0.06em;
+      user-select: none;
+    }
+
+    .number-card {
+      background: linear-gradient(160deg, #fff, #dbeafe);
+      color: #0f172a;
+      border: 3px solid rgba(255,255,255,0.85);
+      box-shadow: 0 12px 0 rgba(0,0,0,0.24), 0 18px 35px rgba(0,0,0,0.25);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .number-card::after {
+      content: "tap to use";
+      position: absolute;
+      bottom: 8px;
+      font-size: 0.72rem;
+      letter-spacing: 0;
+      color: rgba(15,23,42,0.55);
+    }
+
+    .number-card.used {
+      opacity: 0.34;
+      filter: grayscale(0.85);
+      cursor: not-allowed;
+      transform: scale(0.96);
+      box-shadow: inset 0 0 0 999px rgba(15,23,42,0.14), 0 5px 0 rgba(0,0,0,0.18);
+    }
+
+    .number-card.used::after {
+      content: "used";
+      color: rgba(15,23,42,0.85);
+    }
+
+    .empty-card {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.35);
+      border: 2px dashed rgba(255,255,255,0.25);
+    }
+
+    .pick-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .pick-row button {
+      min-height: 72px;
+      font-size: clamp(1.1rem, 2.5vw, 1.55rem);
+    }
+
+    .secondary-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .pool {
+      display: grid;
+      grid-template-columns: repeat(14, minmax(32px, 1fr));
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .pool span {
+      text-align: center;
+      padding: 7px 4px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.11);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.86);
+      font-weight: 850;
+    }
+
+    .pool span.used {
+      opacity: 0.22;
+      text-decoration: line-through;
+    }
+
+    .target-timer {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .target-box {
+      text-align: center;
+      padding: 18px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, rgba(251,191,36,0.95), rgba(253,230,138,0.92));
+      color: #3b2600;
+      box-shadow: 0 14px 0 rgba(0,0,0,0.24), 0 20px 40px rgba(0,0,0,0.25);
+    }
+
+    .target-label {
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.95rem;
+      opacity: 0.75;
+    }
+
+    .target-number {
+      margin: 4px 0 10px;
+      font-size: clamp(4.2rem, 13vw, 7.3rem);
+      font-weight: 1000;
+      line-height: 0.9;
+      letter-spacing: -0.08em;
+    }
+
+    .target-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .target-controls input {
+      background: rgba(255,255,255,0.74);
+      color: #1f2937;
+      border: 2px solid rgba(59,38,0,0.18);
+    }
+
+    .timer-box {
+      text-align: center;
+      padding: 18px;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.13);
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+
+    .clock {
+      width: min(260px, 70vw);
+      aspect-ratio: 1;
+      margin: 8px auto 12px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        conic-gradient(var(--green) var(--timerDeg, 360deg), rgba(255,255,255,0.16) 0deg),
+        rgba(255,255,255,0.1);
+      box-shadow: inset 0 0 0 12px rgba(255,255,255,0.16), 0 18px 45px rgba(0,0,0,0.25);
+    }
+
+    .clock-inner {
+      width: 76%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: rgba(17,24,39,0.88);
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .time {
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 1000;
+      letter-spacing: -0.08em;
+    }
+
+    .timer-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .answer-panel {
+      margin-top: 18px;
+    }
+
+    .answer-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: stretch;
+      margin-top: 10px;
+    }
+
+    #answerInput {
+      width: 100%;
+      padding: 16px 18px;
+      font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+      font-weight: 850;
+      color: #111827;
+      background: rgba(255,255,255,0.95);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.55);
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .keypad button {
+      padding: 10px 8px;
+      min-height: 46px;
+      border-radius: 12px;
+      box-shadow: 0 5px 0 rgba(0,0,0,0.22), 0 9px 16px rgba(0,0,0,0.18);
+    }
+
+    .keypad button.number-used {
+      opacity: 0.32;
+      filter: grayscale(0.85);
+      cursor: not-allowed;
+    }
+
+    .feedback {
+      margin-top: 12px;
+      min-height: 54px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.16);
+      line-height: 1.45;
+    }
+
+    .feedback.good { background: rgba(16,185,129,0.2); border-color: rgba(52,211,153,0.45); }
+    .feedback.warn { background: rgba(251,191,36,0.18); border-color: rgba(251,191,36,0.45); }
+    .feedback.bad { background: rgba(251,113,133,0.2); border-color: rgba(251,113,133,0.45); }
+
+    .solution-box {
+      display: none;
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.13);
+      border: 1px solid rgba(255,255,255,0.22);
+      line-height: 1.45;
+    }
+
+    .solution-box.show { display: block; }
+
+    .score-panel {
+      margin-top: 18px;
+    }
+
+    .score-entry {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    #teamName {
+      padding: 13px 14px;
+      width: 100%;
+      font-weight: 850;
+      color: #111827;
+      background: rgba(255,255,255,0.95);
+    }
+
+    .score-badge {
+      padding: 13px 15px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.2);
+      font-weight: 1000;
+      white-space: nowrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+      text-align: left;
+    }
+
+    th {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    tbody tr:nth-child(odd) { background: rgba(255,255,255,0.06); }
+    tbody tr:nth-child(even) { background: rgba(255,255,255,0.03); }
+
+    .rules {
+      margin-top: 18px;
+      display: grid;
+      gap: 8px;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.45;
+    }
+
+    .rules div {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .tiny {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.66);
+    }
+
+    .time-up {
+      display: none;
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(251,191,36,0.2);
+      border: 1px solid rgba(251,191,36,0.45);
+      font-size: 1.2rem;
+      font-weight: 950;
+      text-align: center;
+    }
+
+    .time-up.show { display: block; }
+
+    .pop {
+      animation: pop 0.38s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.6) rotate(-4deg); opacity: 0.2; }
+      70% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    .shake {
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 14px;
+      top: -20px;
+      left: 50%;
+      pointer-events: none;
+      z-index: 999;
+      animation: fall 1.9s linear forwards;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0.9; }
+    }
+
+    @media (max-width: 900px) {
+      header { align-items: flex-start; flex-direction: column; }
+      .top-controls { justify-content: flex-start; }
+      .grid { grid-template-columns: 1fr; }
+      .number-board { grid-template-columns: repeat(3, 1fr); }
+      .answer-row, .score-entry { grid-template-columns: 1fr; }
+      .keypad { grid-template-columns: repeat(4, 1fr); }
+      .pool { grid-template-columns: repeat(7, minmax(32px, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .wrap { width: min(96vw, 1180px); }
+      .panel { padding: 14px; border-radius: 22px; }
+      .number-card, .empty-card { min-height: 86px; }
+      .pick-row { grid-template-columns: 1fr; }
+      .timer-actions { grid-template-columns: 1fr; }
+      .keypad { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media print {
+      body { background: white; color: black; }
+      .top-controls, .pick-row, .secondary-controls, .timer-actions, .keypad, button { display: none !important; }
+      .wrap { width: 100%; padding: 0; }
+      .grid { grid-template-columns: 1fr; }
+      .panel, .target-box, .timer-box, .feedback, .solution-box, .rules div {
+        box-shadow: none;
+        background: white;
+        color: black;
+        border: 1px solid #bbb;
+      }
+      .number-card, .empty-card { box-shadow: none; border: 1px solid #777; color: black; background: white; }
+      .clock { display: none; }
+      .target-number { font-size: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Countdown<br />Numbers Challenge</h1>
+        <div class="subtitle">Pick 6 numbers, hit the target, beat the clock.</div>
+      </div>
+      <div class="top-controls">
+        <div class="pill">
+          <label for="durationInput">Timer</label>
+          <input id="durationInput" type="number" min="5" max="300" step="5" value="30" />
+          <span>sec</span>
+        </div>
+        <button class="btn-dark" id="soundToggle" type="button">🔊 Sound on</button>
+        <button class="btn-dark" id="printBtn" type="button">🖨️ Print</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section>
+        <div class="panel">
+          <div class="section-title">
+            <div>
+              <h2>1. Choose the numbers</h2>
+              <div class="small-note">Click Large or Small until there are 6 cards. Then the target appears.</div>
+            </div>
+            <div class="score-badge"><span id="pickedCount">0</span>/6 picked</div>
+          </div>
+
+          <div class="number-board" id="numberBoard" aria-live="polite"></div>
+
+          <div class="pick-row">
+            <button id="pickLargeBtn" class="btn-gold" type="button">Pick LARGE<br /><span class="tiny">25, 50, 75, 100</span></button>
+            <button id="pickSmallBtn" class="btn-blue" type="button">Pick SMALL<br /><span class="tiny">two each of 1–10</span></button>
+          </div>
+
+          <div class="secondary-controls">
+            <button id="randomSixBtn" class="btn-purple" type="button">🎲 Random 6</button>
+            <button id="undoBtn" type="button">↩️ Undo last</button>
+            <button id="newRoundBtn" class="btn-red" type="button">🔄 New round</button>
+          </div>
+
+          <div class="rules">
+            <div><strong>Rules:</strong> Use +, −, ×, ÷ and brackets. You may use any card once, not necessarily all six.</div>
+            <div><strong>Checker:</strong> It allows whole-number steps only. No negative intermediate answers and no fractions.</div>
+            <div><strong>Scoring:</strong> Exact target = 10 points, within 5 = 7 points, within 10 = 5 points.</div>
+          </div>
+        </div>
+
+        <div class="panel answer-panel">
+          <div class="section-title">
+            <div>
+              <h2>2. Enter a calculation</h2>
+              <div class="small-note">Example: <strong>(100 + 6) × 8 + 7</strong>. You can type, or tap the number cards and keypad.</div>
+            </div>
+          </div>
+
+          <div class="answer-row">
+            <input id="answerInput" type="text" placeholder="Type your calculation here..." autocomplete="off" />
+            <button id="checkBtn" class="btn-green" type="button">✅ Check</button>
+            <button id="clearAnswerBtn" type="button">Clear</button>
+          </div>
+
+          <div class="keypad" id="keypad"></div>
+
+          <div class="feedback" id="feedback">Choose 6 numbers to begin.</div>
+          <div class="solution-box" id="solutionBox"></div>
+        </div>
+      </section>
+
+      <aside>
+        <div class="target-timer">
+          <div class="target-box" id="targetBox">
+            <div class="target-label">Target</div>
+            <div class="target-number" id="targetNumber">---</div>
+            <div class="target-controls">
+              <label for="targetInput">Set</label>
+              <input id="targetInput" type="number" min="100" max="999" placeholder="100-999" />
+              <button id="newTargetBtn" type="button">New target</button>
+            </div>
+          </div>
+
+          <div class="timer-box">
+            <h2>3. Start the clock</h2>
+            <div class="clock" id="clock">
+              <div class="clock-inner"><div class="time" id="timeDisplay">30</div></div>
+            </div>
+            <div class="timer-actions">
+              <button id="startBtn" class="btn-green" type="button">▶ Start</button>
+              <button id="pauseBtn" class="btn-gold" type="button">⏸ Pause</button>
+              <button id="resetTimerBtn" type="button">↺ Reset</button>
+            </div>
+            <div class="time-up" id="timeUp">⏰ Time! Enter your best calculation.</div>
+          </div>
+
+          <div class="panel score-panel">
+            <div class="section-title">
+              <div>
+                <h2>Team scores</h2>
+                <div class="small-note">Check an answer first, then record it.</div>
+              </div>
+            </div>
+            <div class="score-entry">
+              <input id="teamName" type="text" placeholder="Team name" />
+              <div class="score-badge" id="lastScore">0 pts</div>
+              <button id="addScoreBtn" class="btn-blue" type="button">Add</button>
+            </div>
+            <table>
+              <thead>
+                <tr><th>Team</th><th>Last</th><th>Total</th></tr>
+              </thead>
+              <tbody id="scoreBody">
+                <tr><td colspan="3" class="tiny">No scores yet.</td></tr>
+              </tbody>
+            </table>
+            <div class="secondary-controls">
+              <button id="showSolutionBtn" class="btn-purple" type="button">💡 Show best solution</button>
+              <button id="clearScoresBtn" type="button">Clear scores</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const largeStart = [25, 50, 75, 100];
+    const smallStart = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
+
+    let largeBag = [];
+    let smallBag = [];
+    let selectedNumbers = [];
+    let target = null;
+    let timer = null;
+    let timeLeft = 30;
+    let isRunning = false;
+    let soundOn = true;
+    let audioCtx = null;
+    let lastValidation = null;
+    let scores = [];
+
+    const els = {
+      durationInput: document.getElementById('durationInput'),
+      soundToggle: document.getElementById('soundToggle'),
+      printBtn: document.getElementById('printBtn'),
+      pickedCount: document.getElementById('pickedCount'),
+      numberBoard: document.getElementById('numberBoard'),
+      pickLargeBtn: document.getElementById('pickLargeBtn'),
+      pickSmallBtn: document.getElementById('pickSmallBtn'),
+      randomSixBtn: document.getElementById('randomSixBtn'),
+      undoBtn: document.getElementById('undoBtn'),
+      newRoundBtn: document.getElementById('newRoundBtn'),
+      targetBox: document.getElementById('targetBox'),
+      targetNumber: document.getElementById('targetNumber'),
+      targetInput: document.getElementById('targetInput'),
+      newTargetBtn: document.getElementById('newTargetBtn'),
+      clock: document.getElementById('clock'),
+      timeDisplay: document.getElementById('timeDisplay'),
+      startBtn: document.getElementById('startBtn'),
+      pauseBtn: document.getElementById('pauseBtn'),
+      resetTimerBtn: document.getElementById('resetTimerBtn'),
+      timeUp: document.getElementById('timeUp'),
+      answerInput: document.getElementById('answerInput'),
+      checkBtn: document.getElementById('checkBtn'),
+      clearAnswerBtn: document.getElementById('clearAnswerBtn'),
+      keypad: document.getElementById('keypad'),
+      feedback: document.getElementById('feedback'),
+      solutionBox: document.getElementById('solutionBox'),
+      teamName: document.getElementById('teamName'),
+      lastScore: document.getElementById('lastScore'),
+      addScoreBtn: document.getElementById('addScoreBtn'),
+      scoreBody: document.getElementById('scoreBody'),
+      showSolutionBtn: document.getElementById('showSolutionBtn'),
+      clearScoresBtn: document.getElementById('clearScoresBtn')
+    };
+
+    function duration() {
+      const value = Number(els.durationInput.value);
+      return Number.isFinite(value) && value > 0 ? Math.min(300, Math.max(5, value)) : 30;
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function drawFromBag(bag) {
+      if (!bag.length) return null;
+      const index = randInt(0, bag.length - 1);
+      const value = bag[index];
+      bag.splice(index, 1);
+      return value;
+    }
+
+    function generateTarget() {
+      target = randInt(101, 999);
+      els.targetNumber.textContent = target;
+      els.targetInput.value = target;
+      els.targetBox.classList.remove('pop');
+      void els.targetBox.offsetWidth;
+      els.targetBox.classList.add('pop');
+      playTargetSound();
+      clearSolution();
+      setFeedback('Target ready. Start the clock when everyone is ready.', 'good');
+    }
+
+    function setTargetFromInput() {
+      const value = Number(els.targetInput.value);
+      if (!Number.isInteger(value) || value < 100 || value > 999) {
+        setFeedback('Target must be a whole number from 100 to 999.', 'bad');
+        return;
+      }
+      target = value;
+      els.targetNumber.textContent = target;
+      els.targetBox.classList.remove('pop');
+      void els.targetBox.offsetWidth;
+      els.targetBox.classList.add('pop');
+      clearSolution();
+      setFeedback('Target changed. Check calculations against the new target.', 'warn');
+    }
+
+    function getAvailableNumberCounts() {
+      const counts = new Map();
+      selectedNumbers.forEach(n => counts.set(n, (counts.get(n) || 0) + 1));
+      return counts;
+    }
+
+    function getTypedNumberCounts() {
+      const counts = new Map();
+      const matches = els.answerInput.value.match(/\d+/g) || [];
+      matches.forEach(raw => {
+        const value = Number(raw);
+        if (Number.isInteger(value)) counts.set(value, (counts.get(value) || 0) + 1);
+      });
+      return counts;
+    }
+
+    function canUseAnotherCopy(value) {
+      const available = getAvailableNumberCounts().get(value) || 0;
+      const used = getTypedNumberCounts().get(value) || 0;
+      return used < available;
+    }
+
+    function resetCurrentValidation() {
+      lastValidation = null;
+      els.lastScore.textContent = '0 pts';
+      clearSolution();
+    }
+
+    function renderNumbers() {
+      const usedCounts = getTypedNumberCounts();
+      const seenCounts = new Map();
+      els.numberBoard.innerHTML = '';
+
+      for (let i = 0; i < 6; i++) {
+        if (selectedNumbers[i] !== undefined) {
+          const value = selectedNumbers[i];
+          const seen = (seenCounts.get(value) || 0) + 1;
+          seenCounts.set(value, seen);
+          const used = seen <= (usedCounts.get(value) || 0);
+
+          const card = document.createElement('div');
+          card.className = `number-card pop${used ? ' used' : ''}`;
+          card.textContent = value;
+          card.title = used ? 'This copy has already been used in the calculation' : 'Tap to add this number to the calculation';
+          card.setAttribute('aria-disabled', used ? 'true' : 'false');
+          if (!used) card.addEventListener('click', () => appendNumberToAnswer(value));
+          els.numberBoard.appendChild(card);
+        } else {
+          const empty = document.createElement('div');
+          empty.className = 'empty-card';
+          empty.textContent = '?';
+          els.numberBoard.appendChild(empty);
+        }
+      }
+
+      els.pickedCount.textContent = selectedNumbers.length;
+      els.pickLargeBtn.disabled = selectedNumbers.length >= 6 || largeBag.length === 0;
+      els.pickSmallBtn.disabled = selectedNumbers.length >= 6 || smallBag.length === 0;
+      els.undoBtn.disabled = selectedNumbers.length === 0 || isRunning;
+      els.randomSixBtn.disabled = selectedNumbers.length >= 6 || isRunning;
+      renderKeypad();
+
+      if (selectedNumbers.length === 6 && target === null) generateTarget();
+    }
+
+    function renderKeypad() {
+      const buttons = [];
+      const usedCounts = getTypedNumberCounts();
+      const seenCounts = new Map();
+
+      selectedNumbers.forEach(n => {
+        const seen = (seenCounts.get(n) || 0) + 1;
+        seenCounts.set(n, seen);
+        const used = seen <= (usedCounts.get(n) || 0);
+        buttons.push({ label: String(n), value: String(n), className: used ? 'number-used' : '', disabled: used, isNumber: true });
+      });
+      ['+', '-', '×', '÷', '(', ')'].forEach(op => buttons.push({ label: op, value: op, className: 'btn-dark' }));
+      buttons.push({ label: '⌫', value: 'backspace', className: 'btn-red' });
+      buttons.push({ label: 'Space', value: ' ', className: 'btn-dark' });
+
+      els.keypad.innerHTML = '';
+      buttons.forEach(item => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = item.label;
+        if (item.className) btn.className = item.className;
+        if (item.disabled) {
+          btn.disabled = true;
+          btn.title = 'This copy has already been used';
+        }
+        btn.addEventListener('click', () => {
+          if (item.disabled) return;
+          if (item.value === 'backspace') {
+            els.answerInput.value = els.answerInput.value.slice(0, -1);
+            els.answerInput.focus();
+            resetCurrentValidation();
+            renderNumbers();
+          } else if (item.isNumber) {
+            appendNumberToAnswer(Number(item.value));
+          } else {
+            appendToAnswer(item.value);
+          }
+        });
+        els.keypad.appendChild(btn);
+      });
+    }
+
+    function appendNumberToAnswer(value) {
+      if (!canUseAnotherCopy(value)) {
+        setFeedback(`⚠️ You have already used all copies of ${value}.`, 'bad');
+        shake(els.answerInput);
+        playTone(150, 0.12, 'sawtooth', 0.2);
+        renderNumbers();
+        return;
+      }
+      appendToAnswer(String(value));
+    }
+
+    function appendToAnswer(text) {
+      const input = els.answerInput;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? input.value.length;
+      const before = input.value.slice(0, start);
+      const after = input.value.slice(end);
+      const insert = text === ' ' ? ' ' : text;
+      input.value = before + insert + after;
+      input.focus();
+      const pos = start + insert.length;
+      input.setSelectionRange(pos, pos);
+      resetCurrentValidation();
+      renderNumbers();
+    }
+
+    function pickNumber(type) {
+      if (selectedNumbers.length >= 6 || isRunning) return;
+      const value = type === 'large' ? drawFromBag(largeBag) : drawFromBag(smallBag);
+      if (value === null) {
+        setFeedback(type === 'large' ? 'No large numbers left.' : 'No small numbers left.', 'bad');
+        return;
+      }
+      selectedNumbers.push(value);
+      playPickSound(type);
+      setFeedback(type === 'large' ? `Large number picked: ${value}` : `Small number picked: ${value}`, '');
+      clearSolution();
+      renderNumbers();
+    }
+
+    function undoLast() {
+      if (!selectedNumbers.length || isRunning) return;
+      const value = selectedNumbers.pop();
+      if (largeStart.includes(value) && !largeBag.includes(value)) {
+        largeBag.push(value);
+      } else {
+        smallBag.push(value);
+      }
+      if (selectedNumbers.length < 6) {
+        target = null;
+        els.targetNumber.textContent = '---';
+        els.targetInput.value = '';
+      }
+      playTone(240, 0.07, 'triangle', 0.28);
+      clearSolution();
+      setFeedback('Last number removed.', 'warn');
+      renderNumbers();
+    }
+
+    function randomSix() {
+      while (selectedNumbers.length < 6) {
+        const useLarge = selectedNumbers.length < 4 && Math.random() < 0.28 && largeBag.length > 0;
+        const bag = useLarge ? largeBag : smallBag;
+        const fallback = useLarge ? smallBag : largeBag;
+        const value = drawFromBag(bag) ?? drawFromBag(fallback);
+        if (value === null) break;
+        selectedNumbers.push(value);
+      }
+      playTargetSound();
+      clearSolution();
+      renderNumbers();
+    }
+
+    function resetRound() {
+      stopTimer();
+      largeBag = [...largeStart];
+      smallBag = [...smallStart];
+      selectedNumbers = [];
+      target = null;
+      lastValidation = null;
+      timeLeft = duration();
+      els.answerInput.value = '';
+      els.targetNumber.textContent = '---';
+      els.targetInput.value = '';
+      els.timeUp.classList.remove('show');
+      els.lastScore.textContent = '0 pts';
+      clearSolution();
+      setFeedback('Choose 6 numbers to begin.', '');
+      updateTimerDisplay();
+      renderNumbers();
+    }
+
+    function updateTimerDisplay() {
+      els.timeDisplay.textContent = Math.max(0, timeLeft);
+      const full = duration();
+      const deg = full > 0 ? Math.max(0, (timeLeft / full) * 360) : 0;
+      els.clock.style.setProperty('--timerDeg', `${deg}deg`);
+      if (timeLeft <= 5 && timeLeft > 0) {
+        els.clock.style.background = `conic-gradient(var(--red) ${deg}deg, rgba(255,255,255,0.16) 0deg), rgba(255,255,255,0.1)`;
+      } else if (timeLeft <= 10 && timeLeft > 0) {
+        els.clock.style.background = `conic-gradient(var(--gold) ${deg}deg, rgba(255,255,255,0.16) 0deg), rgba(255,255,255,0.1)`;
+      } else {
+        els.clock.style.background = `conic-gradient(var(--green) ${deg}deg, rgba(255,255,255,0.16) 0deg), rgba(255,255,255,0.1)`;
+      }
+    }
+
+    function startTimer() {
+      if (selectedNumbers.length < 6 || target === null) {
+        setFeedback('Pick all 6 numbers first.', 'bad');
+        shake(els.numberBoard);
+        return;
+      }
+      if (isRunning) return;
+      if (timeLeft <= 0) timeLeft = duration();
+      els.timeUp.classList.remove('show');
+      isRunning = true;
+      playStartSound();
+      timer = setInterval(() => {
+        timeLeft -= 1;
+        updateTimerDisplay();
+        if (timeLeft > 0 && timeLeft <= 5) playTone(700 + (5 - timeLeft) * 70, 0.05, 'square', 0.24);
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          updateTimerDisplay();
+          stopTimer();
+          els.timeUp.classList.add('show');
+          playEndSound();
+          confettiBurst();
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      isRunning = false;
+    }
+
+    function resetTimerOnly() {
+      stopTimer();
+      timeLeft = duration();
+      els.timeUp.classList.remove('show');
+      updateTimerDisplay();
+    }
+
+    function setFeedback(message, type) {
+      els.feedback.className = 'feedback';
+      if (type) els.feedback.classList.add(type);
+      els.feedback.innerHTML = message;
+    }
+
+    function clearSolution() {
+      els.solutionBox.classList.remove('show');
+      els.solutionBox.innerHTML = '';
+    }
+
+    function shake(element) {
+      element.classList.remove('shake');
+      void element.offsetWidth;
+      element.classList.add('shake');
+    }
+
+    function tokenizeExpression(input) {
+      const expr = input
+        .replace(/[×xX]/g, '*')
+        .replace(/[÷]/g, '/')
+        .replace(/[−–—]/g, '-')
+        .trim();
+
+      if (!expr) throw new Error('Type a calculation first.');
+      if (/[^0-9+\-*/().\s]/.test(expr)) throw new Error('Only numbers, +, −, ×, ÷ and brackets are allowed.');
+      if (/\d+\.\d+/.test(expr)) throw new Error('Decimals are not allowed in this game.');
+
+      const tokens = [];
+      let i = 0;
+      while (i < expr.length) {
+        const ch = expr[i];
+        if (/\s/.test(ch)) { i++; continue; }
+        if (/\d/.test(ch)) {
+          let num = ch;
+          i++;
+          while (i < expr.length && /\d/.test(expr[i])) {
+            num += expr[i];
+            i++;
+          }
+          tokens.push({ type: 'number', value: Number(num), raw: num });
+          continue;
+        }
+        if ('+-*/()'.includes(ch)) {
+          tokens.push({ type: '+-*/'.includes(ch) ? 'op' : ch === '(' ? 'lparen' : 'rparen', value: ch, raw: ch });
+          i++;
+          continue;
+        }
+        throw new Error(`Unexpected character: ${ch}`);
+      }
+      return tokens;
+    }
+
+    function checkNumberUse(tokens) {
+      const available = new Map();
+      selectedNumbers.forEach(n => available.set(n, (available.get(n) || 0) + 1));
+      const used = new Map();
+
+      tokens.filter(t => t.type === 'number').forEach(t => {
+        used.set(t.value, (used.get(t.value) || 0) + 1);
+      });
+
+      for (const [num, count] of used.entries()) {
+        const allowed = available.get(num) || 0;
+        if (count > allowed) {
+          if (allowed === 0) throw new Error(`${num} is not one of the selected number cards.`);
+          throw new Error(`${num} was used ${count} times, but you only have ${allowed}.`);
+        }
+      }
+    }
+
+    function toRPN(tokens) {
+      const output = [];
+      const ops = [];
+      const precedence = { '+': 1, '-': 1, '*': 2, '/': 2 };
+      let prev = 'start';
+
+      tokens.forEach(t => {
+        if (t.type === 'number') {
+          if (prev === 'number' || prev === 'rparen') throw new Error('Put an operator between numbers or brackets.');
+          output.push(t);
+          prev = 'number';
+          return;
+        }
+
+        if (t.type === 'lparen') {
+          if (prev === 'number' || prev === 'rparen') throw new Error('Put an operator before a bracket.');
+          ops.push(t);
+          prev = 'lparen';
+          return;
+        }
+
+        if (t.type === 'rparen') {
+          if (prev === 'op' || prev === 'lparen' || prev === 'start') throw new Error('There is an empty or unfinished bracket.');
+          while (ops.length && ops[ops.length - 1].type !== 'lparen') output.push(ops.pop());
+          if (!ops.length) throw new Error('There is a closing bracket without an opening bracket.');
+          ops.pop();
+          prev = 'rparen';
+          return;
+        }
+
+        if (t.type === 'op') {
+          if (prev === 'start' || prev === 'op' || prev === 'lparen') throw new Error('Negative numbers and repeated operators are not allowed here.');
+          while (ops.length && ops[ops.length - 1].type === 'op' && precedence[ops[ops.length - 1].value] >= precedence[t.value]) {
+            output.push(ops.pop());
+          }
+          ops.push(t);
+          prev = 'op';
+        }
+      });
+
+      if (prev === 'op' || prev === 'lparen') throw new Error('The calculation is unfinished.');
+      while (ops.length) {
+        const op = ops.pop();
+        if (op.type === 'lparen') throw new Error('There is an opening bracket without a closing bracket.');
+        output.push(op);
+      }
+      return output;
+    }
+
+    function evalRPN(rpn) {
+      const stack = [];
+      rpn.forEach(t => {
+        if (t.type === 'number') {
+          stack.push(t.value);
+          return;
+        }
+        if (stack.length < 2) throw new Error('The calculation is incomplete.');
+        const b = stack.pop();
+        const a = stack.pop();
+        let result;
+        if (t.value === '+') result = a + b;
+        if (t.value === '-') {
+          result = a - b;
+          if (result < 0) throw new Error(`This route makes a negative number: ${a} − ${b}.`);
+        }
+        if (t.value === '*') result = a * b;
+        if (t.value === '/') {
+          if (b === 0) throw new Error('You cannot divide by zero.');
+          if (a % b !== 0) throw new Error(`This route makes a fraction: ${a} ÷ ${b}.`);
+          result = a / b;
+        }
+        if (!Number.isInteger(result)) throw new Error('Only whole-number steps are allowed.');
+        stack.push(result);
+      });
+      if (stack.length !== 1) throw new Error('The calculation needs one final answer.');
+      return stack[0];
+    }
+
+    function scoreForDiff(diff) {
+      if (diff === 0) return 10;
+      if (diff <= 5) return 7;
+      if (diff <= 10) return 5;
+      return 0;
+    }
+
+    function validateAnswer() {
+      if (selectedNumbers.length < 6 || target === null) {
+        setFeedback('Pick 6 numbers and get a target first.', 'bad');
+        return;
+      }
+
+      try {
+        const tokens = tokenizeExpression(els.answerInput.value);
+        checkNumberUse(tokens);
+        const value = evalRPN(toRPN(tokens));
+        const diff = Math.abs(value - target);
+        const points = scoreForDiff(diff);
+        lastValidation = { expression: els.answerInput.value.trim(), value, diff, points };
+        els.lastScore.textContent = `${points} pts`;
+
+        if (diff === 0) {
+          setFeedback(`🎉 <strong>Exact!</strong> Your calculation equals <strong>${target}</strong>. Score: <strong>10 points</strong>.`, 'good');
+          playWinSound();
+          confettiBurst(36);
+        } else if (diff <= 5) {
+          setFeedback(`✅ Good! Your answer is <strong>${value}</strong>, only <strong>${diff}</strong> away. Score: <strong>7 points</strong>.`, 'good');
+          playTone(520, 0.12, 'triangle', 0.35);
+        } else if (diff <= 10) {
+          setFeedback(`👍 Close. Your answer is <strong>${value}</strong>, <strong>${diff}</strong> away. Score: <strong>5 points</strong>.`, 'warn');
+          playTone(420, 0.12, 'triangle', 0.32);
+        } else {
+          setFeedback(`Not close enough yet. Your answer is <strong>${value}</strong>, <strong>${diff}</strong> away. Score: <strong>0 points</strong>.`, 'bad');
+          playTone(180, 0.18, 'sawtooth', 0.22);
+        }
+      } catch (err) {
+        lastValidation = null;
+        els.lastScore.textContent = '0 pts';
+        setFeedback(`⚠️ ${err.message}`, 'bad');
+        shake(els.answerInput);
+        playTone(150, 0.13, 'sawtooth', 0.22);
+      }
+    }
+
+    function addScore() {
+      if (!lastValidation) {
+        setFeedback('Check an answer before adding a team score.', 'bad');
+        return;
+      }
+      const name = els.teamName.value.trim() || 'Team';
+      const existing = scores.find(s => s.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        existing.last = lastValidation.points;
+        existing.total += lastValidation.points;
+      } else {
+        scores.push({ name, last: lastValidation.points, total: lastValidation.points });
+      }
+      scores.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+      renderScores();
+      playTone(600, 0.08, 'triangle', 0.25);
+    }
+
+    function renderScores() {
+      if (!scores.length) {
+        els.scoreBody.innerHTML = '<tr><td colspan="3" class="tiny">No scores yet.</td></tr>';
+        return;
+      }
+      els.scoreBody.innerHTML = scores.map(s => `<tr><td><strong>${escapeHtml(s.name)}</strong></td><td>${s.last}</td><td><strong>${s.total}</strong></td></tr>`).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[ch]));
+    }
+
+    function showBestSolution() {
+      if (selectedNumbers.length < 6 || target === null) {
+        setFeedback('Pick 6 numbers first, then I can look for a solution.', 'bad');
+        return;
+      }
+      els.solutionBox.classList.add('show');
+      els.solutionBox.innerHTML = 'Searching for a good route...';
+      setTimeout(() => {
+        const best = solveBest(selectedNumbers, target);
+        if (!best || best.value === null) {
+          els.solutionBox.innerHTML = 'I could not find a route.';
+          return;
+        }
+        const diffText = best.diff === 0 ? 'exact target' : `${best.diff} away from the target`;
+        els.solutionBox.innerHTML = `💡 <strong>Best route found:</strong><br><span style="font-size:1.1rem">${escapeHtml(best.expr)} = <strong>${best.value}</strong></span><br><span class="tiny">That is ${diffText}.</span>`;
+        playTone(best.diff === 0 ? 720 : 500, 0.12, 'triangle', 0.28);
+      }, 40);
+    }
+
+    function solveBest(numbers, targetValue) {
+      const start = numbers.map(n => ({ value: n, expr: String(n) }));
+      let best = { diff: Infinity, value: null, expr: '' };
+      const seen = new Set();
+
+      function key(items) {
+        return items.map(i => i.value).sort((a, b) => a - b).join(',');
+      }
+
+      function consider(item) {
+        const diff = Math.abs(item.value - targetValue);
+        if (diff < best.diff || (diff === best.diff && item.expr.length < best.expr.length)) {
+          best = { diff, value: item.value, expr: item.expr };
+        }
+      }
+
+      function addCandidate(list, value, expr) {
+        if (!Number.isInteger(value) || value < 0 || value > 1000000) return;
+        if (!list.some(item => item.value === value && item.expr === expr)) list.push({ value, expr });
+      }
+
+      function search(items) {
+        const stateKey = key(items);
+        if (seen.has(stateKey)) return best.diff === 0;
+        seen.add(stateKey);
+        items.forEach(consider);
+        if (best.diff === 0) return true;
+        if (items.length === 1) return false;
+
+        for (let i = 0; i < items.length; i++) {
+          for (let j = i + 1; j < items.length; j++) {
+            const a = items[i];
+            const b = items[j];
+            const rest = items.filter((_, idx) => idx !== i && idx !== j);
+            const candidates = [];
+
+            addCandidate(candidates, a.value + b.value, `(${a.expr} + ${b.expr})`);
+            addCandidate(candidates, a.value * b.value, `(${a.expr} × ${b.expr})`);
+            if (a.value >= b.value) addCandidate(candidates, a.value - b.value, `(${a.expr} − ${b.expr})`);
+            if (b.value >= a.value) addCandidate(candidates, b.value - a.value, `(${b.expr} − ${a.expr})`);
+            if (b.value !== 0 && a.value % b.value === 0) addCandidate(candidates, a.value / b.value, `(${a.expr} ÷ ${b.expr})`);
+            if (a.value !== 0 && b.value % a.value === 0) addCandidate(candidates, b.value / a.value, `(${b.expr} ÷ ${a.expr})`);
+
+            for (const candidate of candidates) {
+              if (search([...rest, candidate])) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      search(start);
+      if (best.expr.startsWith('(') && best.expr.endsWith(')')) {
+        best.expr = best.expr.slice(1, -1);
+      }
+      return best;
+    }
+
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTone(freq, seconds, type = 'sine', volume = 0.32, delay = 0) {
+      if (!soundOn) return;
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + delay + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + seconds);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + seconds + 0.03);
+      } catch (e) {
+        // Sound is optional.
+      }
+    }
+
+    function playPickSound(type) {
+      if (type === 'large') {
+        playTone(280, 0.08, 'triangle', 0.33);
+        playTone(520, 0.09, 'triangle', 0.25, 0.07);
+      } else {
+        playTone(430, 0.06, 'square', 0.23);
+      }
+    }
+
+    function playTargetSound() {
+      [380, 520, 720].forEach((f, i) => playTone(f, 0.09, 'triangle', 0.28, i * 0.08));
+    }
+
+    function playStartSound() {
+      [260, 330, 392].forEach((f, i) => playTone(f, 0.08, 'square', 0.22, i * 0.07));
+    }
+
+    function playEndSound() {
+      [880, 740, 620, 520, 420, 320].forEach((f, i) => playTone(f, 0.13, 'sawtooth', 0.3, i * 0.1));
+    }
+
+    function playWinSound() {
+      [520, 660, 780, 1040].forEach((f, i) => playTone(f, 0.12, 'triangle', 0.32, i * 0.08));
+    }
+
+    function confettiBurst(count = 60) {
+      const colors = ['#fbbf24', '#38bdf8', '#34d399', '#fb7185', '#a78bfa', '#ffffff'];
+      for (let i = 0; i < count; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti';
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = `${Math.random() * 0.25}s`;
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 2300);
+      }
+    }
+
+    els.pickLargeBtn.addEventListener('click', () => pickNumber('large'));
+    els.pickSmallBtn.addEventListener('click', () => pickNumber('small'));
+    els.randomSixBtn.addEventListener('click', randomSix);
+    els.undoBtn.addEventListener('click', undoLast);
+    els.newRoundBtn.addEventListener('click', resetRound);
+    els.newTargetBtn.addEventListener('click', () => {
+      if (selectedNumbers.length < 6) {
+        setFeedback('Pick 6 numbers before making a target.', 'bad');
+        return;
+      }
+      generateTarget();
+    });
+    els.targetInput.addEventListener('change', setTargetFromInput);
+    els.startBtn.addEventListener('click', startTimer);
+    els.pauseBtn.addEventListener('click', stopTimer);
+    els.resetTimerBtn.addEventListener('click', resetTimerOnly);
+    els.durationInput.addEventListener('change', () => {
+      els.durationInput.value = duration();
+      if (!isRunning) {
+        timeLeft = duration();
+        updateTimerDisplay();
+      }
+    });
+    els.checkBtn.addEventListener('click', validateAnswer);
+    els.clearAnswerBtn.addEventListener('click', () => {
+      els.answerInput.value = '';
+      lastValidation = null;
+      els.lastScore.textContent = '0 pts';
+      clearSolution();
+      setFeedback('Answer cleared.', 'warn');
+      renderNumbers();
+    });
+    els.answerInput.addEventListener('input', () => {
+      resetCurrentValidation();
+      renderNumbers();
+    });
+    els.answerInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') validateAnswer();
+    });
+    els.addScoreBtn.addEventListener('click', addScore);
+    els.clearScoresBtn.addEventListener('click', () => {
+      scores = [];
+      renderScores();
+    });
+    els.showSolutionBtn.addEventListener('click', showBestSolution);
+    els.printBtn.addEventListener('click', () => window.print());
+    els.soundToggle.addEventListener('click', () => {
+      soundOn = !soundOn;
+      els.soundToggle.textContent = soundOn ? '🔊 Sound on' : '🔇 Sound off';
+      if (soundOn) playTone(500, 0.08, 'triangle', 0.22);
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.target && ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (e.key.toLowerCase() === 'l') pickNumber('large');
+      if (e.key.toLowerCase() === 's') pickNumber('small');
+      if (e.key === ' ') { e.preventDefault(); startTimer(); }
+      if (e.key.toLowerCase() === 'r') resetRound();
+      if (e.key.toLowerCase() === 'u') undoLast();
+    });
+
+    resetRound();
+  </script>
+</body>
+</html>
