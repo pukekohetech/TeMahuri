@@ -1,647 +1,816 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-NZ">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>9 Letter Word Challenge</title>
   <style>
     :root {
-      --bg1: #111827;
-      --bg2: #312e81;
-      --panel: rgba(255,255,255,0.12);
-      --panel2: rgba(255,255,255,0.18);
-      --text: #ffffff;
-      --muted: rgba(255,255,255,0.75);
-      --gold: #fbbf24;
-      --blue: #38bdf8;
-      --green: #34d399;
-      --red: #fb7185;
-      --card: #f8fafc;
-      --cardText: #111827;
-      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+      --bg1:#07111f;
+      --bg2:#1e1b4b;
+      --panel:rgba(255,255,255,.11);
+      --panel-strong:rgba(255,255,255,.18);
+      --line:rgba(255,255,255,.18);
+      --text:#fff;
+      --muted:rgba(255,255,255,.74);
+      --gold:#fbbf24;
+      --blue:#38bdf8;
+      --green:#34d399;
+      --red:#fb7185;
+      --purple:#a78bfa;
+      --card:#f8fafc;
+      --ink:#111827;
+      --shadow:0 18px 60px rgba(0,0,0,.32);
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing:border-box; }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
+      margin:0;
+      min-height:100vh;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text);
       background:
-        radial-gradient(circle at top left, rgba(56,189,248,0.35), transparent 35%),
-        radial-gradient(circle at bottom right, rgba(251,191,36,0.32), transparent 35%),
-        linear-gradient(135deg, var(--bg1), var(--bg2));
-      overflow-x: hidden;
+        radial-gradient(circle at top left, rgba(56,189,248,.28), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(251,191,36,.23), transparent 34%),
+        linear-gradient(135deg,var(--bg1),var(--bg2));
+      overflow-x:hidden;
     }
 
-    .wrap {
-      width: min(1180px, 94vw);
-      margin: 0 auto;
-      padding: 22px 0 40px;
-    }
+    .wrap { width:min(1220px,94vw); margin:0 auto; padding:20px 0 34px; }
 
     header {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 18px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:14px;
     }
 
-    h1 {
-      margin: 0;
-      font-size: clamp(2rem, 5vw, 4rem);
-      line-height: 0.95;
-      letter-spacing: -0.05em;
-      text-shadow: 0 5px 20px rgba(0,0,0,0.35);
+    h1 { margin:0; font-size:clamp(1.7rem,4vw,3.1rem); line-height:1; }
+    h2 { margin:0 0 10px; font-size:1.15rem; }
+    .subtitle { color:var(--muted); font-weight:750; margin-top:7px; }
+
+    .top-tools { display:flex; gap:9px; flex-wrap:wrap; justify-content:flex-end; }
+
+    button, input, textarea, select, a.tool-link {
+      font:inherit;
     }
 
-    .subtitle {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 1.05rem;
+    button, a.tool-link {
+      border:0;
+      border-radius:999px;
+      padding:11px 15px;
+      font-weight:950;
+      color:#07111f;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      box-shadow:0 9px 20px rgba(0,0,0,.22);
+      user-select:none;
     }
 
-    .top-controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      align-items: center;
-    }
+    button:active, a.tool-link:active { transform:translateY(1px); }
+    button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
 
-    .pill {
-      background: rgba(255,255,255,0.14);
-      border: 1px solid rgba(255,255,255,0.24);
-      border-radius: 999px;
-      padding: 10px 14px;
-      backdrop-filter: blur(10px);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-    }
-
-    input[type="number"] {
-      width: 76px;
-      padding: 8px 9px;
-      border-radius: 12px;
-      border: 0;
-      font-weight: 800;
-      font-size: 1rem;
-      text-align: center;
-    }
-
-    button {
-      border: 0;
-      border-radius: 16px;
-      padding: 12px 16px;
-      color: #111827;
-      background: #e5e7eb;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
-      transition: transform 0.08s ease, filter 0.15s ease, opacity 0.15s ease;
-      user-select: none;
-    }
-
-    button:hover { filter: brightness(1.05); }
-    button:active { transform: translateY(2px) scale(0.99); }
-    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-
-
-    a.btn-link {
-      border: 0;
-      border-radius: 16px;
-      padding: 12px 16px;
-      color: white;
-      background: #111827;
-      border: 1px solid rgba(255,255,255,0.25);
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.22);
-      transition: transform 0.08s ease, filter 0.15s ease, opacity 0.15s ease;
-      user-select: none;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    a.btn-link:hover { filter: brightness(1.05); }
-    a.btn-link:active { transform: translateY(2px) scale(0.99); }
-
-    .btn-blue { background: linear-gradient(180deg, #7dd3fc, #38bdf8); }
-    .btn-gold { background: linear-gradient(180deg, #fde68a, #fbbf24); }
-    .btn-green { background: linear-gradient(180deg, #86efac, #34d399); }
-    .btn-red { background: linear-gradient(180deg, #fda4af, #fb7185); }
-    .btn-dark { background: #111827; color: white; border: 1px solid rgba(255,255,255,0.25); }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 18px;
-      align-items: start;
-    }
+    .btn-blue { background:var(--blue); }
+    .btn-green { background:var(--green); }
+    .btn-gold, a.tool-link { background:var(--gold); }
+    .btn-red { background:var(--red); color:#fff; }
+    .btn-purple { background:var(--purple); }
+    .btn-dark { background:#e5e7eb; color:#111827; }
+    .btn-ghost { background:rgba(255,255,255,.16); color:white; box-shadow:none; border:1px solid var(--line); }
 
     .panel {
-      background: var(--panel);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 28px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:16px;
+      backdrop-filter:blur(12px);
+    }
+
+    .leader-banner {
+      text-align:center;
+      padding:16px;
+      border:2px solid rgba(251,191,36,.72);
+      background:linear-gradient(135deg,rgba(251,191,36,.23),rgba(56,189,248,.14));
+    }
+    .leader-label { color:var(--gold); letter-spacing:.08em; text-transform:uppercase; font-weight:1000; font-size:.85rem; }
+    .leader-name { font-size:clamp(1.7rem,4vw,3rem); font-weight:1000; line-height:1.05; margin-top:4px; }
+    .leader-score { color:var(--muted); font-weight:900; margin-top:4px; }
+
+    .main-grid {
+      display:grid;
+      grid-template-columns:minmax(0,1.45fr) minmax(320px,.9fr);
+      gap:16px;
+      align-items:start;
+      margin-top:16px;
+    }
+
+    .game-card { padding:18px; }
+    .status-row {
+      display:flex;
+      gap:9px;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-weight:900;
     }
 
     .letter-rack {
-      display: grid;
-      grid-template-columns: repeat(9, 1fr);
-      gap: 10px;
-      margin: 16px 0 18px;
+      display:grid;
+      grid-template-columns:repeat(9,minmax(42px,1fr));
+      gap:9px;
+      margin:16px 0;
     }
 
     .letter-card {
-      aspect-ratio: 0.82;
-      min-height: 92px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, var(--card), #dbeafe);
-      color: var(--cardText);
-      display: grid;
-      place-items: center;
-      font-size: clamp(2rem, 5vw, 4.5rem);
-      font-weight: 1000;
-      box-shadow: inset 0 -8px 0 rgba(0,0,0,0.08), 0 12px 22px rgba(0,0,0,0.25);
-      text-transform: uppercase;
-      position: relative;
-      overflow: hidden;
+      min-height:clamp(58px,8vw,94px);
+      border-radius:18px;
+      background:var(--card);
+      color:var(--ink);
+      display:grid;
+      place-items:center;
+      font-size:clamp(2rem,5vw,4.1rem);
+      font-weight:1000;
+      box-shadow:inset 0 -5px 0 rgba(0,0,0,.13),0 10px 22px rgba(0,0,0,.22);
+      text-transform:uppercase;
+    }
+    .letter-card.empty { background:rgba(255,255,255,.12); color:rgba(255,255,255,.28); box-shadow:inset 0 0 0 2px rgba(255,255,255,.10); }
+    .letter-card.pop { animation:pop .25s ease; }
+    @keyframes pop { 0%{transform:scale(.7)} 72%{transform:scale(1.08)} 100%{transform:scale(1)} }
+
+    .game-controls {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
     }
 
-    .letter-card.empty {
-      background: rgba(255,255,255,0.12);
-      border: 2px dashed rgba(255,255,255,0.25);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.04);
-      color: rgba(255,255,255,0.25);
+    .pick-btn { min-height:76px; font-size:clamp(1.15rem,2.5vw,1.6rem); border-radius:21px; flex-direction:column; }
+    .pick-btn span { font-size:.82rem; opacity:.78; }
+
+    .simple-actions { display:flex; gap:9px; flex-wrap:wrap; margin-top:12px; }
+
+    .timer-panel { display:grid; gap:13px; text-align:center; }
+    .timer { font-size:clamp(4rem,11vw,7.4rem); font-weight:1000; line-height:.9; font-variant-numeric:tabular-nums; }
+    .bar { height:16px; border-radius:999px; background:rgba(255,255,255,.16); overflow:hidden; }
+    .bar-fill { height:100%; width:100%; background:linear-gradient(90deg,var(--green),var(--gold),var(--red)); transition:width .25s ease; }
+    .timer-actions { display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
+
+    .leaderboard { display:grid; gap:9px; }
+    .team-card {
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      gap:10px;
+      align-items:center;
+      border-radius:18px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.15);
+      padding:11px 12px;
     }
+    .team-card.first { border-color:rgba(251,191,36,.95); background:rgba(251,191,36,.18); }
+    .rank-badge { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.2); display:grid; place-items:center; font-weight:1000; }
+    .team-name { font-weight:1000; font-size:1.08rem; }
+    .team-detail { color:var(--muted); font-weight:750; font-size:.91rem; margin-top:2px; }
+    .team-score { font-weight:1000; font-size:1.45rem; color:var(--gold); }
 
-    .letter-card.pop {
-      animation: pop 0.26s ease-out;
+    .quiet-note { color:var(--muted); font-weight:750; font-size:.95rem; }
+
+    .drawer {
+      display:none;
+      margin-top:16px;
     }
+    .drawer.open { display:block; }
+    .drawer-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .drawer-head h2 { margin:0; }
 
-    @keyframes pop {
-      0% { transform: scale(0.72) rotate(-4deg); opacity: 0; }
-      85% { transform: scale(1.08) rotate(1deg); }
-      100% { transform: scale(1) rotate(0); opacity: 1; }
+    .setup-grid { display:grid; gap:12px; }
+    .setup-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:space-between; }
+    label { font-weight:950; }
+    input[type="number"], input[type="text"], textarea {
+      border:2px solid transparent;
+      border-radius:14px;
+      padding:10px 12px;
+      background:#fff;
+      color:#111827;
+      box-shadow:inset 0 1px 2px rgba(0,0,0,.12);
     }
+    input[type="number"] { width:100px; }
+    .team-name-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+    .team-name-list input { width:100%; font-weight:800; }
 
-    .chooser {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 10px;
+    .score-entry-table, .history-table { width:100%; border-collapse:separate; border-spacing:0 8px; }
+    .score-entry-table th, .history-table th { text-align:left; color:var(--muted); font-size:.86rem; letter-spacing:.04em; text-transform:uppercase; padding:0 10px; }
+    .score-entry-table td, .history-table td { background:rgba(255,255,255,.12); border-top:1px solid rgba(255,255,255,.14); border-bottom:1px solid rgba(255,255,255,.14); padding:9px 10px; font-weight:850; vertical-align:middle; }
+    .score-entry-table td:first-child, .history-table td:first-child { border-left:1px solid rgba(255,255,255,.14); border-radius:14px 0 0 14px; }
+    .score-entry-table td:last-child, .history-table td:last-child { border-right:1px solid rgba(255,255,255,.14); border-radius:0 14px 14px 0; }
+
+    .word-field {
+      width:100%;
+      min-width:150px;
+      resize:none;
+      overflow:hidden;
+      line-height:1.25;
+      font-weight:900;
+      letter-spacing:.01em;
+      min-height:44px;
     }
+    .word-field.invalid-letters { border-color:var(--red); background:#fff1f2; }
+    .word-field.valid-letters { border-color:var(--green); background:#f0fdf4; }
 
-    .big-choice {
-      min-height: 96px;
-      font-size: clamp(1.1rem, 2vw, 1.7rem);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 4px;
-    }
+    .badge { display:inline-flex; align-items:center; justify-content:center; min-width:52px; border-radius:999px; padding:7px 10px; font-weight:1000; background:#e5e7eb; color:#111827; }
+    .badge.good { background:rgba(52,211,153,.25); color:#d1fae5; border:1px solid rgba(52,211,153,.55); }
+    .badge.gold { background:rgba(251,191,36,.25); color:#fef3c7; border:1px solid rgba(251,191,36,.7); }
+    .badge.bad { background:rgba(251,113,133,.25); color:#ffe4e6; border:1px solid rgba(251,113,133,.6); }
 
-    .big-choice span {
-      font-size: 0.82rem;
-      opacity: 0.8;
-      font-weight: 800;
-    }
-
-    .status-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    .timer-box {
-      text-align: center;
-      padding: 18px;
-      border-radius: 28px;
-      background: rgba(0,0,0,0.22);
-      border: 1px solid rgba(255,255,255,0.18);
-    }
-
-    .timer {
-      font-size: clamp(4rem, 13vw, 9rem);
-      font-weight: 1000;
-      line-height: 0.9;
-      letter-spacing: -0.08em;
-      margin: 10px 0;
-      font-variant-numeric: tabular-nums;
-      text-shadow: 0 8px 22px rgba(0,0,0,0.4);
-    }
-
-    .timer.warning { color: var(--gold); animation: pulse 0.8s infinite; }
-    .timer.danger { color: var(--red); animation: pulse 0.45s infinite; }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.045); }
-    }
-
-    .bar {
-      height: 18px;
-      background: rgba(255,255,255,0.16);
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.18);
-      margin: 10px 0 16px;
-    }
-
-    .bar-fill {
-      height: 100%;
-      width: 100%;
-      background: linear-gradient(90deg, var(--green), var(--blue), var(--gold));
-      border-radius: 999px;
-      transition: width 0.25s linear;
-    }
-
-    .timer-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .word-entry {
-      margin-top: 16px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .word-entry input[type="text"], .word-entry input[type="search"] {
-      width: 100%;
-      padding: 15px 16px;
-      border-radius: 18px;
-      border: 0;
-      font-size: 1.2rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      outline: none;
-      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.05);
-    }
-
-    .entry-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-    }
-
-    .score-list {
-      display: grid;
-      gap: 8px;
-      margin-top: 12px;
-      max-height: 220px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-
-    .score-item {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: 8px;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.14);
-      font-weight: 900;
-    }
-
-    .score-word {
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      word-break: break-word;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 42px;
-      border-radius: 999px;
-      padding: 6px 9px;
-      background: rgba(0,0,0,0.24);
-      color: #fff;
-      font-weight: 1000;
-    }
-
-    .rules {
-      margin-top: 14px;
-      color: var(--muted);
-      line-height: 1.45;
-      font-size: 0.96rem;
-    }
-
-    .rules strong { color: white; }
-
-    .found {
-      margin-top: 16px;
-      padding: 14px;
-      border-radius: 22px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.15);
-    }
-
-    .found h2, .panel h2 {
-      margin: 0 0 10px;
-      font-size: 1.25rem;
-    }
-
-    .small-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .shuffle-area {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-top: 14px;
-    }
+    .table-wrap { overflow-x:auto; }
+    .history-wrap { max-height:460px; overflow:auto; border-radius:16px; }
+    .message { min-height:24px; margin-top:9px; color:var(--gold); font-weight:950; }
 
     .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 24px;
-      transform: translateX(-50%) translateY(120px);
-      background: #111827;
-      color: white;
-      border: 1px solid rgba(255,255,255,0.2);
-      padding: 13px 18px;
-      border-radius: 999px;
-      box-shadow: var(--shadow);
-      font-weight: 900;
-      transition: transform 0.25s ease;
-      z-index: 50;
-      max-width: 90vw;
-      text-align: center;
+      position:fixed;
+      left:50%;
+      bottom:20px;
+      transform:translateX(-50%) translateY(80px);
+      background:#111827;
+      color:white;
+      padding:12px 16px;
+      border-radius:999px;
+      box-shadow:0 15px 40px rgba(0,0,0,.35);
+      font-weight:900;
+      opacity:0;
+      pointer-events:none;
+      transition:.25s ease;
+      z-index:30;
     }
-
-    .toast.show { transform: translateX(-50%) translateY(0); }
-
-    .celebration {
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      z-index: 40;
-    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
     .confetti {
-      position: absolute;
-      width: 12px;
-      height: 20px;
-      top: -30px;
-      border-radius: 3px;
-      animation: fall 1.8s linear forwards;
+      position:fixed;
+      top:-12px;
+      width:10px;
+      height:18px;
+      opacity:.95;
+      pointer-events:none;
+      animation:fall 1.25s linear forwards;
+      z-index:40;
     }
+    @keyframes fall { to { transform:translateY(110vh) rotate(720deg); opacity:0; } }
 
-    @keyframes fall {
-      to { transform: translateY(110vh) rotate(720deg); opacity: 0.9; }
-    }
+    .print-title { display:none; }
 
-    .keyboard-hint {
-      font-size: 0.9rem;
-      color: var(--muted);
-      margin-top: 8px;
-      text-align: center;
-    }
-
-    @media (max-width: 900px) {
-      header { align-items: flex-start; flex-direction: column; }
-      .top-controls { justify-content: flex-start; }
-      .grid { grid-template-columns: 1fr; }
-      .letter-rack { gap: 7px; }
-      .letter-card { min-height: 70px; border-radius: 14px; }
-    }
-
-    @media (max-width: 560px) {
-      .chooser, .timer-buttons, .shuffle-area, .entry-row { grid-template-columns: 1fr; }
-      .letter-rack { grid-template-columns: repeat(3, 1fr); }
-      .letter-card { aspect-ratio: 1.1; }
+    @media (max-width:840px) {
+      .main-grid { grid-template-columns:1fr; }
+      header { flex-direction:column; }
+      .top-tools { justify-content:flex-start; }
+      .game-controls { grid-template-columns:1fr; }
     }
 
     @media print {
-      body { background: white; color: black; }
-      .top-controls, .chooser, .timer-box, .word-entry button, .small-actions, .keyboard-hint { display: none !important; }
-      .wrap { width: 100%; padding: 0; }
-      .grid { grid-template-columns: 1fr; }
-      .panel { box-shadow: none; border: 2px solid #111; background: white; color: black; }
-      .letter-card { border: 2px solid #111; color: black; box-shadow: none; }
-      .rules, .subtitle { color: #222; }
+      body { background:white !important; color:#111827 !important; }
+      .wrap { width:100%; padding:0; }
+      header, .leader-banner, .main-grid, .drawer:not(#historyDrawer), .top-tools, .no-print { display:none !important; }
+      .print-title { display:block; color:#111827; margin:0 0 12px; }
+      #historyDrawer { display:block !important; box-shadow:none; border:0; background:white; color:#111827; padding:0; }
+      #historyDrawer .drawer-head button, #historyDrawer .quiet-note, #clearHistoryBtn, #resetScoresHistoryBtn, #factoryResetBtn { display:none !important; }
+      .history-wrap { max-height:none; overflow:visible; }
+      .history-table { border-spacing:0; }
+      .history-table th, .history-table td { color:#111827 !important; background:white !important; border:1px solid #cbd5e1 !important; border-radius:0 !important; }
     }
   </style>
 </head>
 <body>
-  <div class="celebration" id="celebration"></div>
-  <div class="toast" id="toast">Message</div>
-
   <main class="wrap">
     <header>
       <div>
         <h1>9 Letter Word Challenge</h1>
-        <div class="subtitle">Pick vowels and consonants, then race the timer to build the longest word.</div>
+        <div class="subtitle">Choose letters, run the timer, then enter one top word for each team.</div>
       </div>
-      <div class="top-controls">
-        <label class="pill">
-          Timer
-          <input id="timeInput" type="number" min="5" max="180" step="5" value="30" />
-          sec
-        </label>
-        <button class="btn-dark" id="soundBtn" type="button">🔊 Sound On</button>
-        <button class="btn-dark" id="printBtn" type="button">🖨️ Print</button>
-        <a class="btn-link" href="https://www.thewordfinder.com/anagram-solver/" target="_blank" rel="noopener noreferrer">🔎 Anagram Solver</a>
+      <div class="top-tools no-print">
+        <button id="scorePanelBtn" class="btn-green" type="button">Enter Round Words</button>
+        <button id="setupToggleBtn" class="btn-ghost" type="button">Teacher Menu</button>
+        <button id="historyToggleBtn" class="btn-ghost" type="button">History</button>
       </div>
     </header>
 
-    <section class="grid">
-      <div class="panel">
-        <div class="status-row">
-          <div id="letterCount">Letters chosen: 0 / 9</div>
-          <div id="mixCount">Vowels: 0 · Consonants: 0</div>
+    <h2 class="print-title">9 Letter Word Challenge - Game History</h2>
+
+    <section class="panel leader-banner" id="leaderBanner">
+      <div class="leader-label">Current leader</div>
+      <div class="leader-name" id="leaderName">Loading teams...</div>
+      <div class="leader-score" id="leaderScore">Scores will appear here.</div>
+    </section>
+
+    <section id="setupDrawer" class="panel drawer no-print" aria-label="Teacher menu">
+      <div class="drawer-head">
+        <div>
+          <h2>Teacher menu</h2>
+          <div class="quiet-note">This stays hidden during the game. Team names and scores save in this browser.</div>
         </div>
-
-        <div class="letter-rack" id="letterRack" aria-label="Selected letters"></div>
-
-        <div class="chooser">
-          <button class="big-choice btn-blue" id="consonantBtn" type="button">
-            Consonant
-            <span>Shortcut: C</span>
-          </button>
-          <button class="big-choice btn-gold" id="vowelBtn" type="button">
-            Vowel
-            <span>Shortcut: V</span>
-          </button>
+        <button id="closeSetupBtn" class="btn-dark" type="button">Hide</button>
+      </div>
+      <div class="setup-grid">
+        <div class="setup-row">
+          <label>Timer seconds <input id="timeInput" type="number" min="5" max="180" step="5" value="30"></label>
+          <label>Number of teams <input id="teamCount" type="number" min="1" max="12" value="4"></label>
+          <a class="tool-link" href="https://www.thewordfinder.com/anagram-solver/" target="_blank" rel="noopener">Anagram Solver</a>
+          <button id="soundBtn" class="btn-dark" type="button">Sound On</button>
+          <button id="printBtn" class="btn-dark" type="button">Print History</button>
         </div>
-
-        <div class="shuffle-area">
-          <button class="btn-dark" id="undoBtn" type="button">↩️ Undo Last Letter</button>
-          <button class="btn-dark" id="shuffleBtn" type="button">🔀 Shuffle Letters</button>
-        </div>
-
-        <div class="found">
-          <h2>Class letters</h2>
-          <div id="lettersText" style="font-size:1.6rem;font-weight:1000;letter-spacing:0.12em;min-height:2rem;">—</div>
-          <div class="rules">
-            <strong>Scoring:</strong> 1 point for each letter in a valid word. A 9-letter word is worth <strong>18 points</strong>.
-            Teacher checks spelling and whether the word can be made using the letters shown.
-          </div>
+        <div class="team-name-list" id="teamNameList"></div>
+        <div class="simple-actions">
+          <button id="saveTeamsBtn" class="btn-green" type="button">Save Team Names</button>
+          <button id="addTeamBtn" class="btn-blue" type="button">Add Team</button>
+          <button id="resetScoresHistoryBtn" class="btn-red" type="button">Reset Scores + History</button>
+          <button id="factoryResetBtn" class="btn-red" type="button">Reset Everything</button>
         </div>
       </div>
+    </section>
 
-      <aside class="panel">
-        <div class="timer-box">
-          <div style="font-weight:900;color:var(--muted);">Round timer</div>
-          <div class="timer" id="timerDisplay">30</div>
-          <div class="bar"><div class="bar-fill" id="barFill"></div></div>
-          <div class="timer-buttons">
-            <button class="btn-green" id="startBtn" type="button">▶ Start</button>
-            <button class="btn-red" id="resetTimerBtn" type="button">⟲ Reset</button>
-          </div>
-          <div class="keyboard-hint">Shortcuts: Space = start/pause · R = reset round</div>
+    <section class="main-grid">
+      <section class="panel game-card">
+        <div class="status-row">
+          <div id="roundLabel">Round 1</div>
+          <div id="letterCount">Letters chosen: 0 / 9</div>
+          <div id="mixCount">Vowels: 0 - Consonants: 0</div>
         </div>
+        <div class="letter-rack" id="letterRack" aria-label="Selected letters"></div>
+        <div class="game-controls no-print">
+          <button id="consonantBtn" class="pick-btn btn-blue" type="button">Consonant <span>Shortcut C</span></button>
+          <button id="vowelBtn" class="pick-btn btn-gold" type="button">Vowel <span>Shortcut V</span></button>
+        </div>
+        <div class="simple-actions no-print">
+          <button id="undoBtn" class="btn-dark" type="button">Undo Letter</button>
+          <button id="shuffleBtn" class="btn-dark" type="button">Shuffle</button>
+          <button id="demoBtn" class="btn-dark" type="button">Fill Random</button>
+          <button id="newRoundBtn" class="btn-red" type="button">New Round</button>
+        </div>
+        <div class="quiet-note" style="margin-top:12px;">Scoring: word length = points. A 9-letter word is worth 18 points. Letter use is checked automatically.</div>
+      </section>
 
-        <div class="word-entry">
-          <h2 style="margin:0;">Add student words</h2>
-          <input id="studentName" type="text" placeholder="Student / team name" autocomplete="off" />
-          <div class="entry-row">
-            <input id="wordInput" type="search" placeholder="Best word" autocomplete="off" />
-            <button class="btn-green" id="addWordBtn" type="button">Add</button>
+      <aside style="display:grid; gap:16px;">
+        <section class="panel timer-panel no-print">
+          <div class="quiet-note">Round timer</div>
+          <div id="timerDisplay" class="timer">30</div>
+          <div class="bar"><div id="barFill" class="bar-fill"></div></div>
+          <div class="timer-actions">
+            <button id="startBtn" class="btn-green" type="button">Start</button>
+            <button id="resetTimerBtn" class="btn-red" type="button">Reset Timer</button>
           </div>
-          <div id="wordMessage" class="rules">Words are checked against the selected letters, but spelling is teacher-verified.</div>
-          <div class="score-list" id="scoreList"></div>
-          <div class="small-actions">
-            <button class="btn-dark" id="clearScoresBtn" type="button">Clear Scores</button>
-            <button class="btn-dark" id="sortScoresBtn" type="button">Sort Scores</button>
-          </div>
-        </div>
+          <div class="quiet-note">Space = start/pause. R = new round.</div>
+        </section>
+
+        <section class="panel">
+          <h2>Leaderboard</h2>
+          <div id="leaderboard" class="leaderboard"></div>
+        </section>
       </aside>
     </section>
 
-    <div class="small-actions">
-      <button class="btn-red" id="newRoundBtn" type="button">✨ New Round</button>
-      <button class="btn-dark" id="demoBtn" type="button">Fill Random 9 Letters</button>
-    </div>
+    <section id="scoreDrawer" class="panel drawer no-print" aria-label="Round scoring">
+      <div class="drawer-head">
+        <div>
+          <h2>Enter each team's top word</h2>
+          <div class="quiet-note">Use normal lower-case typing for the best chance of browser red-underlined spelling suggestions.</div>
+        </div>
+        <button id="closeScoreBtn" class="btn-dark" type="button">Hide</button>
+      </div>
+      <div class="table-wrap">
+        <table class="score-entry-table" aria-label="Round word entry">
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Top word</th>
+              <th>This round</th>
+            </tr>
+          </thead>
+          <tbody id="roundEntryBody"></tbody>
+        </table>
+      </div>
+      <div class="simple-actions">
+        <button id="submitRoundBtn" class="btn-green" type="button">Submit Round Scores</button>
+        <button id="clearRoundWordsBtn" class="btn-dark" type="button">Clear Round Words</button>
+      </div>
+      <div id="roundMessage" class="message"></div>
+    </section>
+
+    <section id="historyDrawer" class="panel drawer" aria-label="Game history">
+      <div class="drawer-head">
+        <div>
+          <h2>Game history</h2>
+          <div id="historySummary" class="quiet-note">No rounds yet.</div>
+        </div>
+        <div class="simple-actions no-print" style="margin-top:0;">
+          <button id="printHistoryBtn" class="btn-dark" type="button">Print</button>
+          <button id="clearHistoryBtn" class="btn-red" type="button">Delete History Only</button>
+          <button id="closeHistoryBtn" class="btn-dark" type="button">Hide</button>
+        </div>
+      </div>
+      <div class="history-wrap">
+        <table class="history-table" aria-label="Game history">
+          <thead>
+            <tr>
+              <th>Round</th>
+              <th>Letters</th>
+              <th>Team</th>
+              <th>Word</th>
+              <th>Score</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
-  <script>
-    const MAX_LETTERS = 9;
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    // Letter bags loosely weighted for English classroom play.
-    const vowels = "AAAAAAAAAEEEEEEEEEEEEIIIIIIIIOOOOOOOOUUU".split("");
-    const consonants = "BBCCCDDDDDFFGGGHHHHJKLLLLMMNNNNNNPPQRRRRRRSSSSSSTTTTTTTVVWWXYYZ".split("");
+  <script>
+    "use strict";
+
+    const STORAGE_KEY = "countdownLettersTeamGameV3";
+    const MAX_LETTERS = 9;
+    const VOWELS = "AAAAAAAAAEEEEEEEEEEEEIIIIIIIOOOOOOOOUUUU".split("");
+    const CONSONANTS = "BBCCDDDDFFGGHHJKKLLLLMMNNNNNNPPQRRRRRRSSSSSSTTTTTTTVWXYZ".split("");
 
     const state = {
+      teams: [],
+      history: [],
+      roundNumber: 1,
       letters: [],
-      scores: [],
-      running: false,
+      timeLimit: 30,
       timeLeft: 30,
-      totalTime: 30,
-      timerId: null,
-      soundOn: true,
-      sorted: false
+      timerRunning: false,
+      sound: true
     };
 
-    const rack = document.getElementById("letterRack");
-    const letterCount = document.getElementById("letterCount");
-    const mixCount = document.getElementById("mixCount");
-    const lettersText = document.getElementById("lettersText");
-    const consonantBtn = document.getElementById("consonantBtn");
-    const vowelBtn = document.getElementById("vowelBtn");
-    const undoBtn = document.getElementById("undoBtn");
-    const shuffleBtn = document.getElementById("shuffleBtn");
-    const timeInput = document.getElementById("timeInput");
-    const timerDisplay = document.getElementById("timerDisplay");
-    const barFill = document.getElementById("barFill");
-    const startBtn = document.getElementById("startBtn");
-    const resetTimerBtn = document.getElementById("resetTimerBtn");
-    const newRoundBtn = document.getElementById("newRoundBtn");
-    const demoBtn = document.getElementById("demoBtn");
-    const soundBtn = document.getElementById("soundBtn");
-    const printBtn = document.getElementById("printBtn");
-    const studentName = document.getElementById("studentName");
-    const wordInput = document.getElementById("wordInput");
-    const addWordBtn = document.getElementById("addWordBtn");
-    const scoreList = document.getElementById("scoreList");
-    const wordMessage = document.getElementById("wordMessage");
-    const clearScoresBtn = document.getElementById("clearScoresBtn");
-    const sortScoresBtn = document.getElementById("sortScoresBtn");
-    const toast = document.getElementById("toast");
-    const celebration = document.getElementById("celebration");
+    let timerId = null;
+    let audioCtx = null;
 
-    function randomFrom(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
+    const els = {
+      setupDrawer: document.getElementById("setupDrawer"),
+      scoreDrawer: document.getElementById("scoreDrawer"),
+      historyDrawer: document.getElementById("historyDrawer"),
+      setupToggleBtn: document.getElementById("setupToggleBtn"),
+      scorePanelBtn: document.getElementById("scorePanelBtn"),
+      historyToggleBtn: document.getElementById("historyToggleBtn"),
+      closeSetupBtn: document.getElementById("closeSetupBtn"),
+      closeScoreBtn: document.getElementById("closeScoreBtn"),
+      closeHistoryBtn: document.getElementById("closeHistoryBtn"),
+      leaderName: document.getElementById("leaderName"),
+      leaderScore: document.getElementById("leaderScore"),
+      leaderboard: document.getElementById("leaderboard"),
+      roundLabel: document.getElementById("roundLabel"),
+      letterCount: document.getElementById("letterCount"),
+      mixCount: document.getElementById("mixCount"),
+      letterRack: document.getElementById("letterRack"),
+      consonantBtn: document.getElementById("consonantBtn"),
+      vowelBtn: document.getElementById("vowelBtn"),
+      undoBtn: document.getElementById("undoBtn"),
+      shuffleBtn: document.getElementById("shuffleBtn"),
+      demoBtn: document.getElementById("demoBtn"),
+      newRoundBtn: document.getElementById("newRoundBtn"),
+      timeInput: document.getElementById("timeInput"),
+      teamCount: document.getElementById("teamCount"),
+      teamNameList: document.getElementById("teamNameList"),
+      saveTeamsBtn: document.getElementById("saveTeamsBtn"),
+      addTeamBtn: document.getElementById("addTeamBtn"),
+      soundBtn: document.getElementById("soundBtn"),
+      printBtn: document.getElementById("printBtn"),
+      resetScoresHistoryBtn: document.getElementById("resetScoresHistoryBtn"),
+      factoryResetBtn: document.getElementById("factoryResetBtn"),
+      timerDisplay: document.getElementById("timerDisplay"),
+      barFill: document.getElementById("barFill"),
+      startBtn: document.getElementById("startBtn"),
+      resetTimerBtn: document.getElementById("resetTimerBtn"),
+      roundEntryBody: document.getElementById("roundEntryBody"),
+      submitRoundBtn: document.getElementById("submitRoundBtn"),
+      clearRoundWordsBtn: document.getElementById("clearRoundWordsBtn"),
+      roundMessage: document.getElementById("roundMessage"),
+      historySummary: document.getElementById("historySummary"),
+      historyBody: document.getElementById("historyBody"),
+      printHistoryBtn: document.getElementById("printHistoryBtn"),
+      clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+      toast: document.getElementById("toast")
+    };
+
+    function makeTeam(index) {
+      return {
+        id: "team-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8),
+        name: "Team " + index,
+        total: 0,
+        bestWord: "",
+        bestScore: 0,
+        nines: 0
+      };
     }
 
-    function initRack() {
-      rack.innerHTML = "";
-      for (let i = 0; i < MAX_LETTERS; i++) {
-        const card = document.createElement("div");
-        card.className = "letter-card empty";
-        card.textContent = "?";
-        rack.appendChild(card);
-      }
+    function defaultTeams() {
+      return [1,2,3,4].map(makeTeam);
     }
 
-    function renderRack(popLast = false) {
-      [...rack.children].forEach((card, i) => {
-        const letter = state.letters[i];
-        card.textContent = letter || "?";
-        card.className = letter ? "letter-card" : "letter-card empty";
-        if (popLast && i === state.letters.length - 1) {
-          card.classList.add("pop");
-          setTimeout(() => card.classList.remove("pop"), 280);
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const saved = JSON.parse(raw);
+          state.teams = Array.isArray(saved.teams) && saved.teams.length ? saved.teams.map((team, index) => ({
+            id: team.id || "team-saved-" + index,
+            name: team.name || "Team " + (index + 1),
+            total: Number(team.total) || 0,
+            bestWord: team.bestWord || "",
+            bestScore: Number(team.bestScore) || 0,
+            nines: Number(team.nines) || 0
+          })) : defaultTeams();
+          state.history = Array.isArray(saved.history) ? saved.history : [];
+          state.roundNumber = Number(saved.roundNumber) || 1;
+          state.letters = Array.isArray(saved.letters) ? saved.letters.filter(x => /^[A-Z]$/.test(String(x))).slice(0, MAX_LETTERS) : [];
+          state.timeLimit = clamp(Number(saved.timeLimit) || 30, 5, 180);
+          state.timeLeft = clamp(Number(saved.timeLeft) || state.timeLimit, 0, state.timeLimit);
+          state.sound = saved.sound !== false;
+        } else {
+          state.teams = defaultTeams();
+          state.history = [];
+          state.roundNumber = 1;
+          state.letters = [];
+          state.timeLimit = 30;
+          state.timeLeft = 30;
+          state.sound = true;
         }
-      });
-
-      const vowelCount = state.letters.filter(l => "AEIOU".includes(l)).length;
-      const consonantCount = state.letters.length - vowelCount;
-      letterCount.textContent = `Letters chosen: ${state.letters.length} / ${MAX_LETTERS}`;
-      mixCount.textContent = `Vowels: ${vowelCount} · Consonants: ${consonantCount}`;
-      lettersText.textContent = state.letters.length ? state.letters.join(" ") : "—";
-
-      const full = state.letters.length >= MAX_LETTERS;
-      consonantBtn.disabled = full;
-      vowelBtn.disabled = full;
-      undoBtn.disabled = state.letters.length === 0 || state.running;
-      shuffleBtn.disabled = state.letters.length < 2;
-
-      if (full) {
-        showToast("9 letters ready. Start the timer!");
-        playTone(740, 0.08, "triangle", 0.35);
+      } catch (err) {
+        console.error(err);
+        state.teams = defaultTeams();
       }
+      state.timerRunning = false;
     }
 
-    function addLetter(type) {
-      if (state.letters.length >= MAX_LETTERS || state.running) return;
-      const letter = type === "vowel" ? randomFrom(vowels) : randomFrom(consonants);
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        teams: state.teams,
+        history: state.history,
+        roundNumber: state.roundNumber,
+        letters: state.letters,
+        timeLimit: state.timeLimit,
+        timeLeft: state.timeLeft,
+        sound: state.sound
+      }));
+    }
+
+    function clamp(num, min, max) { return Math.max(min, Math.min(max, num)); }
+
+    function toggleDrawer(drawer, force) {
+      const open = typeof force === "boolean" ? force : !drawer.classList.contains("open");
+      drawer.classList.toggle("open", open);
+      if (drawer === els.scoreDrawer && open) {
+        renderRoundEntries(true);
+        setTimeout(() => {
+          const first = els.roundEntryBody.querySelector("textarea");
+          if (first) first.focus();
+        }, 50);
+      }
+      if (drawer === els.historyDrawer && open) renderHistory();
+    }
+
+    function sortedTeams() {
+      return [...state.teams].sort((a, b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        if (b.bestScore !== a.bestScore) return b.bestScore - a.bestScore;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function renderAll() {
+      renderLetters();
+      renderTimer();
+      renderLeaderboard();
+      renderSetup();
+      renderRoundEntries(true);
+      renderHistory();
+      els.roundLabel.textContent = "Round " + state.roundNumber;
+      els.soundBtn.textContent = state.sound ? "Sound On" : "Sound Off";
+    }
+
+    function renderLetters() {
+      els.letterRack.innerHTML = "";
+      for (let i = 0; i < MAX_LETTERS; i++) {
+        const div = document.createElement("div");
+        div.className = "letter-card" + (state.letters[i] ? "" : " empty");
+        div.textContent = state.letters[i] || "?";
+        els.letterRack.appendChild(div);
+      }
+      const vowels = state.letters.filter(l => "AEIOU".includes(l)).length;
+      const consonants = state.letters.length - vowels;
+      els.letterCount.textContent = "Letters chosen: " + state.letters.length + " / " + MAX_LETTERS;
+      els.mixCount.textContent = "Vowels: " + vowels + " - Consonants: " + consonants;
+      const full = state.letters.length >= MAX_LETTERS;
+      els.consonantBtn.disabled = full;
+      els.vowelBtn.disabled = full;
+      els.undoBtn.disabled = state.letters.length === 0;
+    }
+
+    function renderTimer() {
+      els.timeInput.value = state.timeLimit;
+      els.timerDisplay.textContent = String(Math.ceil(state.timeLeft));
+      const pct = state.timeLimit ? Math.max(0, Math.min(100, (state.timeLeft / state.timeLimit) * 100)) : 0;
+      els.barFill.style.width = pct + "%";
+      els.startBtn.textContent = state.timerRunning ? "Pause" : "Start";
+    }
+
+    function renderLeaderboard() {
+      const ranked = sortedTeams();
+      els.leaderboard.innerHTML = "";
+      if (!ranked.length) {
+        els.leaderName.textContent = "Set up teams to begin";
+        els.leaderScore.textContent = "Open Teacher Menu to add teams.";
+        return;
+      }
+      const topScore = ranked[0].total;
+      const leaders = ranked.filter(t => t.total === topScore);
+      if (topScore === 0 && state.history.length === 0) {
+        els.leaderName.textContent = "Scores are ready";
+        els.leaderScore.textContent = "Play a round, then enter each team's top word.";
+      } else if (leaders.length > 1) {
+        els.leaderName.textContent = "Tie: " + leaders.map(t => t.name).join(" + ");
+        els.leaderScore.textContent = topScore + " points each";
+      } else {
+        els.leaderName.textContent = leaders[0].name;
+        els.leaderScore.textContent = topScore + " points" + (leaders[0].bestWord ? " - best word: " + leaders[0].bestWord + " (" + leaders[0].bestScore + ")" : "");
+      }
+
+      ranked.forEach((team, index) => {
+        const card = document.createElement("div");
+        card.className = "team-card" + (index === 0 && (team.total > 0 || state.history.length) ? " first" : "");
+        const best = team.bestWord ? "Best: " + team.bestWord + " (" + team.bestScore + ")" : "Best: -";
+        card.innerHTML =
+          "<div class='rank-badge'>" + (index + 1) + "</div>" +
+          "<div><div class='team-name'>" + escapeHtml(team.name) + "</div><div class='team-detail'>" + escapeHtml(best) + " | 9s: " + team.nines + "</div></div>" +
+          "<div class='team-score'>" + team.total + "</div>";
+        els.leaderboard.appendChild(card);
+      });
+    }
+
+    function renderSetup() {
+      els.teamCount.value = state.teams.length;
+      els.teamNameList.innerHTML = "";
+      state.teams.forEach((team, index) => {
+        const label = document.createElement("label");
+        label.textContent = "Team " + (index + 1);
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = team.name;
+        input.autocomplete = "off";
+        input.addEventListener("input", () => {
+          team.name = input.value.trim() || "Team " + (index + 1);
+          saveState();
+          renderLeaderboard();
+          renderRoundEntries(true);
+        });
+        label.appendChild(input);
+        els.teamNameList.appendChild(label);
+      });
+    }
+
+    function renderRoundEntries(keepTyped) {
+      const existing = {};
+      if (keepTyped) {
+        els.roundEntryBody.querySelectorAll("textarea[data-team-id]").forEach(input => {
+          existing[input.dataset.teamId] = input.value;
+        });
+      }
+      els.roundEntryBody.innerHTML = "";
+      state.teams.forEach(team => {
+        const tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td>" + escapeHtml(team.name) + "</td>" +
+          "<td><textarea class='word-field' data-team-id='" + team.id + "' rows='1' placeholder='type best word' spellcheck='true' autocomplete='off' autocapitalize='none' lang='en-NZ'></textarea></td>" +
+          "<td><span class='badge' data-preview='" + team.id + "'>0 pts</span></td>";
+        els.roundEntryBody.appendChild(tr);
+        const input = tr.querySelector("textarea");
+        input.value = existing[team.id] || "";
+        input.addEventListener("input", () => {
+          autoSize(input);
+          previewRoundWord(input);
+        });
+        input.addEventListener("keydown", e => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            focusNextWordInput(input);
+          }
+        });
+        autoSize(input);
+        previewRoundWord(input);
+      });
+    }
+
+    function autoSize(input) {
+      input.style.height = "44px";
+      input.style.height = Math.max(44, input.scrollHeight) + "px";
+    }
+
+    function focusNextWordInput(input) {
+      const inputs = [...els.roundEntryBody.querySelectorAll("textarea[data-team-id]")];
+      const idx = inputs.indexOf(input);
+      if (idx >= 0 && inputs[idx + 1]) inputs[idx + 1].focus();
+      else els.submitRoundBtn.focus();
+    }
+
+    function cleanWord(value) {
+      return String(value || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 20);
+    }
+
+    function canMakeWord(word) {
+      const available = [...state.letters];
+      for (const letter of word) {
+        const idx = available.indexOf(letter);
+        if (idx < 0) return false;
+        available.splice(idx, 1);
+      }
+      return true;
+    }
+
+    function scoreWord(word) { return word.length === 9 ? 18 : word.length; }
+
+    function previewRoundWord(input) {
+      const badge = els.roundEntryBody.querySelector("[data-preview='" + input.dataset.teamId + "']");
+      const word = cleanWord(input.value);
+      input.classList.remove("invalid-letters", "valid-letters");
+      if (!word) {
+        badge.textContent = "0 pts";
+        badge.className = "badge";
+        return;
+      }
+      if (state.letters.length !== MAX_LETTERS) {
+        badge.textContent = "Need letters";
+        badge.className = "badge bad";
+        return;
+      }
+      if (word.length > 9 || !canMakeWord(word)) {
+        input.classList.add("invalid-letters");
+        badge.textContent = "0 pts";
+        badge.className = "badge bad";
+        return;
+      }
+      input.classList.add("valid-letters");
+      const score = scoreWord(word);
+      badge.textContent = score + " pts";
+      badge.className = score === 18 ? "badge gold" : "badge good";
+    }
+
+    function renderHistory() {
+      const entriesCount = state.history.reduce((sum, round) => sum + (Array.isArray(round.entries) ? round.entries.length : 0), 0);
+      els.historySummary.textContent = state.history.length ? state.history.length + " rounds, " + entriesCount + " submitted words." : "No rounds yet.";
+      els.historyBody.innerHTML = "";
+      if (!state.history.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td colspan='6'>No history yet.</td>";
+        els.historyBody.appendChild(tr);
+        return;
+      }
+      state.history.forEach(round => {
+        const entries = Array.isArray(round.entries) ? round.entries : [];
+        entries.forEach(entry => {
+          const tr = document.createElement("tr");
+          const badgeClass = entry.score === 18 ? "badge gold" : entry.score > 0 ? "badge good" : "badge bad";
+          tr.innerHTML =
+            "<td>" + escapeHtml(round.round) + "</td>" +
+            "<td style='letter-spacing:.08em;'>" + escapeHtml(round.letters) + "</td>" +
+            "<td>" + escapeHtml(entry.teamName) + "</td>" +
+            "<td>" + escapeHtml(entry.word || "-") + "</td>" +
+            "<td><span class='" + badgeClass + "'>" + entry.score + "</span></td>" +
+            "<td>" + escapeHtml(entry.note) + "</td>";
+          els.historyBody.appendChild(tr);
+        });
+      });
+    }
+
+    function pickLetter(type) {
+      if (state.letters.length >= MAX_LETTERS) return;
+      const pool = type === "vowel" ? VOWELS : CONSONANTS;
+      const letter = pool[Math.floor(Math.random() * pool.length)];
       state.letters.push(letter);
-      renderRack(true);
-      playTone(type === "vowel" ? 660 : 440, 0.08, "square", 0.18);
+      saveState();
+      renderLetters();
+      renderRoundEntries(true);
+      const cards = els.letterRack.querySelectorAll(".letter-card");
+      const card = cards[state.letters.length - 1];
+      if (card) {
+        card.classList.add("pop");
+        setTimeout(() => card.classList.remove("pop"), 260);
+      }
+      playTone(type === "vowel" ? 660 : 440, .07, "sine", .13);
     }
 
     function undoLetter() {
-      if (state.running) return;
+      if (!state.letters.length) return;
       state.letters.pop();
-      renderRack();
-      playTone(220, 0.07, "sawtooth", 0.15);
+      saveState();
+      renderLetters();
+      renderRoundEntries(true);
     }
 
     function shuffleLetters() {
@@ -649,298 +818,326 @@
         const j = Math.floor(Math.random() * (i + 1));
         [state.letters[i], state.letters[j]] = [state.letters[j], state.letters[i]];
       }
-      renderRack();
-      playTone(500, 0.05, "triangle", 0.2);
-      setTimeout(() => playTone(650, 0.05, "triangle", 0.2), 55);
+      saveState();
+      renderLetters();
+      renderRoundEntries(true);
+      playTone(520, .06, "triangle", .12);
     }
 
-    function setTimeFromInput() {
-      const value = Number(timeInput.value);
-      const clean = Math.max(5, Math.min(180, Number.isFinite(value) ? value : 30));
-      timeInput.value = clean;
-      state.totalTime = clean;
-      state.timeLeft = clean;
-      updateTimerDisplay();
-    }
-
-    function updateTimerDisplay() {
-      timerDisplay.textContent = state.timeLeft;
-      timerDisplay.classList.toggle("warning", state.timeLeft <= 10 && state.timeLeft > 5);
-      timerDisplay.classList.toggle("danger", state.timeLeft <= 5);
-      const percent = state.totalTime ? (state.timeLeft / state.totalTime) * 100 : 0;
-      barFill.style.width = `${Math.max(0, percent)}%`;
-    }
-
-    function startPauseTimer() {
-      if (state.letters.length < MAX_LETTERS) {
-        showToast("Choose 9 letters first.");
-        playTone(160, 0.12, "sawtooth", 0.2);
-        return;
+    function fillRandom() {
+      while (state.letters.length < MAX_LETTERS) {
+        const vowels = state.letters.filter(l => "AEIOU".includes(l)).length;
+        const remaining = MAX_LETTERS - state.letters.length;
+        const chooseVowel = vowels < 3 || (remaining > 2 && Math.random() < .42);
+        const pool = chooseVowel ? VOWELS : CONSONANTS;
+        state.letters.push(pool[Math.floor(Math.random() * pool.length)]);
       }
-
-      if (state.running) {
-        clearInterval(state.timerId);
-        state.running = false;
-        startBtn.textContent = "▶ Start";
-        showToast("Timer paused.");
-        return;
-      }
-
-      if (state.timeLeft <= 0) resetTimerOnly();
-
-      state.running = true;
-      startBtn.textContent = "⏸ Pause";
-      playStartSound();
-
-      state.timerId = setInterval(() => {
-        state.timeLeft -= 1;
-        updateTimerDisplay();
-
-        if (state.timeLeft > 0 && state.timeLeft <= 5) {
-          playTone(880, 0.07, "square", 0.22);
-        }
-
-        if (state.timeLeft <= 0) {
-          clearInterval(state.timerId);
-          state.running = false;
-          state.timeLeft = 0;
-          updateTimerDisplay();
-          startBtn.textContent = "▶ Start";
-          playEndSound();
-          confettiBlast();
-          showToast("Time! Pens down / hands up.");
-          wordInput.focus();
-        }
-      }, 1000);
-    }
-
-    function resetTimerOnly() {
-      clearInterval(state.timerId);
-      state.running = false;
-      startBtn.textContent = "▶ Start";
-      setTimeFromInput();
-      playTone(260, 0.08, "triangle", 0.18);
+      saveState();
+      renderLetters();
+      renderRoundEntries(true);
+      playTone(750, .08, "triangle", .15);
     }
 
     function newRound() {
-      clearInterval(state.timerId);
+      stopTimer();
       state.letters = [];
-      state.running = false;
-      state.sorted = false;
-      startBtn.textContent = "▶ Start";
-      setTimeFromInput();
-      renderRack();
-      wordInput.value = "";
-      wordMessage.textContent = "Words are checked against the selected letters, but spelling is teacher-verified.";
-      showToast("New round ready.");
+      state.timeLeft = state.timeLimit;
+      els.roundMessage.textContent = "";
+      clearRoundWords(false);
+      toggleDrawer(els.scoreDrawer, false);
+      saveState();
+      renderAll();
+      showToast("New round ready. Scores kept.");
     }
 
-    function fillRandomLetters() {
-      if (state.running) return;
-      state.letters = [];
-      // Classroom-friendly mix: 4 vowels, 5 consonants, then shuffle.
-      for (let i = 0; i < 4; i++) state.letters.push(randomFrom(vowels));
-      for (let i = 0; i < 5; i++) state.letters.push(randomFrom(consonants));
-      shuffleLetters();
-      renderRack(true);
-      showToast("Random 9-letter set filled.");
+    function setTimeFromInput() {
+      const value = clamp(Number(els.timeInput.value) || 30, 5, 180);
+      state.timeLimit = value;
+      if (!state.timerRunning) state.timeLeft = value;
+      saveState();
+      renderTimer();
     }
 
-    function canMakeWord(word) {
-      const available = [...state.letters];
-      for (const char of word) {
-        const index = available.indexOf(char);
-        if (index === -1) return false;
-        available.splice(index, 1);
+    function startPauseTimer() {
+      if (state.timerRunning) {
+        stopTimer();
+        showToast("Timer paused.");
+        return;
       }
-      return true;
+      if (state.timeLeft <= 0) state.timeLeft = state.timeLimit;
+      state.timerRunning = true;
+      renderTimer();
+      playTone(620, .07, "sine", .12);
+      timerId = setInterval(() => {
+        state.timeLeft = Math.max(0, state.timeLeft - 1);
+        if (state.timeLeft <= 5 && state.timeLeft > 0) playTone(830, .05, "square", .08);
+        if (state.timeLeft <= 0) {
+          stopTimer();
+          playEndSound();
+          confettiBlast();
+          toggleDrawer(els.scoreDrawer, true);
+          showToast("Time is up. Enter team words.");
+        }
+        saveState();
+        renderTimer();
+      }, 1000);
     }
 
-    function scoreWord(word) {
-      return word.length === 9 ? 18 : word.length;
+    function stopTimer() {
+      if (timerId) clearInterval(timerId);
+      timerId = null;
+      state.timerRunning = false;
+      renderTimer();
     }
 
-    function addWord() {
-      const name = studentName.value.trim() || "Team";
-      const word = wordInput.value.toUpperCase().replace(/[^A-Z]/g, "");
+    function resetTimer() {
+      stopTimer();
+      state.timeLeft = state.timeLimit;
+      saveState();
+      renderTimer();
+      showToast("Timer reset.");
+    }
 
-      if (!word) {
-        wordMessage.textContent = "Type a word first.";
+    function submitRound() {
+      if (state.letters.length !== MAX_LETTERS) {
+        els.roundMessage.textContent = "Choose all 9 letters before submitting scores.";
+        showToast("Choose all 9 letters first.");
+        return;
+      }
+      const inputs = [...els.roundEntryBody.querySelectorAll("textarea[data-team-id]")];
+      if (!inputs.length) {
+        els.roundMessage.textContent = "Add at least one team first.";
         return;
       }
 
-      if (!state.letters.length) {
-        wordMessage.textContent = "Choose letters before adding words.";
-        return;
-      }
+      const entries = [];
+      let totalAdded = 0;
+      let anyNine = false;
+      const lettersString = state.letters.join("");
 
-      if (word.length > 9) {
-        wordMessage.textContent = "That word is too long for this round.";
-        playTone(150, 0.1, "sawtooth", 0.2);
-        return;
-      }
+      inputs.forEach(input => {
+        const team = state.teams.find(t => t.id === input.dataset.teamId);
+        if (!team) return;
+        const word = cleanWord(input.value);
+        let score = 0;
+        let valid = false;
+        let note = "No word entered";
 
-      if (!canMakeWord(word)) {
-        wordMessage.textContent = `“${word}” cannot be made from ${state.letters.join("")}.`;
-        playTone(150, 0.1, "sawtooth", 0.2);
-        return;
-      }
+        if (word) {
+          if (word.length > 9) {
+            note = "Too long";
+          } else if (!canMakeWord(word)) {
+            note = "Uses unavailable letters";
+          } else {
+            valid = true;
+            score = scoreWord(word);
+            note = "Accepted - check red spelling underline";
+          }
+        }
 
-      const score = scoreWord(word);
-      state.scores.push({ name, word, score, length: word.length });
-      wordInput.value = "";
-      wordMessage.textContent = `Added ${word}: ${score} point${score === 1 ? "" : "s"}. Teacher still checks spelling.`;
-      renderScores();
-      playTone(720, 0.08, "triangle", 0.22);
-      if (word.length === 9) {
+        team.total += score;
+        if (score > team.bestScore) {
+          team.bestScore = score;
+          team.bestWord = word;
+        }
+        if (valid && word.length === 9) {
+          team.nines += 1;
+          anyNine = true;
+        }
+        totalAdded += score;
+        entries.push({ teamId: team.id, teamName: team.name, word, score, valid, note });
+      });
+
+      state.history.push({
+        round: state.roundNumber,
+        letters: lettersString,
+        entries,
+        submittedAt: new Date().toLocaleString()
+      });
+      state.roundNumber += 1;
+      saveState();
+      clearRoundWords(false);
+      renderAll();
+      toggleDrawer(els.historyDrawer, false);
+      els.roundMessage.textContent = "Round submitted. " + totalAdded + " total points added.";
+      playTone(720, .08, "triangle", .18);
+      if (anyNine) {
         confettiBlast();
         playEndSound();
       }
-      wordInput.focus();
+      showToast("Round scores added.");
     }
 
-    function renderScores() {
-      scoreList.innerHTML = "";
-      const list = state.sorted
-        ? [...state.scores].sort((a, b) => b.score - a.score || b.length - a.length || a.word.localeCompare(b.word))
-        : state.scores;
-
-      if (!list.length) {
-        const empty = document.createElement("div");
-        empty.className = "rules";
-        empty.textContent = "No student words added yet.";
-        scoreList.appendChild(empty);
-        return;
-      }
-
-      list.forEach(item => {
-        const row = document.createElement("div");
-        row.className = "score-item";
-        row.innerHTML = `
-          <span><span class="score-word">${escapeHtml(item.word)}</span><br><span style="color:rgba(255,255,255,0.72);font-size:0.86rem;">${escapeHtml(item.name)}</span></span>
-          <span class="badge">${item.length}</span>
-          <span class="badge">${item.score} pts</span>
-        `;
-        scoreList.appendChild(row);
+    function clearRoundWords(show) {
+      els.roundEntryBody.querySelectorAll("textarea[data-team-id]").forEach(input => {
+        input.value = "";
+        autoSize(input);
+        previewRoundWord(input);
       });
+      if (show) showToast("Round word boxes cleared.");
     }
 
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"]/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[s]));
+    function changeTeamCount(count) {
+      count = clamp(Number(count) || 1, 1, 12);
+      while (state.teams.length < count) state.teams.push(makeTeam(state.teams.length + 1));
+      while (state.teams.length > count) state.teams.pop();
+      saveState();
+      renderAll();
     }
 
-    function clearScores() {
-      state.scores = [];
-      renderScores();
-      showToast("Scores cleared.");
+    function saveTeamNames() {
+      const inputs = [...els.teamNameList.querySelectorAll("input")];
+      inputs.forEach((input, index) => {
+        if (state.teams[index]) state.teams[index].name = input.value.trim() || "Team " + (index + 1);
+      });
+      saveState();
+      renderAll();
+      showToast("Team names saved.");
     }
 
-    function toggleSortScores() {
-      state.sorted = !state.sorted;
-      sortScoresBtn.textContent = state.sorted ? "Unsort Scores" : "Sort Scores";
-      renderScores();
+    function resetScoresAndHistory() {
+      if (!confirm("Reset all team scores, best words and history? Team names will stay.")) return;
+      state.teams.forEach(team => {
+        team.total = 0;
+        team.bestWord = "";
+        team.bestScore = 0;
+        team.nines = 0;
+      });
+      state.history = [];
+      state.roundNumber = 1;
+      state.letters = [];
+      state.timeLeft = state.timeLimit;
+      stopTimer();
+      saveState();
+      renderAll();
+      showToast("Scores and history deleted.");
     }
 
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add("show");
-      clearTimeout(showToast.timer);
-      showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
+    function factoryReset() {
+      if (!confirm("Reset everything, including team names, scores, letters and history?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      stopTimer();
+      loadState();
+      saveState();
+      renderAll();
+      showToast("Everything reset.");
     }
 
-    let audioContext = null;
-
-    function getAudioContext() {
-      if (!state.soundOn) return null;
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return null;
-      if (!audioContext) audioContext = new AudioContext();
-      return audioContext;
+    function clearHistoryOnly() {
+      if (!confirm("Delete the full game history? Team scores and best words will stay.")) return;
+      state.history = [];
+      saveState();
+      renderHistory();
+      renderLeaderboard();
+      showToast("History deleted.");
     }
 
-    function playTone(freq = 440, duration = 0.1, type = "sine", volume = 0.18) {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(volume, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + duration);
+    function printHistory() {
+      toggleDrawer(els.historyDrawer, true);
+      renderHistory();
+      setTimeout(() => window.print(), 50);
     }
 
-    function playStartSound() {
-      [330, 440, 660].forEach((f, i) => setTimeout(() => playTone(f, 0.09, "triangle", 0.28), i * 95));
+    function playTone(freq, seconds, type, volume) {
+      if (!state.sound) return;
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume || .12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + seconds);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + seconds);
+      } catch (err) {}
     }
 
     function playEndSound() {
-      [880, 740, 660, 990].forEach((f, i) => setTimeout(() => playTone(f, 0.12, i % 2 ? "square" : "triangle", 0.32), i * 120));
+      [520, 660, 780, 1040].forEach((freq, i) => setTimeout(() => playTone(freq, .11, "triangle", .16), i * 90));
     }
 
     function confettiBlast() {
-      const colors = ["#fbbf24", "#38bdf8", "#34d399", "#fb7185", "#ffffff", "#a78bfa"];
+      const colours = ["#fbbf24", "#38bdf8", "#34d399", "#fb7185", "#a78bfa", "#ffffff"];
       for (let i = 0; i < 70; i++) {
         const piece = document.createElement("div");
         piece.className = "confetti";
-        piece.style.left = `${Math.random() * 100}%`;
-        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.animationDelay = `${Math.random() * 0.35}s`;
-        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
-        celebration.appendChild(piece);
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.background = colours[Math.floor(Math.random() * colours.length)];
+        piece.style.animationDuration = .9 + Math.random() * 1.2 + "s";
+        piece.style.transform = "rotate(" + Math.random() * 360 + "deg)";
+        document.body.appendChild(piece);
         setTimeout(() => piece.remove(), 2300);
       }
     }
 
-    consonantBtn.addEventListener("click", () => addLetter("consonant"));
-    vowelBtn.addEventListener("click", () => addLetter("vowel"));
-    undoBtn.addEventListener("click", undoLetter);
-    shuffleBtn.addEventListener("click", shuffleLetters);
-    timeInput.addEventListener("change", resetTimerOnly);
-    startBtn.addEventListener("click", startPauseTimer);
-    resetTimerBtn.addEventListener("click", resetTimerOnly);
-    newRoundBtn.addEventListener("click", newRound);
-    demoBtn.addEventListener("click", fillRandomLetters);
-    addWordBtn.addEventListener("click", addWord);
-    clearScoresBtn.addEventListener("click", clearScores);
-    sortScoresBtn.addEventListener("click", toggleSortScores);
-    printBtn.addEventListener("click", () => window.print());
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 1800);
+    }
 
-    soundBtn.addEventListener("click", () => {
-      state.soundOn = !state.soundOn;
-      soundBtn.textContent = state.soundOn ? "🔊 Sound On" : "🔇 Sound Off";
-      if (state.soundOn) playTone(520, 0.08, "triangle", 0.2);
-    });
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>\"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch]));
+    }
 
-    wordInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") addWord();
-    });
+    function attachEvents() {
+      els.setupToggleBtn.addEventListener("click", () => toggleDrawer(els.setupDrawer));
+      els.scorePanelBtn.addEventListener("click", () => toggleDrawer(els.scoreDrawer));
+      els.historyToggleBtn.addEventListener("click", () => toggleDrawer(els.historyDrawer));
+      els.closeSetupBtn.addEventListener("click", () => toggleDrawer(els.setupDrawer, false));
+      els.closeScoreBtn.addEventListener("click", () => toggleDrawer(els.scoreDrawer, false));
+      els.closeHistoryBtn.addEventListener("click", () => toggleDrawer(els.historyDrawer, false));
 
-    studentName.addEventListener("keydown", e => {
-      if (e.key === "Enter") wordInput.focus();
-    });
+      els.consonantBtn.addEventListener("click", () => pickLetter("consonant"));
+      els.vowelBtn.addEventListener("click", () => pickLetter("vowel"));
+      els.undoBtn.addEventListener("click", undoLetter);
+      els.shuffleBtn.addEventListener("click", shuffleLetters);
+      els.demoBtn.addEventListener("click", fillRandom);
+      els.newRoundBtn.addEventListener("click", newRound);
 
-    document.addEventListener("keydown", e => {
-      const tag = document.activeElement.tagName.toLowerCase();
-      const typing = tag === "input" || tag === "textarea";
+      els.startBtn.addEventListener("click", startPauseTimer);
+      els.resetTimerBtn.addEventListener("click", resetTimer);
+      els.timeInput.addEventListener("change", setTimeFromInput);
 
-      if (!typing && e.key.toLowerCase() === "c") addLetter("consonant");
-      if (!typing && e.key.toLowerCase() === "v") addLetter("vowel");
-      if (!typing && e.key.toLowerCase() === "r") newRound();
-      if (!typing && e.code === "Space") {
-        e.preventDefault();
-        startPauseTimer();
-      }
-    });
+      els.teamCount.addEventListener("change", () => changeTeamCount(els.teamCount.value));
+      els.saveTeamsBtn.addEventListener("click", saveTeamNames);
+      els.addTeamBtn.addEventListener("click", () => changeTeamCount(state.teams.length + 1));
+      els.soundBtn.addEventListener("click", () => {
+        state.sound = !state.sound;
+        saveState();
+        renderAll();
+        showToast(state.sound ? "Sound on." : "Sound off.");
+      });
+      els.printBtn.addEventListener("click", printHistory);
+      els.resetScoresHistoryBtn.addEventListener("click", resetScoresAndHistory);
+      els.factoryResetBtn.addEventListener("click", factoryReset);
 
-    initRack();
-    setTimeFromInput();
-    renderRack();
-    renderScores();
+      els.submitRoundBtn.addEventListener("click", submitRound);
+      els.clearRoundWordsBtn.addEventListener("click", () => clearRoundWords(true));
+      els.printHistoryBtn.addEventListener("click", printHistory);
+      els.clearHistoryBtn.addEventListener("click", clearHistoryOnly);
+
+      document.addEventListener("keydown", e => {
+        const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
+        const typing = tag === "input" || tag === "textarea";
+        if (typing) return;
+        if (e.key.toLowerCase() === "c") pickLetter("consonant");
+        if (e.key.toLowerCase() === "v") pickLetter("vowel");
+        if (e.key === " ") {
+          e.preventDefault();
+          startPauseTimer();
+        }
+        if (e.key.toLowerCase() === "r") newRound();
+      });
+    }
+
+    loadState();
+    attachEvents();
+    renderAll();
   </script>
 </body>
 </html>
