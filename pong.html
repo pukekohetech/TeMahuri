@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neon Power Pong - Modes + Asteroid Battle</title>
+  <title>Neon Power Pong - Permanent Powerups</title>
   <style>
     :root {
       --bg1: #18213d;
@@ -185,7 +185,7 @@
     </div>
 
     <div class="powerups">
-      Modes: Classic Pong, Power Pong, Asteroid Battle. Powerups include health, speed, armour, big paddle, multiball, shields, fireballs, rapid fire, triple shot, shotgun, laser, cannon, homing, ricochet and pierce shots. Bullets can collect powerups too.
+      Modes: Classic Pong, Power Pong, Asteroid Battle. Powerups and asteroids now appear more often. Paddle health lasts for the whole match; only Restart/New Match repairs it. Zero HP means a knockout win.
     </div>
 
     <div class="theme-note" id="themeNote">Current theme: Neon</div>
@@ -228,7 +228,7 @@
       power: {
         name: 'Power Pong',
         label: 'Mode: Power Pong',
-        description: 'Power Pong: powerups, paddle damage, guns and upgrades, but no asteroids.',
+        description: 'Power Pong: frequent powerups, paddle damage, guns and upgrades, but no asteroids. HP lasts all match.',
         powerups: true,
         shooting: true,
         asteroids: false,
@@ -237,7 +237,7 @@
       asteroid: {
         name: 'Asteroid Battle',
         label: 'Mode: Asteroid Battle',
-        description: 'Asteroid Battle: everything on, including fast high-damage asteroids.',
+        description: 'Asteroid Battle: everything on, including frequent fast high-damage asteroids. HP lasts all match.',
         powerups: true,
         shooting: true,
         asteroids: true,
@@ -315,8 +315,8 @@
     let floatingText = [];
     let stars = [];
     let screenShake = 0;
-    let powerupCooldown = 180;
-    let asteroidCooldown = 680;
+    let powerupCooldown = 90;
+    let asteroidCooldown = 140;
     let lastTime = 0;
     let frame = 0;
     let winnerText = '';
@@ -406,9 +406,11 @@
 
       for (const side of ['left', 'right']) {
         const p = players[side];
-        p.shield = false;
         p.shootCooldown = 0;
-        for (const k in p.effects) p.effects[k] = 0;
+        if (!currentMode.powerups) {
+          p.shield = false;
+          for (const k in p.effects) p.effects[k] = 0;
+        }
       }
 
       if (!currentMode.health) {
@@ -423,8 +425,8 @@
         bullets = [];
         asteroids = [];
         powerups = [];
-        powerupCooldown = 180;
-        asteroidCooldown = rand(220, 420);
+        powerupCooldown = 65;
+        asteroidCooldown = rand(80, 150);
       }
 
       updateButtons();
@@ -486,16 +488,16 @@
       // Health is represented by the paddle size and only resets on Restart/New Match.
       for (const side of ['left', 'right']) {
         const p = players[side];
-        p.shield = false;
+        // Powerups now stay with the paddle across goals.
+        // They only clear on match restart, mode switch to Classic, or knockout/game over.
         p.shootCooldown = 0;
-        for (const k in p.effects) p.effects[k] = 0;
       }
       balls = [createBall(direction)];
       bullets = [];
       asteroids = [];
       powerups = [];
-      powerupCooldown = currentMode.powerups ? 140 : 999999;
-      asteroidCooldown = currentMode.asteroids ? rand(240, 440) : 999999;
+      powerupCooldown = currentMode.powerups ? 55 : 999999;
+      asteroidCooldown = currentMode.asteroids ? rand(80, 155) : 999999;
     }
 
     function newMatch(startNow = false) {
@@ -507,8 +509,8 @@
       particles = [];
       floatingText = [];
       screenShake = 0;
-      powerupCooldown = currentMode.powerups ? 180 : 999999;
-      asteroidCooldown = currentMode.asteroids ? rand(240, 440) : 999999;
+      powerupCooldown = currentMode.powerups ? 70 : 999999;
+      asteroidCooldown = currentMode.asteroids ? rand(90, 170) : 999999;
       winnerText = '';
       state = startNow ? 'playing' : 'menu';
       updateButtons();
@@ -592,13 +594,13 @@
       if (!currentMode.asteroids || !hazardsEnabled) return;
       const edge = Math.floor(Math.random() * 4);
       let x, y, vx, vy;
-      if (edge === 0) { x = rand(150, W - 150); y = -55; vx = rand(-2.2, 2.2); vy = rand(2.4, 4.4); }
-      else if (edge === 1) { x = rand(150, W - 150); y = H + 55; vx = rand(-2.2, 2.2); vy = -rand(2.4, 4.4); }
-      else if (edge === 2) { x = -55; y = rand(90, H - 90); vx = rand(2.5, 4.6); vy = rand(-1.7, 1.7); }
-      else { x = W + 55; y = rand(90, H - 90); vx = -rand(2.5, 4.6); vy = rand(-1.7, 1.7); }
+      if (edge === 0) { x = rand(150, W - 150); y = -55; vx = rand(-3.2, 3.2); vy = rand(4.3, 7.1); }
+      else if (edge === 1) { x = rand(150, W - 150); y = H + 55; vx = rand(-3.2, 3.2); vy = -rand(4.3, 7.1); }
+      else if (edge === 2) { x = -55; y = rand(90, H - 90); vx = rand(4.6, 7.6); vy = rand(-2.6, 2.6); }
+      else { x = W + 55; y = rand(90, H - 90); vx = -rand(4.6, 7.6); vy = rand(-2.6, 2.6); }
       const r = rand(22, 39);
       const hp = r > 33 ? 5 : (r > 27 ? 4 : 3);
-      const damage = Math.round(r * 1.15);
+      const damage = Math.round(r * 1.85);
       asteroids.push({ x, y, r, vx, vy, hp, maxHp: hp, damage, rot: rand(0, Math.PI * 2), spin: rand(-0.07, 0.07), shape: makeAsteroidShape(10), color: '#9aa4b2', life: 900 });
     }
 
@@ -730,16 +732,25 @@
 
       if (p.health <= 0) {
         const scoringSide = attackerSide || (side === 'left' ? 'right' : 'left');
-        // After a knockout, revive the paddle enough for the next rally.
-        // Normal goals still preserve health damage.
-        p.health = Math.round(p.maxHealth * 0.48);
-        return scorePoint(scoringSide, 'KNOCKOUT');
+        const scoringPlayer = players[scoringSide];
+        scoringPlayer.score += 1;
+        p.health = 0;
+        winnerText = scoringPlayer.name + ' wins by knockout!';
+        state = 'gameover';
+        bullets = [];
+        asteroids = [];
+        powerups = [];
+        screenShake = Math.max(screenShake, 16);
+        addFloatingText(W / 2, H / 2 - 130, 'MATCH KNOCKOUT', scoringPlayer.color);
+        updateButtons();
+        return true;
       }
       return false;
     }
 
     function updateEffects(p, dt) {
-      for (const k in p.effects) p.effects[k] = Math.max(0, p.effects[k] - dt);
+      // Timed powerups were changed to permanent match boosts.
+      // They stay active until the owner is knocked out or the match is restarted.
       p.shootCooldown = Math.max(0, p.shootCooldown - dt);
       if (p.effects.regen > 0 && currentMode.health) {
         p.health = clamp(p.health + 0.075 * dt, 0, p.maxHealth);
@@ -879,7 +890,6 @@
       }
 
       beep(p.effects.rapid > 0 ? 680 : 520, 0.035, 'square', 0.03);
-      if (p.effects.fire > 0) p.effects.fire = Math.max(0, p.effects.fire - 42);
     }
 
     function handleShooting(dt) {
@@ -1017,7 +1027,6 @@
       if (paddle.effects.fire > 0) {
         ball.fire = 280;
         speed = clamp(speed * 1.25, 7.2, 16.2);
-        paddle.effects.fire = Math.max(0, paddle.effects.fire - 170);
         burst(ball.x, ball.y, '#ff8b2b', 32, 5.5);
         beep(155, 0.08, 'sawtooth', 0.06);
       } else {
@@ -1103,9 +1112,9 @@
     function updatePowerups(dt) {
       if (!currentMode.powerups) { powerups = []; return; }
       powerupCooldown -= dt;
-      if (powerupCooldown <= 0 && powerups.length < 5) {
+      if (powerupCooldown <= 0 && powerups.length < 8) {
         spawnPowerup();
-        powerupCooldown = rand(250, 430);
+        powerupCooldown = rand(85, 155);
       }
       for (let i = powerups.length - 1; i >= 0; i--) {
         powerups[i].life -= dt;
@@ -1116,9 +1125,9 @@
     function updateAsteroids(dt) {
       if (!currentMode.asteroids || !hazardsEnabled) { asteroids = []; return false; }
       asteroidCooldown -= dt;
-      if (asteroidCooldown <= 0 && asteroids.length < 3) {
+      if (asteroidCooldown <= 0 && asteroids.length < 5) {
         spawnAsteroid();
-        asteroidCooldown = rand(260, 520);
+        asteroidCooldown = rand(80, 165);
       }
 
       for (let i = asteroids.length - 1; i >= 0; i--) {
@@ -1133,12 +1142,12 @@
         }
         if (circleRectCollision(a, players.left)) {
           asteroids.splice(i, 1);
-          if (damagePlayer('left', a.damage || 36, 'right', a.x, a.y, 'ASTEROID CRASH')) return true;
+          if (damagePlayer('left', a.damage || 60, 'right', a.x, a.y, 'ASTEROID CRASH')) return true;
           continue;
         }
         if (circleRectCollision(a, players.right)) {
           asteroids.splice(i, 1);
-          if (damagePlayer('right', a.damage || 36, 'left', a.x, a.y, 'ASTEROID CRASH')) return true;
+          if (damagePlayer('right', a.damage || 60, 'left', a.x, a.y, 'ASTEROID CRASH')) return true;
         }
       }
       return false;
