@@ -2,11 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Neon Power Pong</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Power Pong - Theme Edition</title>
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --bg1: #18213d;
+      --bg2: #070814;
+      --bg3: #02030a;
+      --panel: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.35);
+      --text: #ffffff;
+      --muted: #c9d4ff;
+      --accent1: #00f5ff;
+      --accent2: #ff3df2;
+      --accent3: #8dff6a;
+      --canvas-bg: #050610;
+      --canvas-border: rgba(255,255,255,0.75);
+      --glow1: rgba(0,245,255,0.35);
+      --glow2: rgba(166,0,255,0.18);
     }
+
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -14,16 +30,17 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background:
-        radial-gradient(circle at top, #18213d 0%, #070814 45%, #02030a 100%);
-      color: white;
+      background: radial-gradient(circle at top, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 100%);
+      color: var(--text);
       font-family: Arial, sans-serif;
       overflow: hidden;
+      transition: background 0.35s ease;
     }
 
     .game-shell {
-      width: min(96vw, 980px);
+      width: min(96vw, 1020px);
       text-align: center;
+      padding: 10px;
     }
 
     .topbar {
@@ -39,10 +56,8 @@
       margin: 0;
       font-size: 28px;
       letter-spacing: 2px;
-      color: #ffffff;
-      text-shadow:
-        0 0 8px #00f5ff,
-        0 0 18px #a600ff;
+      color: var(--text);
+      text-shadow: 0 0 8px var(--accent1), 0 0 18px var(--accent2);
     }
 
     .buttons {
@@ -52,46 +67,54 @@
       justify-content: center;
     }
 
-    button {
-      border: 1px solid rgba(255,255,255,0.35);
-      background: rgba(255,255,255,0.08);
-      color: white;
+    button, select {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
       border-radius: 999px;
       padding: 8px 13px;
       cursor: pointer;
       font-weight: bold;
-      box-shadow: 0 0 10px rgba(0,245,255,0.15);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--accent1) 35%, transparent);
     }
 
-    button:hover {
-      background: rgba(0,245,255,0.18);
+    select { padding-right: 18px; }
+
+    button:hover, select:hover {
+      background: color-mix(in srgb, var(--accent1) 18%, var(--panel));
     }
 
     #pongCanvas {
       width: 100%;
-      max-width: 900px;
+      max-width: 940px;
       aspect-ratio: 900 / 560;
-      border: 3px solid rgba(255,255,255,0.75);
+      border: 3px solid var(--canvas-border);
       border-radius: 18px;
-      background: #050610;
-      box-shadow:
-        0 0 25px rgba(0,245,255,0.35),
-        0 0 60px rgba(166,0,255,0.18);
+      background: var(--canvas-bg);
+      box-shadow: 0 0 25px var(--glow1), 0 0 60px var(--glow2);
       display: block;
       margin: 0 auto;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
     }
 
     .controls {
       margin-top: 10px;
-      color: #c9d4ff;
+      color: var(--muted);
       font-size: 14px;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .powerups {
       margin-top: 6px;
-      color: #96f7ff;
+      color: color-mix(in srgb, var(--accent1) 70%, white);
       font-size: 13px;
+    }
+
+    .theme-note {
+      margin-top: 5px;
+      font-size: 12px;
+      color: var(--muted);
+      opacity: 0.9;
     }
 
     kbd {
@@ -101,17 +124,41 @@
       padding: 2px 6px;
       color: white;
     }
+
+select {
+  background-color: #111827;
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.55);
+}
+
+select option {
+  background-color: #111827;
+  color: #ffffff;
+}
+
+#themeSelect {
+  min-width: 180px;
+}
   </style>
 </head>
 <body>
   <div class="game-shell">
     <div class="topbar">
-      <h1>NEON POWER PONG</h1>
+      <h1 id="gameTitle">NEON POWER PONG</h1>
       <div class="buttons">
         <button id="startPauseBtn">Start</button>
         <button id="restartBtn">Restart</button>
-        <button id="aiBtn">AI: Off</button>
+        <button id="aiBtn">Opponent: Human</button>
         <button id="muteBtn">Sound: On</button>
+        <button id="randomThemeBtn">Random Theme</button>
+        <select id="themeSelect" aria-label="Select theme">
+          <option value="neon">Theme: Neon</option>
+          <option value="greenscreen">Theme: Green Screen</option>
+          <option value="arcade80s">Theme: 80s Arcade</option>
+          <option value="ice">Theme: Ice</option>
+          <option value="sunset">Theme: Sunset</option>
+          <option value="mono">Theme: Monochrome</option>
+        </select>
       </div>
     </div>
 
@@ -122,17 +169,23 @@
       &nbsp; | &nbsp;
       Player 2: <kbd>↑</kbd> / <kbd>↓</kbd>
       &nbsp; | &nbsp;
-      <kbd>Space</kbd> Pause/Start
+      <kbd>Space</kbd> Start/Pause
       &nbsp; | &nbsp;
       <kbd>R</kbd> Restart
       &nbsp; | &nbsp;
-      <kbd>A</kbd> Toggle AI
+      <kbd>A</kbd> Human/Computer Opponent
       &nbsp; | &nbsp;
       <kbd>M</kbd> Mute
+      &nbsp; | &nbsp;
+      <kbd>T</kbd> Random Theme
     </div>
 
     <div class="powerups">
       Powerups: BIG paddle, SHRINK opponent, SLOW ball, MULTI ball, SHIELD, FIREBALL
+    </div>
+
+    <div class="theme-note" id="themeNote">
+      Current theme: Neon
     </div>
   </div>
 
@@ -144,21 +197,167 @@
     const restartBtn = document.getElementById("restartBtn");
     const aiBtn = document.getElementById("aiBtn");
     const muteBtn = document.getElementById("muteBtn");
+    const randomThemeBtn = document.getElementById("randomThemeBtn");
+    const themeSelect = document.getElementById("themeSelect");
+    const gameTitle = document.getElementById("gameTitle");
+    const themeNote = document.getElementById("themeNote");
 
     const W = canvas.width;
     const H = canvas.height;
-
     const WINNING_SCORE = 7;
     const BASE_PADDLE_HEIGHT = 96;
     const PADDLE_WIDTH = 16;
     const BALL_RADIUS = 9;
+
+    const themes = {
+      neon: {
+        name: "Neon",
+        body: ["#18213d", "#070814", "#02030a"],
+        canvasBg: "#050610",
+        canvasBorder: "rgba(255,255,255,0.75)",
+        glow1: "rgba(0,245,255,0.35)",
+        glow2: "rgba(166,0,255,0.18)",
+        accent1: "#00f5ff",
+        accent2: "#ff3df2",
+        accent3: "#8dff6a",
+        text: "#ffffff",
+        muted: "#c9d4ff",
+        grid: "rgba(0,245,255,0.055)",
+        centerLine: "rgba(255,255,255,0.20)",
+        title: "NEON POWER PONG",
+        starColor: "#ffffff",
+        netDash: [12, 14],
+        paddleStyle: "rounded",
+        overlayPanel: "rgba(8,12,30,0.90)",
+        scoreAlpha: 0.07,
+        useScanlines: false,
+        vignette: true
+      },
+      greenscreen: {
+        name: "Green Screen",
+        body: ["#071208", "#020703", "#000000"],
+        canvasBg: "#020802",
+        canvasBorder: "rgba(103,255,128,0.9)",
+        glow1: "rgba(103,255,128,0.40)",
+        glow2: "rgba(20,120,20,0.25)",
+        accent1: "#67ff80",
+        accent2: "#2eff62",
+        accent3: "#b9ffc5",
+        text: "#b9ffc5",
+        muted: "#7de88f",
+        grid: "rgba(103,255,128,0.07)",
+        centerLine: "rgba(103,255,128,0.28)",
+        title: "GREEN SCREEN PONG",
+        starColor: "#67ff80",
+        netDash: [6, 10],
+        paddleStyle: "rect",
+        overlayPanel: "rgba(3,10,4,0.92)",
+        scoreAlpha: 0.11,
+        useScanlines: true,
+        vignette: false
+      },
+      arcade80s: {
+        name: "80s Arcade",
+        body: ["#27053a", "#090716", "#04010a"],
+        canvasBg: "#080312",
+        canvasBorder: "rgba(255,115,228,0.88)",
+        glow1: "rgba(255,115,228,0.35)",
+        glow2: "rgba(0,255,255,0.18)",
+        accent1: "#ff73e4",
+        accent2: "#00f7ff",
+        accent3: "#ffe066",
+        text: "#fff7ff",
+        muted: "#f3c9ff",
+        grid: "rgba(255,115,228,0.07)",
+        centerLine: "rgba(255,255,255,0.24)",
+        title: "80s ARCADE PONG",
+        starColor: "#ffffff",
+        netDash: [14, 10],
+        paddleStyle: "rounded",
+        overlayPanel: "rgba(24,6,38,0.92)",
+        scoreAlpha: 0.08,
+        useScanlines: false,
+        vignette: true
+      },
+      ice: {
+        name: "Ice",
+        body: ["#d8f4ff", "#8db7d4", "#27445e"],
+        canvasBg: "#092336",
+        canvasBorder: "rgba(220,244,255,0.9)",
+        glow1: "rgba(180,235,255,0.45)",
+        glow2: "rgba(111,196,255,0.20)",
+        accent1: "#c1f0ff",
+        accent2: "#6fc4ff",
+        accent3: "#ffffff",
+        text: "#f4fcff",
+        muted: "#d5f1ff",
+        grid: "rgba(220,244,255,0.08)",
+        centerLine: "rgba(220,244,255,0.28)",
+        title: "ICE PONG",
+        starColor: "#effbff",
+        netDash: [10, 12],
+        paddleStyle: "rounded",
+        overlayPanel: "rgba(12,40,60,0.90)",
+        scoreAlpha: 0.10,
+        useScanlines: false,
+        vignette: false
+      },
+      sunset: {
+        name: "Sunset",
+        body: ["#5e1630", "#2a1137", "#09070d"],
+        canvasBg: "#120713",
+        canvasBorder: "rgba(255,182,92,0.9)",
+        glow1: "rgba(255,182,92,0.38)",
+        glow2: "rgba(255,77,109,0.22)",
+        accent1: "#ffb65c",
+        accent2: "#ff4d6d",
+        accent3: "#ffd166",
+        text: "#fff7ef",
+        muted: "#ffd9ba",
+        grid: "rgba(255,182,92,0.06)",
+        centerLine: "rgba(255,222,173,0.26)",
+        title: "SUNSET PONG",
+        starColor: "#fff0d8",
+        netDash: [12, 12],
+        paddleStyle: "rounded",
+        overlayPanel: "rgba(45,12,26,0.92)",
+        scoreAlpha: 0.08,
+        useScanlines: false,
+        vignette: true
+      },
+      mono: {
+        name: "Monochrome",
+        body: ["#2a2a2a", "#101010", "#000000"],
+        canvasBg: "#050505",
+        canvasBorder: "rgba(240,240,240,0.9)",
+        glow1: "rgba(255,255,255,0.20)",
+        glow2: "rgba(180,180,180,0.12)",
+        accent1: "#f0f0f0",
+        accent2: "#bdbdbd",
+        accent3: "#ffffff",
+        text: "#ffffff",
+        muted: "#d9d9d9",
+        grid: "rgba(255,255,255,0.05)",
+        centerLine: "rgba(255,255,255,0.20)",
+        title: "MONO PONG",
+        starColor: "#ffffff",
+        netDash: [8, 10],
+        paddleStyle: "rect",
+        overlayPanel: "rgba(20,20,20,0.92)",
+        scoreAlpha: 0.08,
+        useScanlines: false,
+        vignette: true
+      }
+    };
+
+    let currentThemeKey = "neon";
+    let currentTheme = themes[currentThemeKey];
 
     let keys = {};
     let state = "menu";
     let aiEnabled = false;
     let soundOn = true;
     let audioCtx = null;
-
     let balls = [];
     let powerups = [];
     let particles = [];
@@ -180,13 +379,9 @@
         baseH: BASE_PADDLE_HEIGHT,
         speed: 8.5,
         score: 0,
-        color: "#00f5ff",
+        color: themes.neon.accent1,
         shield: false,
-        effects: {
-          big: 0,
-          small: 0,
-          fire: 0
-        }
+        effects: { big: 0, small: 0, fire: 0 }
       },
       right: {
         name: "Player 2",
@@ -197,97 +392,90 @@
         baseH: BASE_PADDLE_HEIGHT,
         speed: 8.5,
         score: 0,
-        color: "#ff3df2",
+        color: themes.neon.accent2,
         shield: false,
-        effects: {
-          big: 0,
-          small: 0,
-          fire: 0
-        }
+        effects: { big: 0, small: 0, fire: 0 }
       }
     };
 
     const POWERUP_TYPES = [
-      {
-        id: "BIG",
-        label: "BIG",
-        color: "#00f5ff",
-        description: "bigger paddle"
-      },
-      {
-        id: "SHRINK",
-        label: "MINI",
-        color: "#ff3df2",
-        description: "shrinks opponent"
-      },
-      {
-        id: "SLOW",
-        label: "SLOW",
-        color: "#8dff6a",
-        description: "slows the ball"
-      },
-      {
-        id: "MULTI",
-        label: "MULTI",
-        color: "#ffe66d",
-        description: "extra ball"
-      },
-      {
-        id: "SHIELD",
-        label: "SHIELD",
-        color: "#6ea8ff",
-        description: "blocks one goal"
-      },
-      {
-        id: "FIRE",
-        label: "FIRE",
-        color: "#ff8b2b",
-        description: "fireball hit"
-      }
+      { id: "BIG", label: "BIG", color: "#00f5ff" },
+      { id: "SHRINK", label: "MINI", color: "#ff3df2" },
+      { id: "SLOW", label: "SLOW", color: "#8dff6a" },
+      { id: "MULTI", label: "MULTI", color: "#ffe66d" },
+      { id: "SHIELD", label: "SHIELD", color: "#6ea8ff" },
+      { id: "FIRE", label: "FIRE", color: "#ff8b2b" }
     ];
 
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
+    function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    function applyTheme(key) {
+      currentThemeKey = key;
+      currentTheme = themes[key];
+
+      const root = document.documentElement;
+      root.style.setProperty('--bg1', currentTheme.body[0]);
+      root.style.setProperty('--bg2', currentTheme.body[1]);
+      root.style.setProperty('--bg3', currentTheme.body[2]);
+      root.style.setProperty('--text', currentTheme.text);
+      root.style.setProperty('--muted', currentTheme.muted);
+      root.style.setProperty('--accent1', currentTheme.accent1);
+      root.style.setProperty('--accent2', currentTheme.accent2);
+      root.style.setProperty('--accent3', currentTheme.accent3);
+      root.style.setProperty('--canvas-bg', currentTheme.canvasBg);
+      root.style.setProperty('--canvas-border', currentTheme.canvasBorder);
+      root.style.setProperty('--glow1', currentTheme.glow1);
+      root.style.setProperty('--glow2', currentTheme.glow2);
+
+      gameTitle.textContent = currentTheme.title;
+      themeNote.textContent = `Current theme: ${currentTheme.name}`;
+      themeSelect.value = key;
+
+      players.left.color = currentTheme.accent1;
+      players.right.color = currentTheme.accent2;
+
+      initStars();
+      addFloatingText(W / 2, 64, `${currentTheme.name.toUpperCase()} THEME`, currentTheme.accent3);
     }
 
-    function rand(min, max) {
-      return Math.random() * (max - min) + min;
+    function randomTheme() {
+      const keys = Object.keys(themes);
+      let next = currentThemeKey;
+      while (next === currentThemeKey && keys.length > 1) {
+        next = keys[Math.floor(Math.random() * keys.length)];
+      }
+      applyTheme(next);
     }
 
     function initStars() {
       stars = [];
-      for (let i = 0; i < 90; i++) {
+      const count = currentThemeKey === 'greenscreen' ? 35 : 90;
+      for (let i = 0; i < count; i++) {
         stars.push({
           x: Math.random() * W,
           y: Math.random() * H,
-          r: rand(0.5, 1.8),
+          r: rand(0.5, currentThemeKey === 'greenscreen' ? 1.2 : 1.8),
           speed: rand(0.1, 0.45),
-          alpha: rand(0.25, 0.9)
+          alpha: rand(0.20, 0.85)
         });
       }
     }
 
     function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    function beep(freq = 440, duration = 0.06, type = "sine", volume = 0.045) {
+    function beep(freq = 440, duration = 0.06, type = 'sine', volume = 0.045) {
       if (!soundOn || !audioCtx) return;
-
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-
       osc.type = type;
       osc.frequency.value = freq;
-
       gain.gain.setValueAtTime(volume, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-
       osc.start();
       osc.stop(audioCtx.currentTime + duration);
     }
@@ -303,12 +491,12 @@
         trail: [],
         owner: null,
         fire: 0,
-        color: "#ffffff"
+        color: currentTheme.accent3
       };
     }
 
     function resetPlayers() {
-      for (const side of ["left", "right"]) {
+      for (const side of ['left', 'right']) {
         const p = players[side];
         p.y = H / 2 - BASE_PADDLE_HEIGHT / 2;
         p.h = BASE_PADDLE_HEIGHT;
@@ -328,46 +516,34 @@
       floatingText = [];
       screenShake = 0;
       powerupCooldown = 220;
-      winnerText = "";
-      state = startNow ? "playing" : "menu";
+      winnerText = '';
+      state = startNow ? 'playing' : 'menu';
       updateButtons();
     }
 
     function updateButtons() {
-      if (state === "playing") {
-        startPauseBtn.textContent = "Pause";
-      } else if (state === "paused") {
-        startPauseBtn.textContent = "Resume";
-      } else if (state === "gameover") {
-        startPauseBtn.textContent = "New Game";
-      } else {
-        startPauseBtn.textContent = "Start";
-      }
+      if (state === 'playing') startPauseBtn.textContent = 'Pause';
+      else if (state === 'paused') startPauseBtn.textContent = 'Resume';
+      else if (state === 'gameover') startPauseBtn.textContent = 'New Game';
+      else startPauseBtn.textContent = 'Start';
 
-      aiBtn.textContent = aiEnabled ? "AI: On" : "AI: Off";
-      muteBtn.textContent = soundOn ? "Sound: On" : "Sound: Off";
+      aiBtn.textContent = aiEnabled ? 'Opponent: Computer' : 'Opponent: Human';
+      muteBtn.textContent = soundOn ? 'Sound: On' : 'Sound: Off';
     }
 
     function startOrPause() {
       initAudio();
-
-      if (state === "menu") {
-        state = "playing";
-      } else if (state === "playing") {
-        state = "paused";
-      } else if (state === "paused") {
-        state = "playing";
-      } else if (state === "gameover") {
-        newMatch(true);
-      }
-
+      if (state === 'menu') state = 'playing';
+      else if (state === 'playing') state = 'paused';
+      else if (state === 'paused') state = 'playing';
+      else if (state === 'gameover') newMatch(true);
       updateButtons();
     }
 
     function toggleAI() {
       aiEnabled = !aiEnabled;
       updateButtons();
-      addFloatingText(W / 2, 95, aiEnabled ? "AI PLAYER 2 ON" : "AI PLAYER 2 OFF", "#ffffff");
+      addFloatingText(W / 2, 95, aiEnabled ? 'AI PLAYER 2 ON' : 'AI PLAYER 2 OFF', currentTheme.text);
     }
 
     function toggleSound() {
@@ -377,35 +553,25 @@
     }
 
     function addFloatingText(x, y, text, color) {
-      floatingText.push({
-        x,
-        y,
-        text,
-        color,
-        life: 95
-      });
+      floatingText.push({ x, y, text, color, life: 95 });
     }
 
     function burst(x, y, color, count = 18, power = 4) {
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = rand(0.5, power);
-
         particles.push({
-          x,
-          y,
+          x, y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           r: rand(1.2, 3.5),
-          color,
-          life: rand(35, 70)
+          color, life: rand(35, 70)
         });
       }
     }
 
     function spawnPowerup() {
       const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
-
       powerups.push({
         x: rand(170, W - 170),
         y: rand(95, H - 95),
@@ -419,54 +585,48 @@
     function activatePowerup(powerup, ownerSide) {
       const type = powerup.type.id;
       const self = players[ownerSide];
-      const otherSide = ownerSide === "left" ? "right" : "left";
+      const otherSide = ownerSide === 'left' ? 'right' : 'left';
       const other = players[otherSide];
 
-      if (type === "BIG") {
+      if (type === 'BIG') {
         self.effects.big = Math.max(self.effects.big, 560);
         addFloatingText(powerup.x, powerup.y - 25, `${self.name}: BIG PADDLE`, powerup.type.color);
       }
-
-      if (type === "SHRINK") {
+      if (type === 'SHRINK') {
         other.effects.small = Math.max(other.effects.small, 520);
         addFloatingText(powerup.x, powerup.y - 25, `${other.name}: SHRUNK`, powerup.type.color);
       }
-
-      if (type === "SLOW") {
+      if (type === 'SLOW') {
         for (const b of balls) {
           b.vx *= 0.72;
           b.vy *= 0.72;
         }
-        addFloatingText(powerup.x, powerup.y - 25, "BALL SLOWED", powerup.type.color);
+        addFloatingText(powerup.x, powerup.y - 25, 'BALL SLOWED', powerup.type.color);
       }
-
-      if (type === "MULTI") {
+      if (type === 'MULTI') {
         if (balls.length < 4) {
-          const direction = ownerSide === "left" ? 1 : -1;
+          const direction = ownerSide === 'left' ? 1 : -1;
           const extra = createBall(direction);
           extra.x = powerup.x;
           extra.y = powerup.y;
           extra.vy = rand(-4, 4);
           extra.owner = ownerSide;
           balls.push(extra);
-          addFloatingText(powerup.x, powerup.y - 25, "MULTI BALL", powerup.type.color);
+          addFloatingText(powerup.x, powerup.y - 25, 'MULTI BALL', powerup.type.color);
         } else {
-          addFloatingText(powerup.x, powerup.y - 25, "MAX BALLS", powerup.type.color);
+          addFloatingText(powerup.x, powerup.y - 25, 'MAX BALLS', powerup.type.color);
         }
       }
-
-      if (type === "SHIELD") {
+      if (type === 'SHIELD') {
         self.shield = true;
         addFloatingText(powerup.x, powerup.y - 25, `${self.name}: SHIELD`, powerup.type.color);
       }
-
-      if (type === "FIRE") {
+      if (type === 'FIRE') {
         self.effects.fire = Math.max(self.effects.fire, 600);
         addFloatingText(powerup.x, powerup.y - 25, `${self.name}: FIRE READY`, powerup.type.color);
       }
-
       burst(powerup.x, powerup.y, powerup.type.color, 35, 5.5);
-      beep(760, 0.08, "triangle", 0.06);
+      beep(760, 0.08, 'triangle', 0.06);
     }
 
     function updateEffects(p, dt) {
@@ -475,17 +635,9 @@
       p.effects.fire = Math.max(0, p.effects.fire - dt);
 
       let targetHeight = p.baseH;
-
-      if (p.effects.big > 0) {
-        targetHeight += 52;
-      }
-
-      if (p.effects.small > 0) {
-        targetHeight -= 42;
-      }
-
+      if (p.effects.big > 0) targetHeight += 52;
+      if (p.effects.small > 0) targetHeight -= 42;
       targetHeight = clamp(targetHeight, 48, 165);
-
       const middle = p.y + p.h / 2;
       p.h += (targetHeight - p.h) * 0.14 * dt;
       p.y = clamp(middle - p.h / 2, 0, H - p.h);
@@ -494,39 +646,21 @@
     function movePaddles(dt) {
       const left = players.left;
       const right = players.right;
-
-      if (keys["w"]) {
-        left.y -= left.speed * dt;
-      }
-
-      if (keys["s"]) {
-        left.y += left.speed * dt;
-      }
+      if (keys['w']) left.y -= left.speed * dt;
+      if (keys['s']) left.y += left.speed * dt;
 
       if (aiEnabled) {
-        let targetBall = null;
-
-        const incoming = balls
-          .filter(b => b.vx > 0)
-          .sort((a, b) => b.x - a.x);
-
-        targetBall = incoming[0] || balls[0];
-
+        const incoming = balls.filter(b => b.vx > 0).sort((a, b) => b.x - a.x);
+        const targetBall = incoming[0] || balls[0];
         if (targetBall) {
           const targetY = targetBall.y - right.h / 2;
           const difference = targetY - right.y;
           const maxMove = right.speed * 0.82 * dt;
-
           right.y += clamp(difference * 0.075, -maxMove, maxMove);
         }
       } else {
-        if (keys["ArrowUp"]) {
-          right.y -= right.speed * dt;
-        }
-
-        if (keys["ArrowDown"]) {
-          right.y += right.speed * dt;
-        }
+        if (keys['ArrowUp']) right.y -= right.speed * dt;
+        if (keys['ArrowDown']) right.y += right.speed * dt;
       }
 
       left.y = clamp(left.y, 0, H - left.h);
@@ -538,23 +672,18 @@
       const closestY = clamp(ball.y, rect.y, rect.y + rect.h);
       const dx = ball.x - closestX;
       const dy = ball.y - closestY;
-
       return dx * dx + dy * dy <= ball.r * ball.r;
     }
 
     function handlePaddleCollision(ball, side) {
       const paddle = players[side];
-
       if (!circleRectCollision(ball, paddle)) return;
+      if (side === 'left' && ball.vx >= 0) return;
+      if (side === 'right' && ball.vx <= 0) return;
 
-      if (side === "left" && ball.vx >= 0) return;
-      if (side === "right" && ball.vx <= 0) return;
-
-      const direction = side === "left" ? 1 : -1;
-
+      const direction = side === 'left' ? 1 : -1;
       const hitPoint = (ball.y - (paddle.y + paddle.h / 2)) / (paddle.h / 2);
       const angle = clamp(hitPoint, -0.95, 0.95) * 0.95;
-
       let speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
       speed = clamp(speed * 1.055 + 0.1, 5.4, 14.5);
 
@@ -562,10 +691,10 @@
         ball.fire = 280;
         speed = clamp(speed * 1.25, 7.2, 16.2);
         paddle.effects.fire = Math.max(0, paddle.effects.fire - 170);
-        burst(ball.x, ball.y, "#ff8b2b", 32, 5.5);
-        beep(155, 0.08, "sawtooth", 0.06);
+        burst(ball.x, ball.y, '#ff8b2b', 32, 5.5);
+        beep(155, 0.08, 'sawtooth', 0.06);
       } else {
-        beep(430, 0.045, "square", 0.035);
+        beep(430, 0.045, currentThemeKey === 'greenscreen' ? 'square' : 'square', 0.035);
       }
 
       ball.vx = Math.cos(angle) * speed * direction;
@@ -573,11 +702,8 @@
       ball.owner = side;
       ball.color = paddle.color;
 
-      if (side === "left") {
-        ball.x = paddle.x + paddle.w + ball.r + 1;
-      } else {
-        ball.x = paddle.x - ball.r - 1;
-      }
+      if (side === 'left') ball.x = paddle.x + paddle.w + ball.r + 1;
+      else ball.x = paddle.x - ball.r - 1;
 
       burst(ball.x, ball.y, paddle.color, ball.fire > 0 ? 24 : 12, ball.fire > 0 ? 5 : 3);
       screenShake = Math.max(screenShake, ball.fire > 0 ? 8 : 3);
@@ -585,23 +711,14 @@
 
     function scoreGoal(scoringSide) {
       const scoringPlayer = players[scoringSide];
-
       scoringPlayer.score += 1;
-
-      burst(
-        scoringSide === "left" ? W - 30 : 30,
-        H / 2,
-        scoringPlayer.color,
-        45,
-        7
-      );
-
+      burst(scoringSide === 'left' ? W - 30 : 30, H / 2, scoringPlayer.color, 45, 7);
       screenShake = 13;
-      beep(190, 0.18, "triangle", 0.08);
+      beep(190, 0.18, 'triangle', 0.08);
 
       if (scoringPlayer.score >= WINNING_SCORE) {
         winnerText = `${scoringPlayer.name} wins!`;
-        state = "gameover";
+        state = 'gameover';
         updateButtons();
       }
     }
@@ -609,45 +726,27 @@
     function updateBall(ball, dt) {
       ball.x += ball.vx * dt;
       ball.y += ball.vy * dt;
+      if (ball.fire > 0) ball.fire = Math.max(0, ball.fire - dt);
 
-      if (ball.fire > 0) {
-        ball.fire = Math.max(0, ball.fire - dt);
-      }
-
-      ball.trail.push({
-        x: ball.x,
-        y: ball.y,
-        color: ball.fire > 0 ? "#ff8b2b" : ball.color
-      });
-
-      if (ball.trail.length > 18) {
-        ball.trail.shift();
-      }
+      ball.trail.push({ x: ball.x, y: ball.y, color: ball.fire > 0 ? '#ff8b2b' : ball.color });
+      if (ball.trail.length > 18) ball.trail.shift();
 
       if (ball.y - ball.r <= 0 && ball.vy < 0) {
-        ball.y = ball.r;
-        ball.vy *= -1;
-        burst(ball.x, ball.y, "#ffffff", 8, 2.4);
-        beep(260, 0.04, "sine", 0.025);
+        ball.y = ball.r; ball.vy *= -1; burst(ball.x, ball.y, currentTheme.accent3, 8, 2.4); beep(260, 0.04, 'sine', 0.025);
       }
-
       if (ball.y + ball.r >= H && ball.vy > 0) {
-        ball.y = H - ball.r;
-        ball.vy *= -1;
-        burst(ball.x, ball.y, "#ffffff", 8, 2.4);
-        beep(260, 0.04, "sine", 0.025);
+        ball.y = H - ball.r; ball.vy *= -1; burst(ball.x, ball.y, currentTheme.accent3, 8, 2.4); beep(260, 0.04, 'sine', 0.025);
       }
 
-      handlePaddleCollision(ball, "left");
-      handlePaddleCollision(ball, "right");
+      handlePaddleCollision(ball, 'left');
+      handlePaddleCollision(ball, 'right');
 
       for (let i = powerups.length - 1; i >= 0; i--) {
         const p = powerups[i];
         const dx = ball.x - p.x;
         const dy = ball.y - p.y;
-
         if (Math.sqrt(dx * dx + dy * dy) < ball.r + p.r) {
-          const owner = ball.owner || (ball.vx > 0 ? "left" : "right");
+          const owner = ball.owner || (ball.vx > 0 ? 'left' : 'right');
           activatePowerup(p, owner);
           powerups.splice(i, 1);
         }
@@ -658,14 +757,13 @@
           players.left.shield = false;
           ball.x = 35;
           ball.vx = Math.abs(ball.vx) * 1.05;
-          ball.owner = "left";
+          ball.owner = 'left';
           burst(22, ball.y, players.left.color, 32, 5);
-          addFloatingText(95, ball.y, "SHIELD BLOCK", players.left.color);
-          beep(620, 0.12, "triangle", 0.06);
+          addFloatingText(95, ball.y, 'SHIELD BLOCK', players.left.color);
+          beep(620, 0.12, 'triangle', 0.06);
           return false;
         }
-
-        scoreGoal("right");
+        scoreGoal('right');
         return true;
       }
 
@@ -674,14 +772,13 @@
           players.right.shield = false;
           ball.x = W - 35;
           ball.vx = -Math.abs(ball.vx) * 1.05;
-          ball.owner = "right";
+          ball.owner = 'right';
           burst(W - 22, ball.y, players.right.color, 32, 5);
-          addFloatingText(W - 95, ball.y, "SHIELD BLOCK", players.right.color);
-          beep(620, 0.12, "triangle", 0.06);
+          addFloatingText(W - 95, ball.y, 'SHIELD BLOCK', players.right.color);
+          beep(620, 0.12, 'triangle', 0.06);
           return false;
         }
-
-        scoreGoal("left");
+        scoreGoal('left');
         return true;
       }
 
@@ -690,52 +787,37 @@
 
     function updatePowerups(dt) {
       powerupCooldown -= dt;
-
       if (powerupCooldown <= 0 && powerups.length < 3) {
         spawnPowerup();
         powerupCooldown = rand(420, 680);
       }
-
       for (let i = powerups.length - 1; i >= 0; i--) {
         powerups[i].life -= dt;
-
-        if (powerups[i].life <= 0) {
-          powerups.splice(i, 1);
-        }
+        if (powerups[i].life <= 0) powerups.splice(i, 1);
       }
     }
 
     function updateParticles(dt) {
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-
         p.x += p.vx * dt;
         p.y += p.vy * dt;
         p.vx *= 0.985;
         p.vy *= 0.985;
         p.life -= dt;
-
-        if (p.life <= 0) {
-          particles.splice(i, 1);
-        }
+        if (p.life <= 0) particles.splice(i, 1);
       }
-
       for (let i = floatingText.length - 1; i >= 0; i--) {
         const t = floatingText[i];
-
         t.y -= 0.35 * dt;
         t.life -= dt;
-
-        if (t.life <= 0) {
-          floatingText.splice(i, 1);
-        }
+        if (t.life <= 0) floatingText.splice(i, 1);
       }
     }
 
     function updateStars(dt) {
       for (const s of stars) {
         s.x -= s.speed * dt;
-
         if (s.x < 0) {
           s.x = W;
           s.y = Math.random() * H;
@@ -744,14 +826,11 @@
     }
 
     function update(dt) {
-      if (state !== "playing") {
-        updateParticles(dt);
-        updateStars(dt);
-        return;
+      if (state !== 'playing') {
+        updateParticles(dt); updateStars(dt); return;
       }
 
       frame += dt;
-
       updateStars(dt);
       updateEffects(players.left, dt);
       updateEffects(players.right, dt);
@@ -759,18 +838,17 @@
       updatePowerups(dt);
 
       let lastScoringSide = null;
-
       for (let i = balls.length - 1; i >= 0; i--) {
+        const beforeX = balls[i].x;
         const scored = updateBall(balls[i], dt);
-
         if (scored) {
-          lastScoringSide = balls[i].x < W / 2 ? "right" : "left";
+          lastScoringSide = beforeX < W / 2 ? 'right' : 'left';
           balls.splice(i, 1);
         }
       }
 
-      if (state === "playing" && balls.length === 0) {
-        const direction = lastScoringSide === "left" ? 1 : -1;
+      if (state === 'playing' && balls.length === 0) {
+        const direction = lastScoringSide === 'left' ? 1 : -1;
         balls.push(createBall(direction));
       }
 
@@ -784,7 +862,6 @@
 
     function roundedRectPath(x, y, w, h, r) {
       r = Math.min(r, w / 2, h / 2);
-
       ctx.beginPath();
       ctx.moveTo(x + r, y);
       ctx.lineTo(x + w - r, y);
@@ -800,16 +877,15 @@
 
     function drawBackground() {
       const gradient = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, W / 1.1);
-      gradient.addColorStop(0, "#121836");
-      gradient.addColorStop(0.48, "#070814");
-      gradient.addColorStop(1, "#02030a");
-
+      gradient.addColorStop(0, currentTheme.body[0]);
+      gradient.addColorStop(0.48, currentTheme.body[1]);
+      gradient.addColorStop(1, currentTheme.body[2]);
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, W, H);
 
       for (const s of stars) {
         ctx.globalAlpha = s.alpha;
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = currentTheme.starColor;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fill();
@@ -817,32 +893,40 @@
       ctx.globalAlpha = 1;
 
       ctx.save();
-      ctx.strokeStyle = "rgba(0,245,255,0.055)";
+      ctx.strokeStyle = currentTheme.grid;
       ctx.lineWidth = 1;
-
-      for (let x = 0; x <= W; x += 60) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, H);
-        ctx.stroke();
+      for (let x = 0; x <= W; x += currentThemeKey === 'arcade80s' ? 50 : 60) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
       }
-
-      for (let y = 0; y <= H; y += 60) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(W, y);
-        ctx.stroke();
+      for (let y = 0; y <= H; y += currentThemeKey === 'arcade80s' ? 50 : 60) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
-
       ctx.restore();
+
+      if (currentTheme.vignette) {
+        const vignette = ctx.createRadialGradient(W / 2, H / 2, H / 5, W / 2, H / 2, W * 0.65);
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, 'rgba(0,0,0,0.35)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      if (currentTheme.useScanlines) {
+        ctx.save();
+        ctx.globalAlpha = 0.10;
+        ctx.fillStyle = currentTheme.accent1;
+        for (let y = 0; y < H; y += 4) {
+          ctx.fillRect(0, y, W, 1);
+        }
+        ctx.restore();
+      }
     }
 
     function drawArena() {
       ctx.save();
-
-      ctx.strokeStyle = "rgba(255,255,255,0.2)";
+      ctx.strokeStyle = currentTheme.centerLine;
       ctx.lineWidth = 2;
-      ctx.setLineDash([12, 14]);
+      ctx.setLineDash(currentTheme.netDash);
       ctx.beginPath();
       ctx.moveTo(W / 2, 25);
       ctx.lineTo(W / 2, H - 25);
@@ -850,108 +934,107 @@
       ctx.setLineDash([]);
 
       ctx.shadowBlur = 18;
-      ctx.shadowColor = "#00f5ff";
-      ctx.strokeStyle = "rgba(0,245,255,0.35)";
+      ctx.shadowColor = currentTheme.accent1;
+      ctx.strokeStyle = currentTheme.glow1;
       ctx.lineWidth = 2;
       roundedRectPath(15, 15, W - 30, H - 30, 16);
       ctx.stroke();
 
-      ctx.shadowColor = "#ff3df2";
-      ctx.strokeStyle = "rgba(255,61,242,0.22)";
+      ctx.shadowColor = currentTheme.accent2;
+      ctx.strokeStyle = currentTheme.glow2;
       roundedRectPath(24, 24, W - 48, H - 48, 12);
       ctx.stroke();
-
       ctx.restore();
     }
 
     function drawScores() {
       ctx.save();
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      ctx.font = "bold 92px Arial";
-      ctx.fillStyle = "rgba(255,255,255,0.07)";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = currentThemeKey === 'greenscreen' ? 'bold 84px Courier New' : 'bold 92px Arial';
+      ctx.fillStyle = `rgba(255,255,255,${currentTheme.scoreAlpha})`;
       ctx.fillText(players.left.score, W * 0.28, 88);
       ctx.fillText(players.right.score, W * 0.72, 88);
 
-      ctx.font = "bold 18px Arial";
+      ctx.font = currentThemeKey === 'greenscreen' ? 'bold 17px Courier New' : 'bold 18px Arial';
       ctx.fillStyle = players.left.color;
-      ctx.fillText("PLAYER 1", W * 0.28, 34);
-
+      ctx.fillText('PLAYER 1', W * 0.28, 34);
       ctx.fillStyle = players.right.color;
-      ctx.fillText(aiEnabled ? "AI / PLAYER 2" : "PLAYER 2", W * 0.72, 34);
-
+      ctx.fillText(aiEnabled ? 'AI / PLAYER 2' : 'PLAYER 2', W * 0.72, 34);
       ctx.restore();
     }
 
     function drawShield(p, side) {
       if (!p.shield) return;
-
       ctx.save();
-
       ctx.globalAlpha = 0.55;
       ctx.shadowBlur = 18;
       ctx.shadowColor = p.color;
       ctx.strokeStyle = p.color;
       ctx.lineWidth = 7;
-
-      if (side === "left") {
-        ctx.beginPath();
-        ctx.moveTo(18, 70);
-        ctx.lineTo(18, H - 70);
-        ctx.stroke();
+      ctx.beginPath();
+      if (side === 'left') {
+        ctx.moveTo(18, 70); ctx.lineTo(18, H - 70);
       } else {
-        ctx.beginPath();
-        ctx.moveTo(W - 18, 70);
-        ctx.lineTo(W - 18, H - 70);
-        ctx.stroke();
+        ctx.moveTo(W - 18, 70); ctx.lineTo(W - 18, H - 70);
       }
-
+      ctx.stroke();
       ctx.restore();
     }
 
     function drawPaddle(p) {
       ctx.save();
+      const glowColor = p.effects.fire > 0 ? '#ff8b2b' : p.color;
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = p.effects.fire > 0 ? 34 : 20;
 
-      const fireGlow = p.effects.fire > 0 ? 18 : 0;
-
-      ctx.shadowColor = p.effects.fire > 0 ? "#ff8b2b" : p.color;
-      ctx.shadowBlur = 20 + fireGlow;
-
-      const grad = ctx.createLinearGradient(p.x, p.y, p.x + p.w, p.y + p.h);
-      grad.addColorStop(0, "#ffffff");
-      grad.addColorStop(0.45, p.color);
-      grad.addColorStop(1, "#ffffff");
-
+      let grad;
+      if (currentThemeKey === 'greenscreen') {
+        grad = ctx.createLinearGradient(p.x, p.y, p.x, p.y + p.h);
+        grad.addColorStop(0, '#d6ffd9');
+        grad.addColorStop(1, p.color);
+      } else {
+        grad = ctx.createLinearGradient(p.x, p.y, p.x + p.w, p.y + p.h);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.45, p.color);
+        grad.addColorStop(1, '#ffffff');
+      }
       ctx.fillStyle = grad;
-      roundedRectPath(p.x, p.y, p.w, p.h, 9);
-      ctx.fill();
+
+      if (currentTheme.paddleStyle === 'rect') ctx.fillRect(p.x, p.y, p.w, p.h);
+      else {
+        roundedRectPath(p.x, p.y, p.w, p.h, 9);
+        ctx.fill();
+      }
 
       ctx.lineWidth = 2;
-      ctx.strokeStyle = "rgba(255,255,255,0.55)";
-      roundedRectPath(p.x, p.y, p.w, p.h, 9);
-      ctx.stroke();
-
-      if (p.effects.fire > 0) {
-        ctx.globalAlpha = 0.75;
-        ctx.strokeStyle = "#ff8b2b";
-        ctx.lineWidth = 3;
-        roundedRectPath(p.x - 5, p.y - 5, p.w + 10, p.h + 10, 12);
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      if (currentTheme.paddleStyle === 'rect') ctx.strokeRect(p.x, p.y, p.w, p.h);
+      else {
+        roundedRectPath(p.x, p.y, p.w, p.h, 9);
         ctx.stroke();
       }
 
+      if (p.effects.fire > 0) {
+        ctx.globalAlpha = 0.75;
+        ctx.strokeStyle = '#ff8b2b';
+        ctx.lineWidth = 3;
+        if (currentTheme.paddleStyle === 'rect') ctx.strokeRect(p.x - 5, p.y - 5, p.w + 10, p.h + 10);
+        else {
+          roundedRectPath(p.x - 5, p.y - 5, p.w + 10, p.h + 10, 12);
+          ctx.stroke();
+        }
+      }
       ctx.restore();
     }
 
     function drawBall(ball) {
       ctx.save();
-
       for (let i = 0; i < ball.trail.length; i++) {
         const t = ball.trail[i];
         const alpha = i / ball.trail.length;
-
         ctx.globalAlpha = alpha * 0.32;
-        ctx.fillStyle = ball.fire > 0 ? "#ff8b2b" : t.color;
+        ctx.fillStyle = ball.fire > 0 ? '#ff8b2b' : t.color;
         ctx.beginPath();
         ctx.arc(t.x, t.y, ball.r * (0.45 + alpha), 0, Math.PI * 2);
         ctx.fill();
@@ -959,33 +1042,22 @@
 
       ctx.globalAlpha = 1;
       ctx.shadowBlur = ball.fire > 0 ? 28 : 18;
-      ctx.shadowColor = ball.fire > 0 ? "#ff8b2b" : ball.color;
-
-      const grad = ctx.createRadialGradient(
-        ball.x - 3,
-        ball.y - 3,
-        2,
-        ball.x,
-        ball.y,
-        ball.fire > 0 ? ball.r * 2.5 : ball.r * 1.7
-      );
-
+      ctx.shadowColor = ball.fire > 0 ? '#ff8b2b' : ball.color;
+      const grad = ctx.createRadialGradient(ball.x - 3, ball.y - 3, 2, ball.x, ball.y, ball.fire > 0 ? ball.r * 2.5 : ball.r * 1.7);
       if (ball.fire > 0) {
-        grad.addColorStop(0, "#ffffff");
-        grad.addColorStop(0.35, "#ffe0a3");
-        grad.addColorStop(0.7, "#ff8b2b");
-        grad.addColorStop(1, "#ff2a00");
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.35, '#ffe0a3');
+        grad.addColorStop(0.7, '#ff8b2b');
+        grad.addColorStop(1, '#ff2a00');
       } else {
-        grad.addColorStop(0, "#ffffff");
+        grad.addColorStop(0, '#ffffff');
         grad.addColorStop(0.45, ball.color);
-        grad.addColorStop(1, "#7c5cff");
+        grad.addColorStop(1, currentTheme.accent2);
       }
-
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.fire > 0 ? ball.r + 2 : ball.r, 0, Math.PI * 2);
       ctx.fill();
-
       ctx.restore();
     }
 
@@ -993,27 +1065,22 @@
       for (const p of powerups) {
         const pulse = Math.sin(frame * 0.06 + p.pulse) * 4;
         const alpha = clamp(p.life / 100, 0.35, 1);
-
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.shadowBlur = 24;
         ctx.shadowColor = p.type.color;
-
-        ctx.fillStyle = "rgba(5,6,16,0.88)";
+        ctx.fillStyle = 'rgba(5,6,16,0.88)';
         ctx.strokeStyle = p.type.color;
         ctx.lineWidth = 3;
-
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r + pulse, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.font = "bold 12px Arial";
-        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = currentThemeKey === 'greenscreen' ? 'bold 12px Courier New' : 'bold 12px Arial';
+        ctx.fillStyle = '#ffffff';
         ctx.fillText(p.type.label, p.x, p.y + 1);
-
         ctx.restore();
       }
     }
@@ -1025,20 +1092,17 @@
         ctx.fillStyle = p.color;
         ctx.shadowBlur = 12;
         ctx.shadowColor = p.color;
-
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
-
         ctx.restore();
       }
-
       for (const t of floatingText) {
         ctx.save();
         ctx.globalAlpha = clamp(t.life / 70, 0, 1);
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.font = "bold 17px Arial";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = currentThemeKey === 'greenscreen' ? 'bold 17px Courier New' : 'bold 17px Arial';
         ctx.fillStyle = t.color;
         ctx.shadowBlur = 14;
         ctx.shadowColor = t.color;
@@ -1049,192 +1113,148 @@
 
     function drawEffectBadges() {
       ctx.save();
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.font = "bold 13px Arial";
-
-      drawBadgesForPlayer(players.left, 35, H - 32, "left");
-
-      ctx.textAlign = "right";
-      drawBadgesForPlayer(players.right, W - 35, H - 32, "right");
-
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.font = currentThemeKey === 'greenscreen' ? 'bold 13px Courier New' : 'bold 13px Arial';
+      drawBadgesForPlayer(players.left, 35, H - 32, 'left');
+      ctx.textAlign = 'right';
+      drawBadgesForPlayer(players.right, W - 35, H - 32, 'right');
       ctx.restore();
     }
 
     function drawBadgesForPlayer(p, x, y, side) {
       const badges = [];
-
-      if (p.effects.big > 0) badges.push("BIG");
-      if (p.effects.small > 0) badges.push("MINI");
-      if (p.effects.fire > 0) badges.push("FIRE");
-      if (p.shield) badges.push("SHIELD");
-
+      if (p.effects.big > 0) badges.push('BIG');
+      if (p.effects.small > 0) badges.push('MINI');
+      if (p.effects.fire > 0) badges.push('FIRE');
+      if (p.shield) badges.push('SHIELD');
       if (badges.length === 0) return;
-
       ctx.fillStyle = p.color;
       ctx.shadowBlur = 12;
       ctx.shadowColor = p.color;
-
-      const text = badges.join("  ");
-
-      if (side === "left") {
-        ctx.fillText(text, x, y);
-      } else {
-        ctx.fillText(text, x, y);
-      }
+      const text = badges.join('  ');
+      ctx.fillText(text, x, y);
     }
 
     function drawOverlay() {
-      if (state === "playing") return;
-
+      if (state === 'playing') return;
       ctx.save();
-
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.fillRect(0, 0, W, H);
-
       ctx.shadowBlur = 30;
-      ctx.shadowColor = "#00f5ff";
-      ctx.fillStyle = "rgba(8,12,30,0.9)";
-      ctx.strokeStyle = "rgba(255,255,255,0.35)";
+      ctx.shadowColor = currentTheme.accent1;
+      ctx.fillStyle = currentTheme.overlayPanel;
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
       ctx.lineWidth = 2;
       roundedRectPath(W / 2 - 230, H / 2 - 120, 460, 240, 20);
       ctx.fill();
       ctx.stroke();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
 
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      const bigFont = currentThemeKey === 'greenscreen' ? 'bold 40px Courier New' : 'bold 42px Arial';
+      const midFont = currentThemeKey === 'greenscreen' ? 'bold 44px Courier New' : 'bold 48px Arial';
+      const smallFont = currentThemeKey === 'greenscreen' ? '18px Courier New' : '18px Arial';
+      const winnerFont = currentThemeKey === 'greenscreen' ? 'bold 22px Courier New' : 'bold 24px Arial';
 
-      if (state === "menu") {
-        ctx.font = "bold 42px Arial";
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText("NEON POWER PONG", W / 2, H / 2 - 50);
-
-        ctx.font = "18px Arial";
-        ctx.fillStyle = "#c9d4ff";
-        ctx.fillText("Press SPACE or click Start", W / 2, H / 2 + 2);
+      if (state === 'menu') {
+        ctx.font = bigFont;
+        ctx.fillStyle = currentTheme.text;
+        ctx.fillText(currentTheme.title, W / 2, H / 2 - 50);
+        ctx.font = smallFont;
+        ctx.fillStyle = currentTheme.muted;
+        ctx.fillText('Press SPACE or click Start', W / 2, H / 2 + 2);
         ctx.fillText(`First to ${WINNING_SCORE} wins`, W / 2, H / 2 + 35);
       }
-
-      if (state === "paused") {
-        ctx.font = "bold 48px Arial";
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText("PAUSED", W / 2, H / 2 - 35);
-
-        ctx.font = "18px Arial";
-        ctx.fillStyle = "#c9d4ff";
-        ctx.fillText("Press SPACE to continue", W / 2, H / 2 + 22);
+      if (state === 'paused') {
+        ctx.font = midFont;
+        ctx.fillStyle = currentTheme.text;
+        ctx.fillText('PAUSED', W / 2, H / 2 - 35);
+        ctx.font = smallFont;
+        ctx.fillStyle = currentTheme.muted;
+        ctx.fillText('Press SPACE to continue', W / 2, H / 2 + 22);
       }
-
-      if (state === "gameover") {
-        ctx.font = "bold 46px Arial";
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText("GAME OVER", W / 2, H / 2 - 50);
-
-        ctx.font = "bold 24px Arial";
-        ctx.fillStyle = "#96f7ff";
+      if (state === 'gameover') {
+        ctx.font = midFont;
+        ctx.fillStyle = currentTheme.text;
+        ctx.fillText('GAME OVER', W / 2, H / 2 - 50);
+        ctx.font = winnerFont;
+        ctx.fillStyle = currentTheme.accent3;
         ctx.fillText(winnerText, W / 2, H / 2 - 3);
-
-        ctx.font = "18px Arial";
-        ctx.fillStyle = "#c9d4ff";
-        ctx.fillText("Press R or click New Game", W / 2, H / 2 + 42);
+        ctx.font = smallFont;
+        ctx.fillStyle = currentTheme.muted;
+        ctx.fillText('Press R or click New Game', W / 2, H / 2 + 42);
       }
+      ctx.restore();
+    }
 
+    function drawCrtEffects() {
+      if (currentThemeKey !== 'greenscreen') return;
+      ctx.save();
+      const glow = ctx.createRadialGradient(W / 2, H / 2, H / 6, W / 2, H / 2, W * 0.7);
+      glow.addColorStop(0, 'rgba(103,255,128,0)');
+      glow.addColorStop(1, 'rgba(0,0,0,0.25)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, W, H);
       ctx.restore();
     }
 
     function draw() {
       drawBackground();
-
       ctx.save();
-
       if (screenShake > 0) {
         ctx.translate(rand(-screenShake, screenShake), rand(-screenShake, screenShake));
       }
-
       drawArena();
       drawScores();
-
-      drawShield(players.left, "left");
-      drawShield(players.right, "right");
-
+      drawShield(players.left, 'left');
+      drawShield(players.right, 'right');
       drawPowerups();
-
       drawPaddle(players.left);
       drawPaddle(players.right);
-
-      for (const ball of balls) {
-        drawBall(ball);
-      }
-
+      for (const ball of balls) drawBall(ball);
       drawParticles();
       drawEffectBadges();
-
+      drawCrtEffects();
       ctx.restore();
-
       drawOverlay();
     }
 
     function gameLoop(timestamp) {
       const delta = timestamp - lastTime;
       lastTime = timestamp;
-
       const dt = clamp(delta / 16.67, 0, 2.2);
-
       update(dt);
       draw();
-
       requestAnimationFrame(gameLoop);
     }
 
-    window.addEventListener("keydown", function (e) {
-      if (["ArrowUp", "ArrowDown", " "].includes(e.key)) {
-        e.preventDefault();
-      }
-
+    window.addEventListener('keydown', function (e) {
+      if (['ArrowUp', 'ArrowDown', ' '].includes(e.key)) e.preventDefault();
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       keys[key] = true;
-
       if (e.repeat) return;
-
       initAudio();
-
-      if (e.code === "Space") {
-        startOrPause();
-      }
-
-      if (key === "r") {
-        newMatch(true);
-      }
-
-      if (key === "a") {
-        toggleAI();
-      }
-
-      if (key === "m") {
-        toggleSound();
-      }
+      if (e.code === 'Space') startOrPause();
+      if (key === 'r') newMatch(true);
+      if (key === 'a') toggleAI();
+      if (key === 'm') toggleSound();
+      if (key === 't') randomTheme();
     });
 
-    window.addEventListener("keyup", function (e) {
+    window.addEventListener('keyup', function (e) {
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       keys[key] = false;
     });
 
-    startPauseBtn.addEventListener("click", startOrPause);
+    startPauseBtn.addEventListener('click', startOrPause);
+    restartBtn.addEventListener('click', function () { initAudio(); newMatch(true); });
+    aiBtn.addEventListener('click', function () { initAudio(); toggleAI(); });
+    muteBtn.addEventListener('click', toggleSound);
+    randomThemeBtn.addEventListener('click', function () { initAudio(); randomTheme(); });
+    themeSelect.addEventListener('change', function () { applyTheme(this.value); });
 
-    restartBtn.addEventListener("click", function () {
-      initAudio();
-      newMatch(true);
-    });
-
-    aiBtn.addEventListener("click", function () {
-      initAudio();
-      toggleAI();
-    });
-
-    muteBtn.addEventListener("click", toggleSound);
-
-    initStars();
+    applyTheme('neon');
     newMatch(false);
     requestAnimationFrame(gameLoop);
   </script>
