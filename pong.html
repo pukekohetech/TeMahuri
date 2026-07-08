@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neon Power Pong - Theme Edition</title>
+  <title>Neon Power Pong - Modes + Asteroid Battle</title>
   <style>
     :root {
       --bg1: #18213d;
@@ -38,7 +38,7 @@
     }
 
     .game-shell {
-      width: min(96vw, 1020px);
+      width: min(96vw, 1040px);
       text-align: center;
       padding: 10px;
     }
@@ -54,7 +54,7 @@
 
     h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 26px;
       letter-spacing: 2px;
       color: var(--text);
       text-shadow: 0 0 8px var(--accent1), 0 0 18px var(--accent2);
@@ -75,18 +75,31 @@
       padding: 8px 13px;
       cursor: pointer;
       font-weight: bold;
-      box-shadow: 0 0 10px color-mix(in srgb, var(--accent1) 35%, transparent);
+      box-shadow: 0 0 10px rgba(0,245,255,0.15);
     }
 
-    select { padding-right: 18px; }
-
     button:hover, select:hover {
-      background: color-mix(in srgb, var(--accent1) 18%, var(--panel));
+      background: rgba(0,245,255,0.18);
+    }
+
+    select,
+    #themeSelect,
+    #modeSelect,
+    #themeSelect option,
+    #modeSelect option {
+      background-color: #111827 !important;
+      color: #ffffff !important;
+    }
+
+    #themeSelect,
+    #modeSelect {
+      min-width: 185px;
+      border: 1px solid rgba(255,255,255,0.65);
     }
 
     #pongCanvas {
       width: 100%;
-      max-width: 940px;
+      max-width: 960px;
       aspect-ratio: 900 / 560;
       border: 3px solid var(--canvas-border);
       border-radius: 18px;
@@ -106,7 +119,7 @@
 
     .powerups {
       margin-top: 6px;
-      color: color-mix(in srgb, var(--accent1) 70%, white);
+      color: #96f7ff;
       font-size: 13px;
     }
 
@@ -124,21 +137,6 @@
       padding: 2px 6px;
       color: white;
     }
-
-select {
-  background-color: #111827;
-  color: #ffffff;
-  border: 1px solid rgba(255,255,255,0.55);
-}
-
-select option {
-  background-color: #111827;
-  color: #ffffff;
-}
-
-#themeSelect {
-  min-width: 180px;
-}
   </style>
 </head>
 <body>
@@ -148,7 +146,13 @@ select option {
       <div class="buttons">
         <button id="startPauseBtn">Start</button>
         <button id="restartBtn">Restart</button>
+        <select id="modeSelect" aria-label="Select game mode">
+          <option value="classic">Mode: Classic Pong</option>
+          <option value="power">Mode: Power Pong</option>
+          <option value="asteroid">Mode: Asteroid Battle</option>
+        </select>
         <button id="aiBtn">Opponent: Human</button>
+        <button id="hazardsBtn">Asteroids: On</button>
         <button id="muteBtn">Sound: On</button>
         <button id="randomThemeBtn">Random Theme</button>
         <select id="themeSelect" aria-label="Select theme">
@@ -165,255 +169,202 @@ select option {
     <canvas id="pongCanvas" width="900" height="560"></canvas>
 
     <div class="controls">
-      Player 1: <kbd>W</kbd> / <kbd>S</kbd>
+      Player 1: <kbd>W</kbd>/<kbd>S</kbd> move, <kbd>D</kbd> shoot
       &nbsp; | &nbsp;
-      Player 2: <kbd>↑</kbd> / <kbd>↓</kbd>
+      Player 2: <kbd>Up</kbd>/<kbd>Down</kbd> move, <kbd>Left</kbd> or <kbd>/</kbd> shoot
       &nbsp; | &nbsp;
       <kbd>Space</kbd> Start/Pause
       &nbsp; | &nbsp;
-      <kbd>R</kbd> Restart
+      <kbd>A</kbd> AI
       &nbsp; | &nbsp;
-      <kbd>A</kbd> Human/Computer Opponent
+      <kbd>G</kbd> Game Mode
       &nbsp; | &nbsp;
-      <kbd>M</kbd> Mute
+      <kbd>H</kbd> Asteroids in Battle Mode
       &nbsp; | &nbsp;
       <kbd>T</kbd> Random Theme
     </div>
 
     <div class="powerups">
-      Powerups: BIG paddle, SHRINK opponent, SLOW ball, MULTI ball, SHIELD, FIREBALL
+      Modes: Classic Pong, Power Pong, Asteroid Battle. Powerups include health, speed, armour, big paddle, multiball, shields, fireballs, rapid fire, triple shot, shotgun, laser, cannon, homing, ricochet and pierce shots. Bullets can collect powerups too.
     </div>
 
-    <div class="theme-note" id="themeNote">
-      Current theme: Neon
-    </div>
+    <div class="theme-note" id="themeNote">Current theme: Neon</div>
   </div>
 
   <script>
-    const canvas = document.getElementById("pongCanvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('pongCanvas');
+    const ctx = canvas.getContext('2d');
 
-    const startPauseBtn = document.getElementById("startPauseBtn");
-    const restartBtn = document.getElementById("restartBtn");
-    const aiBtn = document.getElementById("aiBtn");
-    const muteBtn = document.getElementById("muteBtn");
-    const randomThemeBtn = document.getElementById("randomThemeBtn");
-    const themeSelect = document.getElementById("themeSelect");
-    const gameTitle = document.getElementById("gameTitle");
-    const themeNote = document.getElementById("themeNote");
+    const startPauseBtn = document.getElementById('startPauseBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const modeSelect = document.getElementById('modeSelect');
+    const aiBtn = document.getElementById('aiBtn');
+    const hazardsBtn = document.getElementById('hazardsBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const randomThemeBtn = document.getElementById('randomThemeBtn');
+    const themeSelect = document.getElementById('themeSelect');
+    const gameTitle = document.getElementById('gameTitle');
+    const themeNote = document.getElementById('themeNote');
 
     const W = canvas.width;
     const H = canvas.height;
     const WINNING_SCORE = 7;
-    const BASE_PADDLE_HEIGHT = 96;
+    const BASE_PADDLE_HEIGHT = 104;
     const PADDLE_WIDTH = 16;
     const BALL_RADIUS = 9;
+    const MAX_HEALTH = 100;
+    const BULLET_SPEED = 12.5;
 
-    const themes = {
-      neon: {
-        name: "Neon",
-        body: ["#18213d", "#070814", "#02030a"],
-        canvasBg: "#050610",
-        canvasBorder: "rgba(255,255,255,0.75)",
-        glow1: "rgba(0,245,255,0.35)",
-        glow2: "rgba(166,0,255,0.18)",
-        accent1: "#00f5ff",
-        accent2: "#ff3df2",
-        accent3: "#8dff6a",
-        text: "#ffffff",
-        muted: "#c9d4ff",
-        grid: "rgba(0,245,255,0.055)",
-        centerLine: "rgba(255,255,255,0.20)",
-        title: "NEON POWER PONG",
-        starColor: "#ffffff",
-        netDash: [12, 14],
-        paddleStyle: "rounded",
-        overlayPanel: "rgba(8,12,30,0.90)",
-        scoreAlpha: 0.07,
-        useScanlines: false,
-        vignette: true
+    const gameModes = {
+      classic: {
+        name: 'Classic Pong',
+        label: 'Mode: Classic Pong',
+        description: 'Classic Pong: no guns, no powerups, no health damage, no asteroids.',
+        powerups: false,
+        shooting: false,
+        asteroids: false,
+        health: false
       },
-      greenscreen: {
-        name: "Green Screen",
-        body: ["#071208", "#020703", "#000000"],
-        canvasBg: "#020802",
-        canvasBorder: "rgba(103,255,128,0.9)",
-        glow1: "rgba(103,255,128,0.40)",
-        glow2: "rgba(20,120,20,0.25)",
-        accent1: "#67ff80",
-        accent2: "#2eff62",
-        accent3: "#b9ffc5",
-        text: "#b9ffc5",
-        muted: "#7de88f",
-        grid: "rgba(103,255,128,0.07)",
-        centerLine: "rgba(103,255,128,0.28)",
-        title: "GREEN SCREEN PONG",
-        starColor: "#67ff80",
-        netDash: [6, 10],
-        paddleStyle: "rect",
-        overlayPanel: "rgba(3,10,4,0.92)",
-        scoreAlpha: 0.11,
-        useScanlines: true,
-        vignette: false
+      power: {
+        name: 'Power Pong',
+        label: 'Mode: Power Pong',
+        description: 'Power Pong: powerups, paddle damage, guns and upgrades, but no asteroids.',
+        powerups: true,
+        shooting: true,
+        asteroids: false,
+        health: true
       },
-      arcade80s: {
-        name: "80s Arcade",
-        body: ["#27053a", "#090716", "#04010a"],
-        canvasBg: "#080312",
-        canvasBorder: "rgba(255,115,228,0.88)",
-        glow1: "rgba(255,115,228,0.35)",
-        glow2: "rgba(0,255,255,0.18)",
-        accent1: "#ff73e4",
-        accent2: "#00f7ff",
-        accent3: "#ffe066",
-        text: "#fff7ff",
-        muted: "#f3c9ff",
-        grid: "rgba(255,115,228,0.07)",
-        centerLine: "rgba(255,255,255,0.24)",
-        title: "80s ARCADE PONG",
-        starColor: "#ffffff",
-        netDash: [14, 10],
-        paddleStyle: "rounded",
-        overlayPanel: "rgba(24,6,38,0.92)",
-        scoreAlpha: 0.08,
-        useScanlines: false,
-        vignette: true
-      },
-      ice: {
-        name: "Ice",
-        body: ["#d8f4ff", "#8db7d4", "#27445e"],
-        canvasBg: "#092336",
-        canvasBorder: "rgba(220,244,255,0.9)",
-        glow1: "rgba(180,235,255,0.45)",
-        glow2: "rgba(111,196,255,0.20)",
-        accent1: "#c1f0ff",
-        accent2: "#6fc4ff",
-        accent3: "#ffffff",
-        text: "#f4fcff",
-        muted: "#d5f1ff",
-        grid: "rgba(220,244,255,0.08)",
-        centerLine: "rgba(220,244,255,0.28)",
-        title: "ICE PONG",
-        starColor: "#effbff",
-        netDash: [10, 12],
-        paddleStyle: "rounded",
-        overlayPanel: "rgba(12,40,60,0.90)",
-        scoreAlpha: 0.10,
-        useScanlines: false,
-        vignette: false
-      },
-      sunset: {
-        name: "Sunset",
-        body: ["#5e1630", "#2a1137", "#09070d"],
-        canvasBg: "#120713",
-        canvasBorder: "rgba(255,182,92,0.9)",
-        glow1: "rgba(255,182,92,0.38)",
-        glow2: "rgba(255,77,109,0.22)",
-        accent1: "#ffb65c",
-        accent2: "#ff4d6d",
-        accent3: "#ffd166",
-        text: "#fff7ef",
-        muted: "#ffd9ba",
-        grid: "rgba(255,182,92,0.06)",
-        centerLine: "rgba(255,222,173,0.26)",
-        title: "SUNSET PONG",
-        starColor: "#fff0d8",
-        netDash: [12, 12],
-        paddleStyle: "rounded",
-        overlayPanel: "rgba(45,12,26,0.92)",
-        scoreAlpha: 0.08,
-        useScanlines: false,
-        vignette: true
-      },
-      mono: {
-        name: "Monochrome",
-        body: ["#2a2a2a", "#101010", "#000000"],
-        canvasBg: "#050505",
-        canvasBorder: "rgba(240,240,240,0.9)",
-        glow1: "rgba(255,255,255,0.20)",
-        glow2: "rgba(180,180,180,0.12)",
-        accent1: "#f0f0f0",
-        accent2: "#bdbdbd",
-        accent3: "#ffffff",
-        text: "#ffffff",
-        muted: "#d9d9d9",
-        grid: "rgba(255,255,255,0.05)",
-        centerLine: "rgba(255,255,255,0.20)",
-        title: "MONO PONG",
-        starColor: "#ffffff",
-        netDash: [8, 10],
-        paddleStyle: "rect",
-        overlayPanel: "rgba(20,20,20,0.92)",
-        scoreAlpha: 0.08,
-        useScanlines: false,
-        vignette: true
+      asteroid: {
+        name: 'Asteroid Battle',
+        label: 'Mode: Asteroid Battle',
+        description: 'Asteroid Battle: everything on, including fast high-damage asteroids.',
+        powerups: true,
+        shooting: true,
+        asteroids: true,
+        health: true
       }
     };
 
-    let currentThemeKey = "neon";
-    let currentTheme = themes[currentThemeKey];
+    let currentModeKey = 'asteroid';
+    let currentMode = gameModes[currentModeKey];
 
+    const themes = {
+      neon: {
+        name: 'Neon', body: ['#18213d', '#070814', '#02030a'], canvasBg: '#050610',
+        canvasBorder: 'rgba(255,255,255,0.75)', glow1: 'rgba(0,245,255,0.35)', glow2: 'rgba(166,0,255,0.18)',
+        accent1: '#00f5ff', accent2: '#ff3df2', accent3: '#8dff6a', text: '#ffffff', muted: '#c9d4ff',
+        grid: 'rgba(0,245,255,0.055)', centerLine: 'rgba(255,255,255,0.20)', title: 'NEON POWER PONG',
+        starColor: '#ffffff', netDash: [12, 14], paddleStyle: 'rounded', overlayPanel: 'rgba(8,12,30,0.90)',
+        scoreAlpha: 0.07, useScanlines: false, vignette: true
+      },
+      greenscreen: {
+        name: 'Green Screen', body: ['#071208', '#020703', '#000000'], canvasBg: '#020802',
+        canvasBorder: 'rgba(103,255,128,0.9)', glow1: 'rgba(103,255,128,0.40)', glow2: 'rgba(20,120,20,0.25)',
+        accent1: '#67ff80', accent2: '#2eff62', accent3: '#b9ffc5', text: '#b9ffc5', muted: '#7de88f',
+        grid: 'rgba(103,255,128,0.07)', centerLine: 'rgba(103,255,128,0.28)', title: 'GREEN SCREEN PONG',
+        starColor: '#67ff80', netDash: [6, 10], paddleStyle: 'rect', overlayPanel: 'rgba(3,10,4,0.92)',
+        scoreAlpha: 0.11, useScanlines: true, vignette: false
+      },
+      arcade80s: {
+        name: '80s Arcade', body: ['#27053a', '#090716', '#04010a'], canvasBg: '#080312',
+        canvasBorder: 'rgba(255,115,228,0.88)', glow1: 'rgba(255,115,228,0.35)', glow2: 'rgba(0,255,255,0.18)',
+        accent1: '#ff73e4', accent2: '#00f7ff', accent3: '#ffe066', text: '#fff7ff', muted: '#f3c9ff',
+        grid: 'rgba(255,115,228,0.07)', centerLine: 'rgba(255,255,255,0.24)', title: '80s ARCADE PONG',
+        starColor: '#ffffff', netDash: [14, 10], paddleStyle: 'rounded', overlayPanel: 'rgba(24,6,38,0.92)',
+        scoreAlpha: 0.08, useScanlines: false, vignette: true
+      },
+      ice: {
+        name: 'Ice', body: ['#d8f4ff', '#8db7d4', '#27445e'], canvasBg: '#092336',
+        canvasBorder: 'rgba(220,244,255,0.9)', glow1: 'rgba(180,235,255,0.45)', glow2: 'rgba(111,196,255,0.20)',
+        accent1: '#c1f0ff', accent2: '#6fc4ff', accent3: '#ffffff', text: '#f4fcff', muted: '#d5f1ff',
+        grid: 'rgba(220,244,255,0.08)', centerLine: 'rgba(220,244,255,0.28)', title: 'ICE PONG',
+        starColor: '#effbff', netDash: [10, 12], paddleStyle: 'rounded', overlayPanel: 'rgba(12,40,60,0.90)',
+        scoreAlpha: 0.10, useScanlines: false, vignette: false
+      },
+      sunset: {
+        name: 'Sunset', body: ['#5e1630', '#2a1137', '#09070d'], canvasBg: '#120713',
+        canvasBorder: 'rgba(255,182,92,0.9)', glow1: 'rgba(255,182,92,0.38)', glow2: 'rgba(255,77,109,0.22)',
+        accent1: '#ffb65c', accent2: '#ff4d6d', accent3: '#ffd166', text: '#fff7ef', muted: '#ffd9ba',
+        grid: 'rgba(255,182,92,0.06)', centerLine: 'rgba(255,222,173,0.26)', title: 'SUNSET PONG',
+        starColor: '#fff0d8', netDash: [12, 12], paddleStyle: 'rounded', overlayPanel: 'rgba(45,12,26,0.92)',
+        scoreAlpha: 0.08, useScanlines: false, vignette: true
+      },
+      mono: {
+        name: 'Monochrome', body: ['#2a2a2a', '#101010', '#000000'], canvasBg: '#050505',
+        canvasBorder: 'rgba(240,240,240,0.9)', glow1: 'rgba(255,255,255,0.20)', glow2: 'rgba(180,180,180,0.12)',
+        accent1: '#f0f0f0', accent2: '#bdbdbd', accent3: '#ffffff', text: '#ffffff', muted: '#d9d9d9',
+        grid: 'rgba(255,255,255,0.05)', centerLine: 'rgba(255,255,255,0.20)', title: 'MONO PONG',
+        starColor: '#ffffff', netDash: [8, 10], paddleStyle: 'rect', overlayPanel: 'rgba(20,20,20,0.92)',
+        scoreAlpha: 0.08, useScanlines: false, vignette: true
+      }
+    };
+
+    let currentThemeKey = 'neon';
+    let currentTheme = themes[currentThemeKey];
     let keys = {};
-    let state = "menu";
+    let state = 'menu';
     let aiEnabled = false;
+    let hazardsEnabled = true;
     let soundOn = true;
     let audioCtx = null;
     let balls = [];
+    let bullets = [];
+    let asteroids = [];
     let powerups = [];
     let particles = [];
     let floatingText = [];
     let stars = [];
     let screenShake = 0;
     let powerupCooldown = 180;
+    let asteroidCooldown = 680;
     let lastTime = 0;
     let frame = 0;
-    let winnerText = "";
+    let winnerText = '';
+    let roundScored = false;
 
     const players = {
       left: {
-        name: "Player 1",
-        x: 32,
-        y: H / 2 - BASE_PADDLE_HEIGHT / 2,
-        w: PADDLE_WIDTH,
-        h: BASE_PADDLE_HEIGHT,
-        baseH: BASE_PADDLE_HEIGHT,
-        speed: 8.5,
-        score: 0,
-        color: themes.neon.accent1,
-        shield: false,
-        effects: { big: 0, small: 0, fire: 0 }
+        name: 'Player 1', x: 32, y: H / 2 - BASE_PADDLE_HEIGHT / 2, w: PADDLE_WIDTH, h: BASE_PADDLE_HEIGHT,
+        baseH: BASE_PADDLE_HEIGHT, baseSpeed: 8.5, currentSpeed: 8.5, score: 0, health: MAX_HEALTH, maxHealth: MAX_HEALTH,
+        color: themes.neon.accent1, shield: false, shootCooldown: 0,
+        effects: { big: 0, small: 0, fire: 0, speed: 0, rapid: 0, triple: 0, laser: 0, shotgun: 0, cannon: 0, homing: 0, ricochet: 0, pierce: 0, armour: 0, regen: 0 }
       },
       right: {
-        name: "Player 2",
-        x: W - 32 - PADDLE_WIDTH,
-        y: H / 2 - BASE_PADDLE_HEIGHT / 2,
-        w: PADDLE_WIDTH,
-        h: BASE_PADDLE_HEIGHT,
-        baseH: BASE_PADDLE_HEIGHT,
-        speed: 8.5,
-        score: 0,
-        color: themes.neon.accent2,
-        shield: false,
-        effects: { big: 0, small: 0, fire: 0 }
+        name: 'Player 2', x: W - 32 - PADDLE_WIDTH, y: H / 2 - BASE_PADDLE_HEIGHT / 2, w: PADDLE_WIDTH, h: BASE_PADDLE_HEIGHT,
+        baseH: BASE_PADDLE_HEIGHT, baseSpeed: 8.5, currentSpeed: 8.5, score: 0, health: MAX_HEALTH, maxHealth: MAX_HEALTH,
+        color: themes.neon.accent2, shield: false, shootCooldown: 0,
+        effects: { big: 0, small: 0, fire: 0, speed: 0, rapid: 0, triple: 0, laser: 0, shotgun: 0, cannon: 0, homing: 0, ricochet: 0, pierce: 0, armour: 0, regen: 0 }
       }
     };
 
     const POWERUP_TYPES = [
-      { id: "BIG", label: "BIG", color: "#00f5ff" },
-      { id: "SHRINK", label: "MINI", color: "#ff3df2" },
-      { id: "SLOW", label: "SLOW", color: "#8dff6a" },
-      { id: "MULTI", label: "MULTI", color: "#ffe66d" },
-      { id: "SHIELD", label: "SHIELD", color: "#6ea8ff" },
-      { id: "FIRE", label: "FIRE", color: "#ff8b2b" }
+      { id: 'BIG', label: 'BIG', color: '#00f5ff' },
+      { id: 'SHRINK', label: 'MINI', color: '#ff3df2' },
+      { id: 'SLOW', label: 'SLOW', color: '#8dff6a' },
+      { id: 'MULTI', label: 'MULTI', color: '#ffe66d' },
+      { id: 'SHIELD', label: 'SHIELD', color: '#6ea8ff' },
+      { id: 'FIRE', label: 'FIRE', color: '#ff8b2b' },
+      { id: 'HEALTH', label: 'HP', color: '#4dff88' },
+      { id: 'REGEN', label: 'REGEN', color: '#9dffb0' },
+      { id: 'ARMOUR', label: 'ARMOUR', color: '#93c5fd' },
+      { id: 'SPEED', label: 'SPD', color: '#7efcff' },
+      { id: 'RAPID', label: 'RAPID', color: '#fff36e' },
+      { id: 'TRIPLE', label: '3SHOT', color: '#c084fc' },
+      { id: 'SHOTGUN', label: 'SHOTGUN', color: '#fbbf24' },
+      { id: 'LASER', label: 'LASER', color: '#f472b6' },
+      { id: 'CANNON', label: 'CANNON', color: '#fb7185' },
+      { id: 'HOMING', label: 'HOMING', color: '#a78bfa' },
+      { id: 'RICOCHET', label: 'BOUNCE', color: '#34d399' },
+      { id: 'PIERCE', label: 'PIERCE', color: '#facc15' }
     ];
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function rand(min, max) { return Math.random() * (max - min) + min; }
+    function distance(a, b) { const dx = a.x - b.x; const dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
 
     function applyTheme(key) {
       currentThemeKey = key;
       currentTheme = themes[key];
-
       const root = document.documentElement;
       root.style.setProperty('--bg1', currentTheme.body[0]);
       root.style.setProperty('--bg2', currentTheme.body[1]);
@@ -427,38 +378,70 @@ select option {
       root.style.setProperty('--canvas-border', currentTheme.canvasBorder);
       root.style.setProperty('--glow1', currentTheme.glow1);
       root.style.setProperty('--glow2', currentTheme.glow2);
-
       gameTitle.textContent = currentTheme.title;
-      themeNote.textContent = `Current theme: ${currentTheme.name}`;
+      themeNote.textContent = 'Current theme: ' + currentTheme.name + ' | ' + currentMode.description;
       themeSelect.value = key;
-
       players.left.color = currentTheme.accent1;
       players.right.color = currentTheme.accent2;
-
       initStars();
-      addFloatingText(W / 2, 64, `${currentTheme.name.toUpperCase()} THEME`, currentTheme.accent3);
+      addFloatingText(W / 2, 64, currentTheme.name.toUpperCase() + ' THEME', currentTheme.accent3);
     }
 
     function randomTheme() {
-      const keys = Object.keys(themes);
+      const list = Object.keys(themes);
       let next = currentThemeKey;
-      while (next === currentThemeKey && keys.length > 1) {
-        next = keys[Math.floor(Math.random() * keys.length)];
-      }
+      while (next === currentThemeKey && list.length > 1) next = list[Math.floor(Math.random() * list.length)];
       applyTheme(next);
+    }
+
+    function setMode(key, resetRound = true) {
+      currentModeKey = key;
+      currentMode = gameModes[key];
+      modeSelect.value = key;
+      hazardsEnabled = currentMode.asteroids;
+
+      if (!currentMode.shooting) bullets = [];
+      if (!currentMode.asteroids) asteroids = [];
+      if (!currentMode.powerups) powerups = [];
+
+      for (const side of ['left', 'right']) {
+        const p = players[side];
+        p.shield = false;
+        p.shootCooldown = 0;
+        for (const k in p.effects) p.effects[k] = 0;
+      }
+
+      if (!currentMode.health) {
+        players.left.health = players.left.maxHealth;
+        players.right.health = players.right.maxHealth;
+        players.left.h = players.left.baseH;
+        players.right.h = players.right.baseH;
+      }
+
+      if (resetRound && state === 'playing') {
+        balls = [createBall(Math.random() > 0.5 ? 1 : -1)];
+        bullets = [];
+        asteroids = [];
+        powerups = [];
+        powerupCooldown = 180;
+        asteroidCooldown = rand(220, 420);
+      }
+
+      updateButtons();
+      addFloatingText(W / 2, 92, currentMode.name.toUpperCase(), currentTheme.accent3);
+    }
+
+    function cycleMode() {
+      const order = ['classic', 'power', 'asteroid'];
+      const next = order[(order.indexOf(currentModeKey) + 1) % order.length];
+      setMode(next);
     }
 
     function initStars() {
       stars = [];
       const count = currentThemeKey === 'greenscreen' ? 35 : 90;
       for (let i = 0; i < count; i++) {
-        stars.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          r: rand(0.5, currentThemeKey === 'greenscreen' ? 1.2 : 1.8),
-          speed: rand(0.1, 0.45),
-          alpha: rand(0.20, 0.85)
-        });
+        stars.push({ x: Math.random() * W, y: Math.random() * H, r: rand(0.5, currentThemeKey === 'greenscreen' ? 1.2 : 1.8), speed: rand(0.1, 0.45), alpha: rand(0.20, 0.85) });
       }
     }
 
@@ -482,40 +465,50 @@ select option {
 
     function createBall(direction = Math.random() > 0.5 ? 1 : -1) {
       const speed = 6.4;
-      return {
-        x: W / 2,
-        y: H / 2,
-        r: BALL_RADIUS,
-        vx: direction * speed,
-        vy: rand(-3.2, 3.2),
-        trail: [],
-        owner: null,
-        fire: 0,
-        color: currentTheme.accent3
-      };
+      return { x: W / 2, y: H / 2, r: BALL_RADIUS, vx: direction * speed, vy: rand(-3.2, 3.2), trail: [], owner: null, fire: 0, color: currentTheme.accent3 };
     }
 
-    function resetPlayers() {
+    function resetPlayersForMatch() {
       for (const side of ['left', 'right']) {
         const p = players[side];
         p.y = H / 2 - BASE_PADDLE_HEIGHT / 2;
         p.h = BASE_PADDLE_HEIGHT;
         p.score = 0;
+        p.health = p.maxHealth;
         p.shield = false;
-        p.effects.big = 0;
-        p.effects.small = 0;
-        p.effects.fire = 0;
+        p.shootCooldown = 0;
+        for (const k in p.effects) p.effects[k] = 0;
       }
     }
 
+    function resetRally(direction = Math.random() > 0.5 ? 1 : -1) {
+      // A normal goal starts a new rally, but it does NOT repair paddle damage.
+      // Health is represented by the paddle size and only resets on Restart/New Match.
+      for (const side of ['left', 'right']) {
+        const p = players[side];
+        p.shield = false;
+        p.shootCooldown = 0;
+        for (const k in p.effects) p.effects[k] = 0;
+      }
+      balls = [createBall(direction)];
+      bullets = [];
+      asteroids = [];
+      powerups = [];
+      powerupCooldown = currentMode.powerups ? 140 : 999999;
+      asteroidCooldown = currentMode.asteroids ? rand(240, 440) : 999999;
+    }
+
     function newMatch(startNow = false) {
-      resetPlayers();
+      resetPlayersForMatch();
       balls = [createBall(Math.random() > 0.5 ? 1 : -1)];
+      bullets = [];
+      asteroids = [];
       powerups = [];
       particles = [];
       floatingText = [];
       screenShake = 0;
-      powerupCooldown = 220;
+      powerupCooldown = currentMode.powerups ? 180 : 999999;
+      asteroidCooldown = currentMode.asteroids ? rand(240, 440) : 999999;
       winnerText = '';
       state = startNow ? 'playing' : 'menu';
       updateButtons();
@@ -527,8 +520,13 @@ select option {
       else if (state === 'gameover') startPauseBtn.textContent = 'New Game';
       else startPauseBtn.textContent = 'Start';
 
+      modeSelect.value = currentModeKey;
       aiBtn.textContent = aiEnabled ? 'Opponent: Computer' : 'Opponent: Human';
+      hazardsBtn.textContent = currentMode.asteroids ? (hazardsEnabled ? 'Asteroids: On' : 'Asteroids: Off') : 'Asteroids: Off';
+      hazardsBtn.disabled = !currentMode.asteroids;
+      hazardsBtn.style.opacity = currentMode.asteroids ? '1' : '0.55';
       muteBtn.textContent = soundOn ? 'Sound: On' : 'Sound: Off';
+      themeNote.textContent = 'Current theme: ' + currentTheme.name + ' | ' + currentMode.description;
     }
 
     function startOrPause() {
@@ -546,6 +544,18 @@ select option {
       addFloatingText(W / 2, 95, aiEnabled ? 'AI PLAYER 2 ON' : 'AI PLAYER 2 OFF', currentTheme.text);
     }
 
+    function toggleHazards() {
+      if (!currentMode.asteroids) {
+        setMode('asteroid');
+        hazardsEnabled = true;
+      } else {
+        hazardsEnabled = !hazardsEnabled;
+      }
+      updateButtons();
+      if (!hazardsEnabled) asteroids = [];
+      addFloatingText(W / 2, 122, hazardsEnabled ? 'ASTEROIDS ON' : 'ASTEROIDS OFF', currentTheme.accent3);
+    }
+
     function toggleSound() {
       initAudio();
       soundOn = !soundOn;
@@ -560,26 +570,36 @@ select option {
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = rand(0.5, power);
-        particles.push({
-          x, y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          r: rand(1.2, 3.5),
-          color, life: rand(35, 70)
-        });
+        particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, r: rand(1.2, 3.5), color, life: rand(35, 70) });
       }
     }
 
     function spawnPowerup() {
+      if (!currentMode.powerups) return;
       const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
-      powerups.push({
-        x: rand(170, W - 170),
-        y: rand(95, H - 95),
-        r: 22,
-        type,
-        life: 680,
-        pulse: Math.random() * Math.PI * 2
-      });
+      powerups.push({ x: rand(170, W - 170), y: rand(105, H - 90), r: 22, type, life: 720, pulse: Math.random() * Math.PI * 2 });
+    }
+
+    function makeAsteroidShape(points) {
+      const shape = [];
+      for (let i = 0; i < points; i++) {
+        shape.push(rand(0.72, 1.22));
+      }
+      return shape;
+    }
+
+    function spawnAsteroid() {
+      if (!currentMode.asteroids || !hazardsEnabled) return;
+      const edge = Math.floor(Math.random() * 4);
+      let x, y, vx, vy;
+      if (edge === 0) { x = rand(150, W - 150); y = -55; vx = rand(-2.2, 2.2); vy = rand(2.4, 4.4); }
+      else if (edge === 1) { x = rand(150, W - 150); y = H + 55; vx = rand(-2.2, 2.2); vy = -rand(2.4, 4.4); }
+      else if (edge === 2) { x = -55; y = rand(90, H - 90); vx = rand(2.5, 4.6); vy = rand(-1.7, 1.7); }
+      else { x = W + 55; y = rand(90, H - 90); vx = -rand(2.5, 4.6); vy = rand(-1.7, 1.7); }
+      const r = rand(22, 39);
+      const hp = r > 33 ? 5 : (r > 27 ? 4 : 3);
+      const damage = Math.round(r * 1.15);
+      asteroids.push({ x, y, r, vx, vy, hp, maxHp: hp, damage, rot: rand(0, Math.PI * 2), spin: rand(-0.07, 0.07), shape: makeAsteroidShape(10), color: '#9aa4b2', life: 900 });
     }
 
     function activatePowerup(powerup, ownerSide) {
@@ -590,17 +610,15 @@ select option {
 
       if (type === 'BIG') {
         self.effects.big = Math.max(self.effects.big, 560);
-        addFloatingText(powerup.x, powerup.y - 25, `${self.name}: BIG PADDLE`, powerup.type.color);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': BIG PADDLE', powerup.type.color);
       }
       if (type === 'SHRINK') {
         other.effects.small = Math.max(other.effects.small, 520);
-        addFloatingText(powerup.x, powerup.y - 25, `${other.name}: SHRUNK`, powerup.type.color);
+        other.health = clamp(other.health - 8, 0, other.maxHealth);
+        addFloatingText(powerup.x, powerup.y - 25, other.name + ': SHRUNK', powerup.type.color);
       }
       if (type === 'SLOW') {
-        for (const b of balls) {
-          b.vx *= 0.72;
-          b.vy *= 0.72;
-        }
+        for (const b of balls) { b.vx *= 0.72; b.vy *= 0.72; }
         addFloatingText(powerup.x, powerup.y - 25, 'BALL SLOWED', powerup.type.color);
       }
       if (type === 'MULTI') {
@@ -613,31 +631,127 @@ select option {
           extra.owner = ownerSide;
           balls.push(extra);
           addFloatingText(powerup.x, powerup.y - 25, 'MULTI BALL', powerup.type.color);
-        } else {
-          addFloatingText(powerup.x, powerup.y - 25, 'MAX BALLS', powerup.type.color);
-        }
+        } else addFloatingText(powerup.x, powerup.y - 25, 'MAX BALLS', powerup.type.color);
       }
       if (type === 'SHIELD') {
         self.shield = true;
-        addFloatingText(powerup.x, powerup.y - 25, `${self.name}: SHIELD`, powerup.type.color);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': SHIELD', powerup.type.color);
       }
       if (type === 'FIRE') {
         self.effects.fire = Math.max(self.effects.fire, 600);
-        addFloatingText(powerup.x, powerup.y - 25, `${self.name}: FIRE READY`, powerup.type.color);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': FIRE READY', powerup.type.color);
+      }
+      if (type === 'HEALTH') {
+        self.health = clamp(self.health + 30, 0, self.maxHealth);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': +30 HEALTH', powerup.type.color);
+      }
+      if (type === 'SPEED') {
+        self.effects.speed = Math.max(self.effects.speed, 600);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': SPEED BOOST', powerup.type.color);
+      }
+      if (type === 'RAPID') {
+        self.effects.rapid = Math.max(self.effects.rapid, 650);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': RAPID FIRE', powerup.type.color);
+      }
+      if (type === 'TRIPLE') {
+        self.effects.triple = Math.max(self.effects.triple, 560);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': TRIPLE SHOT', powerup.type.color);
+      }
+      if (type === 'REGEN') {
+        self.effects.regen = Math.max(self.effects.regen, 720);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': REGEN', powerup.type.color);
+      }
+      if (type === 'ARMOUR') {
+        self.effects.armour = Math.max(self.effects.armour, 760);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': ARMOUR', powerup.type.color);
+      }
+      if (type === 'SHOTGUN') {
+        self.effects.shotgun = Math.max(self.effects.shotgun, 600);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': SHOTGUN', powerup.type.color);
+      }
+      if (type === 'LASER') {
+        self.effects.laser = Math.max(self.effects.laser, 600);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': LASER', powerup.type.color);
+      }
+      if (type === 'CANNON') {
+        self.effects.cannon = Math.max(self.effects.cannon, 560);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': CANNON', powerup.type.color);
+      }
+      if (type === 'HOMING') {
+        self.effects.homing = Math.max(self.effects.homing, 640);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': HOMING', powerup.type.color);
+      }
+      if (type === 'RICOCHET') {
+        self.effects.ricochet = Math.max(self.effects.ricochet, 700);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': BOUNCE SHOTS', powerup.type.color);
+      }
+      if (type === 'PIERCE') {
+        self.effects.pierce = Math.max(self.effects.pierce, 700);
+        addFloatingText(powerup.x, powerup.y - 25, self.name + ': PIERCE SHOTS', powerup.type.color);
       }
       burst(powerup.x, powerup.y, powerup.type.color, 35, 5.5);
       beep(760, 0.08, 'triangle', 0.06);
     }
 
-    function updateEffects(p, dt) {
-      p.effects.big = Math.max(0, p.effects.big - dt);
-      p.effects.small = Math.max(0, p.effects.small - dt);
-      p.effects.fire = Math.max(0, p.effects.fire - dt);
+    function scorePoint(scoringSide, reason) {
+      if (roundScored || state !== 'playing') return true;
+      roundScored = true;
+      const scoringPlayer = players[scoringSide];
+      scoringPlayer.score += 1;
+      const x = scoringSide === 'left' ? W - 30 : 30;
+      burst(x, H / 2, scoringPlayer.color, 52, 7);
+      screenShake = 14;
+      beep(reason === 'KNOCKOUT' ? 135 : 190, 0.18, 'triangle', 0.08);
+      addFloatingText(W / 2, H / 2 - 130, reason === 'KNOCKOUT' ? 'KNOCKOUT POINT' : 'GOAL', scoringPlayer.color);
 
-      let targetHeight = p.baseH;
+      if (scoringPlayer.score >= WINNING_SCORE) {
+        winnerText = scoringPlayer.name + ' wins!';
+        state = 'gameover';
+        bullets = [];
+        asteroids = [];
+        updateButtons();
+        return true;
+      }
+
+      const nextDirection = scoringSide === 'left' ? 1 : -1;
+      resetRally(nextDirection);
+      return true;
+    }
+
+    function damagePlayer(side, amount, attackerSide, x, y, label) {
+      if (!currentMode.health) return false;
+      const p = players[side];
+      const finalAmount = p.effects.armour > 0 ? Math.ceil(amount * 0.55) : amount;
+      p.health = clamp(p.health - finalAmount, 0, p.maxHealth);
+      burst(x, y, '#ff4d6d', 20, 4.8);
+      addFloatingText(x, y - 24, label || ('-' + finalAmount + ' HP'), '#ff4d6d');
+      screenShake = Math.max(screenShake, 6);
+      beep(110, 0.07, 'sawtooth', 0.055);
+
+      if (p.health <= 0) {
+        const scoringSide = attackerSide || (side === 'left' ? 'right' : 'left');
+        // After a knockout, revive the paddle enough for the next rally.
+        // Normal goals still preserve health damage.
+        p.health = Math.round(p.maxHealth * 0.48);
+        return scorePoint(scoringSide, 'KNOCKOUT');
+      }
+      return false;
+    }
+
+    function updateEffects(p, dt) {
+      for (const k in p.effects) p.effects[k] = Math.max(0, p.effects[k] - dt);
+      p.shootCooldown = Math.max(0, p.shootCooldown - dt);
+      if (p.effects.regen > 0 && currentMode.health) {
+        p.health = clamp(p.health + 0.075 * dt, 0, p.maxHealth);
+      }
+      p.currentSpeed = p.baseSpeed + (p.effects.speed > 0 ? 3.2 : 0);
+
+      const healthScale = currentMode.health ? (0.32 + 0.68 * (p.health / p.maxHealth)) : 1;
+      let targetHeight = p.baseH * healthScale;
       if (p.effects.big > 0) targetHeight += 52;
       if (p.effects.small > 0) targetHeight -= 42;
-      targetHeight = clamp(targetHeight, 48, 165);
+      targetHeight = clamp(targetHeight, 44, 170);
+
       const middle = p.y + p.h / 2;
       p.h += (targetHeight - p.h) * 0.14 * dt;
       p.y = clamp(middle - p.h / 2, 0, H - p.h);
@@ -646,33 +760,246 @@ select option {
     function movePaddles(dt) {
       const left = players.left;
       const right = players.right;
-      if (keys['w']) left.y -= left.speed * dt;
-      if (keys['s']) left.y += left.speed * dt;
+      if (keys['w']) left.y -= left.currentSpeed * dt;
+      if (keys['s']) left.y += left.currentSpeed * dt;
 
       if (aiEnabled) {
         const incoming = balls.filter(b => b.vx > 0).sort((a, b) => b.x - a.x);
-        const targetBall = incoming[0] || balls[0];
-        if (targetBall) {
-          const targetY = targetBall.y - right.h / 2;
-          const difference = targetY - right.y;
-          const maxMove = right.speed * 0.82 * dt;
-          right.y += clamp(difference * 0.075, -maxMove, maxMove);
-        }
+        let targetBall = incoming[0] || balls[0];
+        let targetY = targetBall ? targetBall.y - right.h / 2 : H / 2 - right.h / 2;
+
+        const laneAsteroid = asteroids
+          .filter(a => a.x > W * 0.55)
+          .sort((a, b) => Math.abs(a.x - right.x) - Math.abs(b.x - right.x))[0];
+        if (laneAsteroid && Math.abs(laneAsteroid.x - right.x) < 220) targetY = laneAsteroid.y - right.h / 2;
+
+        const difference = targetY - right.y;
+        const maxMove = right.currentSpeed * 0.84 * dt;
+        right.y += clamp(difference * 0.075, -maxMove, maxMove);
       } else {
-        if (keys['ArrowUp']) right.y -= right.speed * dt;
-        if (keys['ArrowDown']) right.y += right.speed * dt;
+        if (keys['ArrowUp']) right.y -= right.currentSpeed * dt;
+        if (keys['ArrowDown']) right.y += right.currentSpeed * dt;
       }
 
       left.y = clamp(left.y, 0, H - left.h);
       right.y = clamp(right.y, 0, H - right.h);
     }
 
-    function circleRectCollision(ball, rect) {
-      const closestX = clamp(ball.x, rect.x, rect.x + rect.w);
-      const closestY = clamp(ball.y, rect.y, rect.y + rect.h);
-      const dx = ball.x - closestX;
-      const dy = ball.y - closestY;
-      return dx * dx + dy * dy <= ball.r * ball.r;
+    function wantsToShoot(side) {
+      if (!currentMode.shooting) return false;
+      if (side === 'left') return !!keys['d'];
+      if (aiEnabled) return aiShouldShoot();
+      return !!keys['ArrowLeft'] || !!keys['/'];
+    }
+
+    function aiShouldShoot() {
+      const right = players.right;
+      if (right.shootCooldown > 0) return false;
+      const centerY = right.y + right.h / 2;
+      for (const a of asteroids) {
+        if (a.x > W * 0.45 && Math.abs(a.y - centerY) < 65) return true;
+      }
+      for (const p of powerups) {
+        if (p.x > W * 0.45 && Math.abs(p.y - centerY) < 48) return true;
+      }
+      const leftCenter = players.left.y + players.left.h / 2;
+      if (Math.abs(leftCenter - centerY) < 80 && Math.random() < 0.045) return true;
+      return false;
+    }
+
+    function bulletTemplate(side, x, y, vx, vy, options) {
+      const p = players[side];
+      const fire = p.effects.fire > 0;
+      const opts = options || {};
+      return {
+        x, y,
+        r: opts.r || (fire ? 5.2 : 4.2),
+        vx, vy,
+        owner: side,
+        damage: opts.damage || (fire ? 15 : 9),
+        asteroidDamage: opts.asteroidDamage || (fire ? 2 : 1),
+        color: opts.color || (fire ? '#ff8b2b' : p.color),
+        life: opts.life || 105,
+        fire,
+        kind: opts.kind || 'basic',
+        pierce: opts.pierce || (p.effects.pierce > 0 ? 2 : 0),
+        ricochet: opts.ricochet || (p.effects.ricochet > 0 ? 2 : 0),
+        homing: opts.homing || (p.effects.homing > 0),
+        width: opts.width || 16
+      };
+    }
+
+    function shoot(side) {
+      if (!currentMode.shooting) return;
+      const p = players[side];
+      if (p.shootCooldown > 0) return;
+
+      const direction = side === 'left' ? 1 : -1;
+      const x = side === 'left' ? p.x + p.w + 8 : p.x - 8;
+      const centerY = p.y + p.h / 2;
+      const fire = p.effects.fire > 0;
+
+      if (p.effects.cannon > 0) {
+        bullets.push(bulletTemplate(side, x, centerY, direction * (BULLET_SPEED * 0.72), 0, {
+          kind: 'cannon', r: 8.8, damage: fire ? 34 : 26, asteroidDamage: fire ? 5 : 4,
+          color: fire ? '#ff8b2b' : '#fb7185', life: 115, pierce: 1, width: 22
+        }));
+        p.shootCooldown = p.effects.rapid > 0 ? 24 : 42;
+      } else if (p.effects.shotgun > 0) {
+        const spreads = [-2.1, -1.05, 0, 1.05, 2.1];
+        for (const spread of spreads) {
+          bullets.push(bulletTemplate(side, x, centerY, direction * (BULLET_SPEED * 0.92), spread, {
+            kind: 'shotgun', r: 3.6, damage: fire ? 10 : 7, asteroidDamage: fire ? 2 : 1,
+            color: fire ? '#ff8b2b' : '#fbbf24', life: 58, width: 10
+          }));
+        }
+        p.shootCooldown = p.effects.rapid > 0 ? 15 : 30;
+      } else if (p.effects.laser > 0) {
+        const offsets = p.effects.triple > 0 ? [-10, 0, 10] : [0];
+        for (const off of offsets) {
+          bullets.push(bulletTemplate(side, x, centerY + off, direction * (BULLET_SPEED * 1.65), 0, {
+            kind: 'laser', r: 3.1, damage: fire ? 18 : 13, asteroidDamage: fire ? 3 : 2,
+            color: fire ? '#ff8b2b' : '#f472b6', life: 62, pierce: p.effects.pierce > 0 ? 3 : 1, width: 34
+          }));
+        }
+        p.shootCooldown = p.effects.rapid > 0 ? 9 : 16;
+      } else {
+        const offsets = p.effects.triple > 0 ? [-14, 0, 14] : [0];
+        const angles = p.effects.triple > 0 ? [-0.9, 0, 0.9] : [0];
+        for (let i = 0; i < offsets.length; i++) {
+          bullets.push(bulletTemplate(side, x, centerY + offsets[i], direction * BULLET_SPEED, angles[i], {
+            kind: p.effects.homing > 0 ? 'homing' : 'basic',
+            damage: fire ? 15 : 9,
+            asteroidDamage: fire ? 2 : 1,
+            color: fire ? '#ff8b2b' : p.color,
+            life: 105
+          }));
+        }
+        p.shootCooldown = p.effects.rapid > 0 ? 8 : 24;
+      }
+
+      beep(p.effects.rapid > 0 ? 680 : 520, 0.035, 'square', 0.03);
+      if (p.effects.fire > 0) p.effects.fire = Math.max(0, p.effects.fire - 42);
+    }
+
+    function handleShooting(dt) {
+      if (wantsToShoot('left')) shoot('left');
+      if (wantsToShoot('right')) shoot('right');
+    }
+
+    function circleRectCollision(obj, rect) {
+      const closestX = clamp(obj.x, rect.x, rect.x + rect.w);
+      const closestY = clamp(obj.y, rect.y, rect.y + rect.h);
+      const dx = obj.x - closestX;
+      const dy = obj.y - closestY;
+      return dx * dx + dy * dy <= obj.r * obj.r;
+    }
+
+    function collectPowerupsWithCircle(obj, ownerSide, removeObjCallback) {
+      for (let i = powerups.length - 1; i >= 0; i--) {
+        const p = powerups[i];
+        const dx = obj.x - p.x;
+        const dy = obj.y - p.y;
+        if (Math.sqrt(dx * dx + dy * dy) < obj.r + p.r) {
+          activatePowerup(p, ownerSide);
+          powerups.splice(i, 1);
+          if (removeObjCallback) removeObjCallback();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function hitAsteroid(index, damage, x, y, ownerSide) {
+      const a = asteroids[index];
+      if (!a) return;
+      a.hp -= damage;
+      burst(x, y, '#c7ccd6', 12, 3.2);
+      if (a.hp <= 0) {
+        burst(a.x, a.y, '#c7ccd6', 38, 5.5);
+        addFloatingText(a.x, a.y - 25, 'ASTEROID DOWN', ownerSide ? players[ownerSide].color : currentTheme.accent3);
+        asteroids.splice(index, 1);
+        beep(95, 0.10, 'sawtooth', 0.05);
+      } else {
+        beep(210, 0.04, 'sawtooth', 0.035);
+      }
+    }
+
+    function findBulletTarget(b) {
+      let best = null;
+      let bestDist = Infinity;
+      for (const a of asteroids) {
+        const ahead = b.owner === 'left' ? a.x > b.x : a.x < b.x;
+        if (!ahead) continue;
+        const d = Math.abs(a.x - b.x) + Math.abs(a.y - b.y) * 2;
+        if (d < bestDist) { best = a; bestDist = d; }
+      }
+      if (!best) {
+        const target = b.owner === 'left' ? players.right : players.left;
+        best = { x: target.x + target.w / 2, y: target.y + target.h / 2 };
+      }
+      return best;
+    }
+
+    function updateBullets(dt) {
+      if (!currentMode.shooting) { bullets = []; return false; }
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+
+        if (b.homing) {
+          const target = findBulletTarget(b);
+          const desired = clamp((target.y - b.y) * 0.035, -3.2, 3.2);
+          b.vy += (desired - b.vy) * 0.08 * dt;
+        }
+
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        b.life -= dt;
+
+        if ((b.y < b.r || b.y > H - b.r) && b.ricochet > 0) {
+          b.y = clamp(b.y, b.r, H - b.r);
+          b.vy *= -1;
+          b.ricochet -= 1;
+          burst(b.x, b.y, b.color, 8, 2.5);
+        }
+
+        if (b.x < -40 || b.x > W + 40 || b.y < -40 || b.y > H + 40 || b.life <= 0) {
+          bullets.splice(i, 1);
+          continue;
+        }
+
+        let bulletRemoved = false;
+        if (collectPowerupsWithCircle(b, b.owner, function () { bulletRemoved = true; })) {
+          bullets.splice(i, 1);
+          continue;
+        }
+
+        for (let j = asteroids.length - 1; j >= 0; j--) {
+          const a = asteroids[j];
+          if (distance(b, a) < b.r + a.r) {
+            hitAsteroid(j, b.asteroidDamage || 1, b.x, b.y, b.owner);
+            if (b.pierce > 0) {
+              b.pierce -= 1;
+              b.vx *= 0.96;
+              b.vy *= 0.96;
+            } else {
+              bullets.splice(i, 1);
+              bulletRemoved = true;
+            }
+            break;
+          }
+        }
+        if (bulletRemoved) continue;
+
+        const targetSide = b.owner === 'left' ? 'right' : 'left';
+        const target = players[targetSide];
+        if (circleRectCollision(b, target)) {
+          if (b.pierce > 0) b.pierce -= 1;
+          else bullets.splice(i, 1);
+          if (damagePlayer(targetSide, b.damage, b.owner, b.x, b.y, b.kind.toUpperCase() + ' HIT')) return true;
+        }
+      }
+      return false;
     }
 
     function handlePaddleCollision(ball, side) {
@@ -694,61 +1021,52 @@ select option {
         burst(ball.x, ball.y, '#ff8b2b', 32, 5.5);
         beep(155, 0.08, 'sawtooth', 0.06);
       } else {
-        beep(430, 0.045, currentThemeKey === 'greenscreen' ? 'square' : 'square', 0.035);
+        beep(430, 0.045, 'square', 0.035);
       }
 
       ball.vx = Math.cos(angle) * speed * direction;
       ball.vy = Math.sin(angle) * speed;
       ball.owner = side;
       ball.color = paddle.color;
-
-      if (side === 'left') ball.x = paddle.x + paddle.w + ball.r + 1;
-      else ball.x = paddle.x - ball.r - 1;
-
+      ball.x = side === 'left' ? paddle.x + paddle.w + ball.r + 1 : paddle.x - ball.r - 1;
       burst(ball.x, ball.y, paddle.color, ball.fire > 0 ? 24 : 12, ball.fire > 0 ? 5 : 3);
       screenShake = Math.max(screenShake, ball.fire > 0 ? 8 : 3);
-    }
-
-    function scoreGoal(scoringSide) {
-      const scoringPlayer = players[scoringSide];
-      scoringPlayer.score += 1;
-      burst(scoringSide === 'left' ? W - 30 : 30, H / 2, scoringPlayer.color, 45, 7);
-      screenShake = 13;
-      beep(190, 0.18, 'triangle', 0.08);
-
-      if (scoringPlayer.score >= WINNING_SCORE) {
-        winnerText = `${scoringPlayer.name} wins!`;
-        state = 'gameover';
-        updateButtons();
-      }
     }
 
     function updateBall(ball, dt) {
       ball.x += ball.vx * dt;
       ball.y += ball.vy * dt;
       if (ball.fire > 0) ball.fire = Math.max(0, ball.fire - dt);
-
       ball.trail.push({ x: ball.x, y: ball.y, color: ball.fire > 0 ? '#ff8b2b' : ball.color });
       if (ball.trail.length > 18) ball.trail.shift();
 
-      if (ball.y - ball.r <= 0 && ball.vy < 0) {
-        ball.y = ball.r; ball.vy *= -1; burst(ball.x, ball.y, currentTheme.accent3, 8, 2.4); beep(260, 0.04, 'sine', 0.025);
-      }
-      if (ball.y + ball.r >= H && ball.vy > 0) {
-        ball.y = H - ball.r; ball.vy *= -1; burst(ball.x, ball.y, currentTheme.accent3, 8, 2.4); beep(260, 0.04, 'sine', 0.025);
-      }
+      if (ball.y - ball.r <= 0 && ball.vy < 0) { ball.y = ball.r; ball.vy *= -1; burst(ball.x, ball.y, currentTheme.accent3, 8, 2.4); beep(260, 0.04, 'sine', 0.025); }
+      if (ball.y + ball.r >= H && ball.vy > 0) { ball.y = H - ball.r; ball.vy *= -1; burst(ball.x, ball.y, currentTheme.accent3, 8, 2.4); beep(260, 0.04, 'sine', 0.025); }
 
       handlePaddleCollision(ball, 'left');
       handlePaddleCollision(ball, 'right');
 
-      for (let i = powerups.length - 1; i >= 0; i--) {
-        const p = powerups[i];
-        const dx = ball.x - p.x;
-        const dy = ball.y - p.y;
-        if (Math.sqrt(dx * dx + dy * dy) < ball.r + p.r) {
-          const owner = ball.owner || (ball.vx > 0 ? 'left' : 'right');
-          activatePowerup(p, owner);
-          powerups.splice(i, 1);
+      const owner = ball.owner || (ball.vx > 0 ? 'left' : 'right');
+      collectPowerupsWithCircle(ball, owner, null);
+
+      for (let i = asteroids.length - 1; i >= 0; i--) {
+        const a = asteroids[i];
+        const dx = ball.x - a.x;
+        const dy = ball.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < ball.r + a.r) {
+          const nx = dx / (dist || 1);
+          const ny = dy / (dist || 1);
+          const dot = ball.vx * nx + ball.vy * ny;
+          ball.vx -= 2 * dot * nx;
+          ball.vy -= 2 * dot * ny;
+          const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+          const boost = ball.fire > 0 ? 1.12 : 1.02;
+          ball.vx = (ball.vx / speed) * clamp(speed * boost, 5.2, 16);
+          ball.vy = (ball.vy / speed) * clamp(speed * boost, 5.2, 16);
+          hitAsteroid(i, ball.fire > 0 ? 2 : 1, ball.x, ball.y, owner);
+          screenShake = Math.max(screenShake, ball.fire > 0 ? 7 : 4);
+          break;
         }
       }
 
@@ -763,8 +1081,7 @@ select option {
           beep(620, 0.12, 'triangle', 0.06);
           return false;
         }
-        scoreGoal('right');
-        return true;
+        return scorePoint('right', 'GOAL');
       }
 
       if (ball.x > W + ball.r) {
@@ -778,23 +1095,53 @@ select option {
           beep(620, 0.12, 'triangle', 0.06);
           return false;
         }
-        scoreGoal('left');
-        return true;
+        return scorePoint('left', 'GOAL');
       }
-
       return false;
     }
 
     function updatePowerups(dt) {
+      if (!currentMode.powerups) { powerups = []; return; }
       powerupCooldown -= dt;
-      if (powerupCooldown <= 0 && powerups.length < 3) {
+      if (powerupCooldown <= 0 && powerups.length < 5) {
         spawnPowerup();
-        powerupCooldown = rand(420, 680);
+        powerupCooldown = rand(250, 430);
       }
       for (let i = powerups.length - 1; i >= 0; i--) {
         powerups[i].life -= dt;
         if (powerups[i].life <= 0) powerups.splice(i, 1);
       }
+    }
+
+    function updateAsteroids(dt) {
+      if (!currentMode.asteroids || !hazardsEnabled) { asteroids = []; return false; }
+      asteroidCooldown -= dt;
+      if (asteroidCooldown <= 0 && asteroids.length < 3) {
+        spawnAsteroid();
+        asteroidCooldown = rand(260, 520);
+      }
+
+      for (let i = asteroids.length - 1; i >= 0; i--) {
+        const a = asteroids[i];
+        a.x += a.vx * dt;
+        a.y += a.vy * dt;
+        a.rot += a.spin * dt;
+        a.life -= dt;
+        if (a.life <= 0 || a.x < -90 || a.x > W + 90 || a.y < -90 || a.y > H + 90) {
+          asteroids.splice(i, 1);
+          continue;
+        }
+        if (circleRectCollision(a, players.left)) {
+          asteroids.splice(i, 1);
+          if (damagePlayer('left', a.damage || 36, 'right', a.x, a.y, 'ASTEROID CRASH')) return true;
+          continue;
+        }
+        if (circleRectCollision(a, players.right)) {
+          asteroids.splice(i, 1);
+          if (damagePlayer('right', a.damage || 36, 'left', a.x, a.y, 'ASTEROID CRASH')) return true;
+        }
+      }
+      return false;
     }
 
     function updateParticles(dt) {
@@ -818,16 +1165,16 @@ select option {
     function updateStars(dt) {
       for (const s of stars) {
         s.x -= s.speed * dt;
-        if (s.x < 0) {
-          s.x = W;
-          s.y = Math.random() * H;
-        }
+        if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
       }
     }
 
     function update(dt) {
+      roundScored = false;
       if (state !== 'playing') {
-        updateParticles(dt); updateStars(dt); return;
+        updateParticles(dt);
+        updateStars(dt);
+        return;
       }
 
       frame += dt;
@@ -835,25 +1182,16 @@ select option {
       updateEffects(players.left, dt);
       updateEffects(players.right, dt);
       movePaddles(dt);
+      handleShooting(dt);
       updatePowerups(dt);
+      if (updateBullets(dt)) { updateParticles(dt); return; }
+      if (updateAsteroids(dt)) { updateParticles(dt); return; }
 
-      let lastScoringSide = null;
       for (let i = balls.length - 1; i >= 0; i--) {
-        const beforeX = balls[i].x;
-        const scored = updateBall(balls[i], dt);
-        if (scored) {
-          lastScoringSide = beforeX < W / 2 ? 'right' : 'left';
-          balls.splice(i, 1);
-        }
-      }
-
-      if (state === 'playing' && balls.length === 0) {
-        const direction = lastScoringSide === 'left' ? 1 : -1;
-        balls.push(createBall(direction));
+        if (updateBall(balls[i], dt)) { updateParticles(dt); return; }
       }
 
       updateParticles(dt);
-
       if (screenShake > 0) {
         screenShake *= 0.88;
         if (screenShake < 0.3) screenShake = 0;
@@ -863,16 +1201,10 @@ select option {
     function roundedRectPath(x, y, w, h, r) {
       r = Math.min(r, w / 2, h / 2);
       ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
+      ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
     }
 
     function drawBackground() {
@@ -886,21 +1218,16 @@ select option {
       for (const s of stars) {
         ctx.globalAlpha = s.alpha;
         ctx.fillStyle = currentTheme.starColor;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
       }
       ctx.globalAlpha = 1;
 
       ctx.save();
       ctx.strokeStyle = currentTheme.grid;
       ctx.lineWidth = 1;
-      for (let x = 0; x <= W; x += currentThemeKey === 'arcade80s' ? 50 : 60) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      }
-      for (let y = 0; y <= H; y += currentThemeKey === 'arcade80s' ? 50 : 60) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      }
+      const spacing = currentThemeKey === 'arcade80s' ? 50 : 60;
+      for (let x = 0; x <= W; x += spacing) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y <= H; y += spacing) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
       ctx.restore();
 
       if (currentTheme.vignette) {
@@ -910,14 +1237,9 @@ select option {
         ctx.fillStyle = vignette;
         ctx.fillRect(0, 0, W, H);
       }
-
       if (currentTheme.useScanlines) {
-        ctx.save();
-        ctx.globalAlpha = 0.10;
-        ctx.fillStyle = currentTheme.accent1;
-        for (let y = 0; y < H; y += 4) {
-          ctx.fillRect(0, y, W, 1);
-        }
+        ctx.save(); ctx.globalAlpha = 0.10; ctx.fillStyle = currentTheme.accent1;
+        for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 1);
         ctx.restore();
       }
     }
@@ -927,103 +1249,122 @@ select option {
       ctx.strokeStyle = currentTheme.centerLine;
       ctx.lineWidth = 2;
       ctx.setLineDash(currentTheme.netDash);
-      ctx.beginPath();
-      ctx.moveTo(W / 2, 25);
-      ctx.lineTo(W / 2, H - 25);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W / 2, 25); ctx.lineTo(W / 2, H - 25); ctx.stroke();
       ctx.setLineDash([]);
-
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = currentTheme.accent1;
-      ctx.strokeStyle = currentTheme.glow1;
-      ctx.lineWidth = 2;
-      roundedRectPath(15, 15, W - 30, H - 30, 16);
-      ctx.stroke();
-
-      ctx.shadowColor = currentTheme.accent2;
-      ctx.strokeStyle = currentTheme.glow2;
-      roundedRectPath(24, 24, W - 48, H - 48, 12);
-      ctx.stroke();
+      ctx.shadowBlur = 18; ctx.shadowColor = currentTheme.accent1; ctx.strokeStyle = currentTheme.glow1; ctx.lineWidth = 2;
+      roundedRectPath(15, 15, W - 30, H - 30, 16); ctx.stroke();
+      ctx.shadowColor = currentTheme.accent2; ctx.strokeStyle = currentTheme.glow2;
+      roundedRectPath(24, 24, W - 48, H - 48, 12); ctx.stroke();
       ctx.restore();
     }
 
     function drawScores() {
       ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.font = currentThemeKey === 'greenscreen' ? 'bold 84px Courier New' : 'bold 92px Arial';
-      ctx.fillStyle = `rgba(255,255,255,${currentTheme.scoreAlpha})`;
+      ctx.fillStyle = 'rgba(255,255,255,' + currentTheme.scoreAlpha + ')';
       ctx.fillText(players.left.score, W * 0.28, 88);
       ctx.fillText(players.right.score, W * 0.72, 88);
-
       ctx.font = currentThemeKey === 'greenscreen' ? 'bold 17px Courier New' : 'bold 18px Arial';
-      ctx.fillStyle = players.left.color;
-      ctx.fillText('PLAYER 1', W * 0.28, 34);
-      ctx.fillStyle = players.right.color;
-      ctx.fillText(aiEnabled ? 'AI / PLAYER 2' : 'PLAYER 2', W * 0.72, 34);
+      ctx.fillStyle = players.left.color; ctx.fillText('PLAYER 1', W * 0.28, 34);
+      ctx.fillStyle = players.right.color; ctx.fillText(aiEnabled ? 'AI / PLAYER 2' : 'PLAYER 2', W * 0.72, 34);
+      ctx.restore();
+    }
+
+    function drawHealthBars() {
+      drawHealthBar(players.left, 45, 52, 'left');
+      drawHealthBar(players.right, W - 215, 52, 'right');
+    }
+
+    function drawHealthBar(p, x, y, side) {
+      const w = 170;
+      const h = 12;
+      const pct = clamp(p.health / p.maxHealth, 0, 1);
+      ctx.save();
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = p.color;
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      roundedRectPath(x, y, w, h, 7); ctx.fill();
+      ctx.fillStyle = pct > 0.45 ? p.color : '#ff4d6d';
+      roundedRectPath(x, y, w * pct, h, 7); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.34)'; ctx.lineWidth = 1;
+      roundedRectPath(x, y, w, h, 7); ctx.stroke();
+      ctx.font = 'bold 11px Arial';
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = side === 'left' ? 'left' : 'right';
+      ctx.fillStyle = currentTheme.text;
+      ctx.fillText('HP ' + Math.round(p.health), side === 'left' ? x : x + w, y + 24);
       ctx.restore();
     }
 
     function drawShield(p, side) {
       if (!p.shield) return;
       ctx.save();
-      ctx.globalAlpha = 0.55;
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = p.color;
-      ctx.strokeStyle = p.color;
-      ctx.lineWidth = 7;
+      ctx.globalAlpha = 0.55; ctx.shadowBlur = 18; ctx.shadowColor = p.color; ctx.strokeStyle = p.color; ctx.lineWidth = 7;
       ctx.beginPath();
-      if (side === 'left') {
-        ctx.moveTo(18, 70); ctx.lineTo(18, H - 70);
-      } else {
-        ctx.moveTo(W - 18, 70); ctx.lineTo(W - 18, H - 70);
-      }
+      if (side === 'left') { ctx.moveTo(18, 70); ctx.lineTo(18, H - 70); }
+      else { ctx.moveTo(W - 18, 70); ctx.lineTo(W - 18, H - 70); }
       ctx.stroke();
       ctx.restore();
     }
 
     function drawPaddle(p) {
       ctx.save();
-      const glowColor = p.effects.fire > 0 ? '#ff8b2b' : p.color;
+      const healthPct = currentMode.health ? clamp(p.health / p.maxHealth, 0, 1) : 1;
+      const lowHealth = currentMode.health && healthPct < 0.34;
+      const glowColor = lowHealth ? '#ff4d6d' : (p.effects.fire > 0 ? '#ff8b2b' : p.color);
       ctx.shadowColor = glowColor;
-      ctx.shadowBlur = p.effects.fire > 0 ? 34 : 20;
+      ctx.shadowBlur = lowHealth ? 34 : (p.effects.fire > 0 ? 34 : 20);
 
-      let grad;
+      const grad = ctx.createLinearGradient(p.x, p.y, p.x + p.w, p.y + p.h);
       if (currentThemeKey === 'greenscreen') {
-        grad = ctx.createLinearGradient(p.x, p.y, p.x, p.y + p.h);
-        grad.addColorStop(0, '#d6ffd9');
-        grad.addColorStop(1, p.color);
+        grad.addColorStop(0, healthPct < 0.35 ? '#ffb4b4' : '#d6ffd9');
+        grad.addColorStop(1, healthPct < 0.35 ? '#ff4d6d' : p.color);
       } else {
-        grad = ctx.createLinearGradient(p.x, p.y, p.x + p.w, p.y + p.h);
         grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.45, p.color);
-        grad.addColorStop(1, '#ffffff');
+        grad.addColorStop(0.40, healthPct < 0.35 ? '#ff4d6d' : p.color);
+        grad.addColorStop(1, healthPct < 0.35 ? '#ffb4b4' : '#ffffff');
       }
       ctx.fillStyle = grad;
 
       if (currentTheme.paddleStyle === 'rect') ctx.fillRect(p.x, p.y, p.w, p.h);
-      else {
-        roundedRectPath(p.x, p.y, p.w, p.h, 9);
-        ctx.fill();
+      else { roundedRectPath(p.x, p.y, p.w, p.h, 9); ctx.fill(); }
+
+      // The paddle itself is the health display: lower health = shorter paddle.
+      // These damage ticks are only drawn on the paddle, not as separate health bars.
+      if (currentMode.health) {
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = healthPct < 0.45 ? '#ff4d6d' : 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = 1;
+        const tickCount = 4;
+        for (let i = 1; i < tickCount; i++) {
+          const yy = p.y + (p.h / tickCount) * i;
+          ctx.beginPath();
+          ctx.moveTo(p.x + 2, yy);
+          ctx.lineTo(p.x + p.w - 2, yy + (i % 2 === 0 ? 3 : -3));
+          ctx.stroke();
+        }
+        ctx.restore();
       }
 
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = lowHealth ? 3 : 2;
+      ctx.strokeStyle = lowHealth ? '#ff4d6d' : 'rgba(255,255,255,0.55)';
       if (currentTheme.paddleStyle === 'rect') ctx.strokeRect(p.x, p.y, p.w, p.h);
-      else {
-        roundedRectPath(p.x, p.y, p.w, p.h, 9);
-        ctx.stroke();
+      else { roundedRectPath(p.x, p.y, p.w, p.h, 9); ctx.stroke(); }
+
+      if (p.effects.armour > 0) {
+        ctx.globalAlpha = 0.75;
+        ctx.strokeStyle = '#93c5fd';
+        ctx.lineWidth = 3;
+        if (currentTheme.paddleStyle === 'rect') ctx.strokeRect(p.x - 7, p.y - 7, p.w + 14, p.h + 14);
+        else { roundedRectPath(p.x - 7, p.y - 7, p.w + 14, p.h + 14, 13); ctx.stroke(); }
       }
 
       if (p.effects.fire > 0) {
-        ctx.globalAlpha = 0.75;
-        ctx.strokeStyle = '#ff8b2b';
-        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.75; ctx.strokeStyle = '#ff8b2b'; ctx.lineWidth = 3;
         if (currentTheme.paddleStyle === 'rect') ctx.strokeRect(p.x - 5, p.y - 5, p.w + 10, p.h + 10);
-        else {
-          roundedRectPath(p.x - 5, p.y - 5, p.w + 10, p.h + 10, 12);
-          ctx.stroke();
-        }
+        else { roundedRectPath(p.x - 5, p.y - 5, p.w + 10, p.h + 10, 12); ctx.stroke(); }
       }
       ctx.restore();
     }
@@ -1031,90 +1372,103 @@ select option {
     function drawBall(ball) {
       ctx.save();
       for (let i = 0; i < ball.trail.length; i++) {
-        const t = ball.trail[i];
-        const alpha = i / ball.trail.length;
-        ctx.globalAlpha = alpha * 0.32;
-        ctx.fillStyle = ball.fire > 0 ? '#ff8b2b' : t.color;
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, ball.r * (0.45 + alpha), 0, Math.PI * 2);
-        ctx.fill();
+        const t = ball.trail[i]; const alpha = i / ball.trail.length;
+        ctx.globalAlpha = alpha * 0.32; ctx.fillStyle = ball.fire > 0 ? '#ff8b2b' : t.color;
+        ctx.beginPath(); ctx.arc(t.x, t.y, ball.r * (0.45 + alpha), 0, Math.PI * 2); ctx.fill();
       }
-
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = ball.fire > 0 ? 28 : 18;
-      ctx.shadowColor = ball.fire > 0 ? '#ff8b2b' : ball.color;
+      ctx.globalAlpha = 1; ctx.shadowBlur = ball.fire > 0 ? 28 : 18; ctx.shadowColor = ball.fire > 0 ? '#ff8b2b' : ball.color;
       const grad = ctx.createRadialGradient(ball.x - 3, ball.y - 3, 2, ball.x, ball.y, ball.fire > 0 ? ball.r * 2.5 : ball.r * 1.7);
-      if (ball.fire > 0) {
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.35, '#ffe0a3');
-        grad.addColorStop(0.7, '#ff8b2b');
-        grad.addColorStop(1, '#ff2a00');
-      } else {
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.45, ball.color);
-        grad.addColorStop(1, currentTheme.accent2);
-      }
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(ball.x, ball.y, ball.fire > 0 ? ball.r + 2 : ball.r, 0, Math.PI * 2);
-      ctx.fill();
+      if (ball.fire > 0) { grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.35, '#ffe0a3'); grad.addColorStop(0.7, '#ff8b2b'); grad.addColorStop(1, '#ff2a00'); }
+      else { grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.45, ball.color); grad.addColorStop(1, currentTheme.accent2); }
+      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.fire > 0 ? ball.r + 2 : ball.r, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
+    }
+
+    function drawBullets() {
+      for (const b of bullets) {
+        ctx.save();
+        ctx.shadowBlur = b.kind === 'laser' ? 24 : (b.fire ? 18 : 12);
+        ctx.shadowColor = b.color;
+        ctx.strokeStyle = b.color;
+        ctx.lineWidth = b.kind === 'cannon' ? 7 : (b.kind === 'laser' ? 4 : (b.fire ? 5 : 3));
+        const dir = Math.sign(b.vx) || 1;
+        ctx.beginPath();
+        ctx.moveTo(b.x - dir * (b.width || 16), b.y);
+        ctx.lineTo(b.x + dir * 7, b.y);
+        ctx.stroke();
+        ctx.fillStyle = b.kind === 'cannon' ? b.color : '#ffffff';
+        ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
+        if (b.homing) {
+          ctx.strokeStyle = '#a78bfa';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(b.x, b.y, b.r + 5, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawAsteroids() {
+      for (const a of asteroids) {
+        ctx.save();
+        ctx.translate(a.x, a.y);
+        ctx.rotate(a.rot);
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = 'rgba(255,255,255,0.45)';
+        ctx.fillStyle = currentThemeKey === 'greenscreen' ? 'rgba(103,255,128,0.20)' : 'rgba(170,178,190,0.78)';
+        ctx.strokeStyle = currentThemeKey === 'greenscreen' ? currentTheme.accent1 : '#d6dae2';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < a.shape.length; i++) {
+          const angle = (i / a.shape.length) * Math.PI * 2;
+          const rr = a.r * a.shape[i];
+          const x = Math.cos(angle) * rr;
+          const y = Math.sin(angle) * rr;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.globalAlpha = 0.85;
+        ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+        ctx.beginPath(); ctx.moveTo(-a.r * 0.4, -a.r * 0.1); ctx.lineTo(a.r * 0.3, a.r * 0.2); ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.rotate(-a.rot);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(a.hp + '/' + a.maxHp, 0, 0);
+        ctx.restore();
+      }
     }
 
     function drawPowerups() {
       for (const p of powerups) {
         const pulse = Math.sin(frame * 0.06 + p.pulse) * 4;
         const alpha = clamp(p.life / 100, 0.35, 1);
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.shadowBlur = 24;
-        ctx.shadowColor = p.type.color;
-        ctx.fillStyle = 'rgba(5,6,16,0.88)';
-        ctx.strokeStyle = p.type.color;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r + pulse, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = currentThemeKey === 'greenscreen' ? 'bold 12px Courier New' : 'bold 12px Arial';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(p.type.label, p.x, p.y + 1);
+        ctx.save(); ctx.globalAlpha = alpha; ctx.shadowBlur = 24; ctx.shadowColor = p.type.color;
+        ctx.fillStyle = 'rgba(5,6,16,0.88)'; ctx.strokeStyle = p.type.color; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r + pulse, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = currentThemeKey === 'greenscreen' ? 'bold 11px Courier New' : 'bold 11px Arial';
+        ctx.fillStyle = '#ffffff'; ctx.fillText(p.type.label, p.x, p.y + 1);
         ctx.restore();
       }
     }
 
     function drawParticles() {
       for (const p of particles) {
-        ctx.save();
-        ctx.globalAlpha = clamp(p.life / 60, 0, 1);
-        ctx.fillStyle = p.color;
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        ctx.save(); ctx.globalAlpha = clamp(p.life / 60, 0, 1); ctx.fillStyle = p.color; ctx.shadowBlur = 12; ctx.shadowColor = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
       }
       for (const t of floatingText) {
-        ctx.save();
-        ctx.globalAlpha = clamp(t.life / 70, 0, 1);
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.save(); ctx.globalAlpha = clamp(t.life / 70, 0, 1); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.font = currentThemeKey === 'greenscreen' ? 'bold 17px Courier New' : 'bold 17px Arial';
-        ctx.fillStyle = t.color;
-        ctx.shadowBlur = 14;
-        ctx.shadowColor = t.color;
-        ctx.fillText(t.text, t.x, t.y);
-        ctx.restore();
+        ctx.fillStyle = t.color; ctx.shadowBlur = 14; ctx.shadowColor = t.color; ctx.fillText(t.text, t.x, t.y); ctx.restore();
       }
     }
 
     function drawEffectBadges() {
       ctx.save();
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
       ctx.font = currentThemeKey === 'greenscreen' ? 'bold 13px Courier New' : 'bold 13px Arial';
       drawBadgesForPlayer(players.left, 35, H - 32, 'left');
       ctx.textAlign = 'right';
@@ -1122,70 +1476,26 @@ select option {
       ctx.restore();
     }
 
-    function drawBadgesForPlayer(p, x, y, side) {
+    function drawBadgesForPlayer(p, x, y) {
       const badges = [];
       if (p.effects.big > 0) badges.push('BIG');
       if (p.effects.small > 0) badges.push('MINI');
       if (p.effects.fire > 0) badges.push('FIRE');
+      if (p.effects.speed > 0) badges.push('SPEED');
+      if (p.effects.rapid > 0) badges.push('RAPID');
+      if (p.effects.triple > 0) badges.push('3SHOT');
+      if (p.effects.shotgun > 0) badges.push('SHOTGUN');
+      if (p.effects.laser > 0) badges.push('LASER');
+      if (p.effects.cannon > 0) badges.push('CANNON');
+      if (p.effects.homing > 0) badges.push('HOMING');
+      if (p.effects.ricochet > 0) badges.push('BOUNCE');
+      if (p.effects.pierce > 0) badges.push('PIERCE');
+      if (p.effects.armour > 0) badges.push('ARMOUR');
+      if (p.effects.regen > 0) badges.push('REGEN');
       if (p.shield) badges.push('SHIELD');
       if (badges.length === 0) return;
-      ctx.fillStyle = p.color;
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = p.color;
-      const text = badges.join('  ');
-      ctx.fillText(text, x, y);
-    }
-
-    function drawOverlay() {
-      if (state === 'playing') return;
-      ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.fillRect(0, 0, W, H);
-      ctx.shadowBlur = 30;
-      ctx.shadowColor = currentTheme.accent1;
-      ctx.fillStyle = currentTheme.overlayPanel;
-      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-      ctx.lineWidth = 2;
-      roundedRectPath(W / 2 - 230, H / 2 - 120, 460, 240, 20);
-      ctx.fill();
-      ctx.stroke();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      const bigFont = currentThemeKey === 'greenscreen' ? 'bold 40px Courier New' : 'bold 42px Arial';
-      const midFont = currentThemeKey === 'greenscreen' ? 'bold 44px Courier New' : 'bold 48px Arial';
-      const smallFont = currentThemeKey === 'greenscreen' ? '18px Courier New' : '18px Arial';
-      const winnerFont = currentThemeKey === 'greenscreen' ? 'bold 22px Courier New' : 'bold 24px Arial';
-
-      if (state === 'menu') {
-        ctx.font = bigFont;
-        ctx.fillStyle = currentTheme.text;
-        ctx.fillText(currentTheme.title, W / 2, H / 2 - 50);
-        ctx.font = smallFont;
-        ctx.fillStyle = currentTheme.muted;
-        ctx.fillText('Press SPACE or click Start', W / 2, H / 2 + 2);
-        ctx.fillText(`First to ${WINNING_SCORE} wins`, W / 2, H / 2 + 35);
-      }
-      if (state === 'paused') {
-        ctx.font = midFont;
-        ctx.fillStyle = currentTheme.text;
-        ctx.fillText('PAUSED', W / 2, H / 2 - 35);
-        ctx.font = smallFont;
-        ctx.fillStyle = currentTheme.muted;
-        ctx.fillText('Press SPACE to continue', W / 2, H / 2 + 22);
-      }
-      if (state === 'gameover') {
-        ctx.font = midFont;
-        ctx.fillStyle = currentTheme.text;
-        ctx.fillText('GAME OVER', W / 2, H / 2 - 50);
-        ctx.font = winnerFont;
-        ctx.fillStyle = currentTheme.accent3;
-        ctx.fillText(winnerText, W / 2, H / 2 - 3);
-        ctx.font = smallFont;
-        ctx.fillStyle = currentTheme.muted;
-        ctx.fillText('Press R or click New Game', W / 2, H / 2 + 42);
-      }
-      ctx.restore();
+      ctx.fillStyle = p.color; ctx.shadowBlur = 12; ctx.shadowColor = p.color;
+      ctx.fillText(badges.join('  '), x, y);
     }
 
     function drawCrtEffects() {
@@ -1194,22 +1504,51 @@ select option {
       const glow = ctx.createRadialGradient(W / 2, H / 2, H / 6, W / 2, H / 2, W * 0.7);
       glow.addColorStop(0, 'rgba(103,255,128,0)');
       glow.addColorStop(1, 'rgba(0,0,0,0.25)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H); ctx.restore();
+    }
+
+    function drawOverlay() {
+      if (state === 'playing') return;
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, W, H);
+      ctx.shadowBlur = 30; ctx.shadowColor = currentTheme.accent1; ctx.fillStyle = currentTheme.overlayPanel;
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 2;
+      roundedRectPath(W / 2 - 245, H / 2 - 130, 490, 260, 20); ctx.fill(); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const bigFont = currentThemeKey === 'greenscreen' ? 'bold 38px Courier New' : 'bold 40px Arial';
+      const midFont = currentThemeKey === 'greenscreen' ? 'bold 44px Courier New' : 'bold 48px Arial';
+      const smallFont = currentThemeKey === 'greenscreen' ? '17px Courier New' : '17px Arial';
+      if (state === 'menu') {
+        ctx.font = bigFont; ctx.fillStyle = currentTheme.text; ctx.fillText(currentTheme.title, W / 2, H / 2 - 68);
+        ctx.font = smallFont; ctx.fillStyle = currentTheme.muted;
+        ctx.fillText(currentMode.description, W / 2, H / 2 - 24);
+        ctx.fillText('Press SPACE or click Start', W / 2, H / 2 + 18);
+        ctx.fillText('First to ' + WINNING_SCORE + ' wins', W / 2, H / 2 + 52);
+      }
+      if (state === 'paused') {
+        ctx.font = midFont; ctx.fillStyle = currentTheme.text; ctx.fillText('PAUSED', W / 2, H / 2 - 35);
+        ctx.font = smallFont; ctx.fillStyle = currentTheme.muted; ctx.fillText('Press SPACE to continue', W / 2, H / 2 + 22);
+      }
+      if (state === 'gameover') {
+        ctx.font = midFont; ctx.fillStyle = currentTheme.text; ctx.fillText('GAME OVER', W / 2, H / 2 - 50);
+        ctx.font = currentThemeKey === 'greenscreen' ? 'bold 22px Courier New' : 'bold 24px Arial';
+        ctx.fillStyle = currentTheme.accent3; ctx.fillText(winnerText, W / 2, H / 2 - 3);
+        ctx.font = smallFont; ctx.fillStyle = currentTheme.muted; ctx.fillText('Press R or click New Game', W / 2, H / 2 + 42);
+      }
       ctx.restore();
     }
 
     function draw() {
       drawBackground();
       ctx.save();
-      if (screenShake > 0) {
-        ctx.translate(rand(-screenShake, screenShake), rand(-screenShake, screenShake));
-      }
+      if (screenShake > 0) ctx.translate(rand(-screenShake, screenShake), rand(-screenShake, screenShake));
       drawArena();
       drawScores();
       drawShield(players.left, 'left');
       drawShield(players.right, 'right');
-      drawPowerups();
+      if (currentMode.powerups) drawPowerups();
+      if (currentMode.asteroids) drawAsteroids();
+      if (currentMode.shooting) drawBullets();
       drawPaddle(players.left);
       drawPaddle(players.right);
       for (const ball of balls) drawBall(ball);
@@ -1230,7 +1569,7 @@ select option {
     }
 
     window.addEventListener('keydown', function (e) {
-      if (['ArrowUp', 'ArrowDown', ' '].includes(e.key)) e.preventDefault();
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', ' '].includes(e.key)) e.preventDefault();
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       keys[key] = true;
       if (e.repeat) return;
@@ -1238,6 +1577,8 @@ select option {
       if (e.code === 'Space') startOrPause();
       if (key === 'r') newMatch(true);
       if (key === 'a') toggleAI();
+      if (key === 'g') cycleMode();
+      if (key === 'h') toggleHazards();
       if (key === 'm') toggleSound();
       if (key === 't') randomTheme();
     });
@@ -1249,12 +1590,15 @@ select option {
 
     startPauseBtn.addEventListener('click', startOrPause);
     restartBtn.addEventListener('click', function () { initAudio(); newMatch(true); });
+    modeSelect.addEventListener('change', function () { initAudio(); setMode(this.value); });
     aiBtn.addEventListener('click', function () { initAudio(); toggleAI(); });
+    hazardsBtn.addEventListener('click', function () { initAudio(); toggleHazards(); });
     muteBtn.addEventListener('click', toggleSound);
     randomThemeBtn.addEventListener('click', function () { initAudio(); randomTheme(); });
     themeSelect.addEventListener('change', function () { applyTheme(this.value); });
 
     applyTheme('neon');
+    setMode('asteroid', false);
     newMatch(false);
     requestAnimationFrame(gameLoop);
   </script>
