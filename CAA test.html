@@ -592,6 +592,19 @@ function applyAccessibility(){
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function themeName(id){return THEME_MAP[id]?.name||id;}
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function optionOrder(q){
+ if(q.type!=="mcq")return [];
+ if(!session)return q.options.map((_,i)=>i);
+ if(!session.optionOrders)session.optionOrders={};
+ const key=`${session.index}:${q.id}`;
+ if(!session.optionOrders[key])session.optionOrders[key]=shuffle(q.options.map((_,i)=>i));
+ return session.optionOrders[key];
+}
+function shuffledMcqCopy(q){
+ if(q.type!=="mcq")return q;
+ const order=shuffle(q.options.map((_,i)=>i));
+ return {...q,options:order.map(i=>q.options[i]),answerIndex:order.indexOf(q.answerIndex)};
+}
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
 function enabledThemes(){
  const e=state.settings.enabledThemes.filter(id=>THEME_MAP[id]);
@@ -709,7 +722,7 @@ function renderPracticeLanding(){
 function startSession(area){
  const qs=selectQuestions(area,state.settings.sessionLength);
  if(!qs.length){alert("No questions are available with the current teacher settings.");return;}
- session={area,questions:qs.map(q=>q.id),index:0,score:0,answered:false,selected:null,hints:0,started:Date.now()};
+ session={area,questions:qs.map(q=>q.id),index:0,score:0,answered:false,selected:null,hints:0,optionOrders:{},started:Date.now()};
  renderQuestion();
 }
 function renderQuestion(){
@@ -748,7 +761,10 @@ function renderQuestion(){
  document.getElementById("quitBtn").addEventListener("click",finishSession);
 }
 function answerUI(q){
- if(q.type==="mcq")return `<div class="options">${q.options.map((o,i)=>`<button class="option" data-index="${i}"><span class="letter">${String.fromCharCode(65+i)}</span><span>${esc(o)}</span></button>`).join("")}</div>`;
+ if(q.type==="mcq"){
+  const order=optionOrder(q);
+  return `<div class="options">${order.map((optionIndex,displayIndex)=>`<button class="option" data-index="${optionIndex}"><span class="letter">${String.fromCharCode(65+displayIndex)}</span><span>${esc(q.options[optionIndex])}</span></button>`).join("")}</div>`;
+ }
  if(q.type==="numeric")return `<label class="field"><span class="muted">Enter a number${q.unit?` (${esc(q.unit)})`:""}:</span><input class="answer-input" id="numericAnswer" inputmode="decimal" autocomplete="off"></label>`;
  return `<textarea class="textarea" id="writingAnswer" placeholder="Write your response here..."></textarea><div class="small muted">This practice tool does not pretend to auto-grade extended writing. Use the reflection checklist to judge and improve the response.</div>`;
 }
@@ -759,7 +775,7 @@ function checkAnswer(q){
  if(q.type==="mcq"){
   if(session.selected===null){showInline("Choose an option first.","bad");return;}
   userAnswer=session.selected;correct=userAnswer===q.answerIndex;
-  document.querySelectorAll(".option").forEach((b,i)=>{b.classList.remove("selected");if(i===q.answerIndex)b.classList.add("correct");else if(i===userAnswer)b.classList.add("incorrect");b.disabled=true;});
+  document.querySelectorAll(".option").forEach(b=>{b.classList.remove("selected");const originalIndex=+b.dataset.index;if(originalIndex===q.answerIndex)b.classList.add("correct");else if(originalIndex===userAnswer)b.classList.add("incorrect");b.disabled=true;});
  }else{
   const input=document.getElementById("numericAnswer");const n=normaliseNumber(input.value);
   if(!Number.isFinite(n)){showInline("Enter a number first.","bad");return;}
@@ -977,7 +993,7 @@ function validateBank(){
  return {errors,numericChecked,log};
 }
 function printTest(area){
- const questions=selectQuestions(area,12);
+ const questions=selectQuestions(area,12).map(shuffledMcqCopy);
  const testHTML=questions.map((q,i)=>`<section class="paper-q"><h3>${i+1}. ${esc(q.prompt)}</h3>${q.stimulus?`<div class="stimulus"><strong>${esc(q.stimulusTitle)}</strong><br>${esc(q.stimulus)}</div>`:""}${q.type==="mcq"?q.options.map((o,j)=>`<div>${String.fromCharCode(65+j)}. ${esc(o)}</div>`).join(""):q.type==="numeric"?`<p>Answer: __________________ ${esc(q.unit||"")}</p>`:`<div style="height:180px;border:1px solid #bbb"></div>`}</section>`).join("");
  const keyHTML=questions.map((q,i)=>`<section><p><strong>${i+1}.</strong> ${q.type==="mcq"?esc(q.options[q.answerIndex]):q.type==="numeric"?`${trimNumber(q.answer)} ${esc(q.unit||"")}`:"Teacher/self review using content, language choices, organisation and accuracy."}${q.rationale?`<br><span>${esc(q.rationale)}</span>`:""}</p></section>`).join("");
  const shieldSrc=document.querySelector(".school-shield")?.src||"";
